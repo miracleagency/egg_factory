@@ -646,7 +646,7 @@ window.EggGameModules.logic = {
                 continue;
             }
             const duration = Math.max(1, def.brokenDurationMs || 20000);
-            const secondsVisual = 10 * (msLeft / duration);
+            const secondsVisual = 20 * (msLeft / duration);
             this.setMachineBrokenVisual(def, true, secondsVisual);
         }
     },
