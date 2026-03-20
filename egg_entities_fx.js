@@ -99,6 +99,20 @@ window.EggGameModules.entitiesFx = {
             container.add(shadow);
         }
 
+        if (eggType.armored) {
+            const shell = this.add.ellipse(0, 0, 24, 32, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
+            const band = this.add.rectangle(0, 0, 18, 24, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
+            const rivets = [
+                this.add.circle(-8, -8, 2.2, 0xe4eaf1, 1),
+                this.add.circle(8, -8, 2.2, 0xe4eaf1, 1),
+                this.add.circle(-8, 8, 2.2, 0xe4eaf1, 1),
+                this.add.circle(8, 8, 2.2, 0xe4eaf1, 1)
+            ];
+            const shine = this.add.ellipse(-5, -8, 5, 8, 0xffffff, 0.22);
+            container.add([shell, band, ...rivets, shine]);
+            return { container, body: shell };
+        }
+
         const body = this.add.ellipse(0, 0, 22, 30, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
         const shine = this.add.ellipse(-4, -6, 5, 8, 0xffffff, 0.35);
         container.add([body, shine]);

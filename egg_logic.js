@@ -61,8 +61,8 @@ window.EggGameModules.logic = {
     placeLine1Pillow(color, multiplier) {
         const slotIndex = this.getLine1FirstVisibleSlotIndex();
         const cost = this.bet * multiplier;
-        if (this.balance < cost) return;
-        if (this.line1Pillows.has(slotIndex)) return;
+        if (this.balance < cost) return false;
+        if (this.line1Pillows.has(slotIndex)) return false;
 
         const pillow = this.createTravelPillow(color, cost, multiplier, this.bet);
         pillow.slotIndex = slotIndex;
@@ -73,6 +73,7 @@ window.EggGameModules.logic = {
 
         this.balance -= cost;
         this.updatePillowButtonLabels();
+        return true;
     },
 
     computeNextEggSpawnClock(dropXGetter, fromClock, first = false) {
@@ -140,6 +141,10 @@ window.EggGameModules.logic = {
                 pillow.eggs.push(egg.typeData);
                 pillow.eggMultSum += egg.typeData.mult;
                 pillow.currentValue += pillow.spentCost * egg.typeData.mult;
+                if (egg.typeData.armored) {
+                    pillow.armored = true;
+                    pillow.permanentTextColor = "#d8e3ef";
+                }
                 egg.container.removeFromDisplayList();
                 pillow.container.add(egg.container);
 
@@ -366,6 +371,13 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "fire") {
+            if (item.armored) {
+                this.flashValueText(item, "#d8e3ef");
+                this.spawnImpactFx(item.container.x, item.container.y - 6, 0xc8d0db);
+                this.pulseItem(item);
+                return;
+            }
+
             if (item.wet) {
                 item.wet = false;
                 this.clearWetFx(item);
