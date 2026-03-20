@@ -260,12 +260,12 @@ window.EggGameModules.logic = {
             maxSkip = 2;
         } else if (def.type === "crush") {
             minSkip = 1;
-            maxSkip = 2;
+            maxSkip = 1;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
             minSkip = 0;
-            maxSkip = 1;
+            maxSkip = 0;
         } else if (def.rarity === "gold") {
             minSkip = def.fastGold ? 6 : 7;
             maxSkip = def.fastGold ? 12 : 14;
@@ -596,7 +596,13 @@ window.EggGameModules.logic = {
 
     breakMachine(def) {
         if (!def) return;
-        def.brokenUntil = this.time.now + 10000;
+        const baseDurationMs = 10000;
+        const turbo = Math.max(0.01, this.getTurboMultiplier ? this.getTurboMultiplier() : 1);
+        const slowestTurbo = Math.min(...(this.turboValues || [1]));
+        const actualDurationMs = baseDurationMs * (slowestTurbo / turbo);
+        def.brokenUntil = this.time.now + actualDurationMs;
+        def.brokenStartedAt = this.time.now;
+        def.brokenDurationMs = actualDurationMs;
         def.nextShot = 0;
         def.nextImpact = 0;
         this.setMachineBrokenVisual(def, true, 10);
@@ -624,6 +630,8 @@ window.EggGameModules.logic = {
             const msLeft = def.brokenUntil - this.time.now;
             if (msLeft <= 0) {
                 def.brokenUntil = 0;
+                def.brokenStartedAt = 0;
+                def.brokenDurationMs = 0;
                 if (def.hammerTween) {
                     this.tweens.killTweensOf(def.hammer);
                     def.hammerTween = null;
@@ -634,7 +642,19 @@ window.EggGameModules.logic = {
                 this.setMachineBrokenVisual(def, false, 0);
                 continue;
             }
-            this.setMachineBrokenVisual(def, true, msLeft / 1000);
+            const duration = Math.max(1, def.brokenDurationMs || 10000);
+            const secondsVisual = 10 * (msLeft / duration);
+            this.setMachineBrokenVisual(def, true, secondsVisual);
+        }
+    },
+
+    breakMachinesByTypes(types) {
+        const match = new Set(types);
+        const allDefs = [...this.line1Machines, ...this.line2Machines, ...this.line3Machines];
+        for (const def of allDefs) {
+            if (match.has(def.type)) {
+                this.breakMachine(def);
+            }
         }
     },
 
@@ -804,8 +824,15 @@ window.EggGameModules.logic = {
                 item.container.y = item.y;
 
                 if (item.x >= this.lines.line3.endX + this.lines.line3.slotWidth * 0.5) {
+                    const litBombEggs = (item.eggs || []).filter(egg => egg.bomb && egg.bombLit !== false);
                     item.finished = true;
                     this.clearWetFx(item);
+
+                    if (litBombEggs.length > 0) {
+                        this.breakMachinesByTypes(["fire", "crush"]);
+                        this.spawnBombExplosionFx(this.W - 24, item.y - 6);
+                    }
+
                     this.balance += item.currentValue || 0;
                     this.addWin(item.currentValue || 0);
                     if (!item.settled && (item.currentValue || 0) < (item.spentCost || 0)) {
