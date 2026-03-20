@@ -256,19 +256,22 @@ window.EggGameModules.logic = {
 
         let minSkip = 1;
         let maxSkip = 3;
-        if (def.type === "half") {
+        if (def.type === "mul" && def.value === 2) {
+            minSkip = 0;
+            maxSkip = 2;
+        } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
             minSkip = 1;
-            maxSkip = 1;
+            maxSkip = 2;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
             minSkip = 0;
-            maxSkip = 0;
+            maxSkip = 1;
         } else if (def.rarity === "gold") {
-            minSkip = def.fastGold ? 6 : 7;
-            maxSkip = def.fastGold ? 12 : 14;
+            minSkip = def.fastGold ? 5 : 6;
+            maxSkip = def.fastGold ? 11 : 13;
         }
 
         dt += Phaser.Math.Between(minSkip, maxSkip) * slotTravel;

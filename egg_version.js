@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-20-bomb-box-turbo-v17"
+    version: "2026-03-20-x2-gold-up-v19"
 };
