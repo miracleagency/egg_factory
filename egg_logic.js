@@ -86,7 +86,7 @@ window.EggGameModules.logic = {
         const minLead = first ? 0.34 : 0.22;
         while (dt < minLead) dt += slotTravel;
 
-        dt += Phaser.Math.Between(2, 5) * slotTravel;
+        dt += Phaser.Math.Between(3, 6) * slotTravel;
         return fromClock + dt;
     },
 
@@ -157,6 +157,7 @@ window.EggGameModules.logic = {
                 }
 
                 egg.container.y = -26;
+                egg.container._eggTypeData = egg.typeData;
                 this.updatePillowValueText(pillow);
             } else {
                 egg.state = "dead";
@@ -371,9 +372,44 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "fire") {
-            if (item.armored) {
+            const armoredEggs = (item.eggs || []).filter(egg => egg.armored);
+            const vulnerableEggs = (item.eggs || []).filter(egg => !egg.armored);
+
+            if (armoredEggs.length > 0 && vulnerableEggs.length === 0) {
                 this.flashValueText(item, "#d8e3ef");
                 this.spawnImpactFx(item.container.x, item.container.y - 6, 0xc8d0db);
+                this.pulseItem(item);
+                return;
+            }
+
+            if (armoredEggs.length > 0 && vulnerableEggs.length > 0) {
+                item.eggs = armoredEggs;
+                item.armored = true;
+                item.eggMultSum *= 0.5;
+                item.currentValue *= 0.5;
+                item.permanentTextColor = "#d8e3ef";
+
+                const remainingEggContainers = [];
+                for (const child of item.container.list.slice()) {
+                    if (!child || !child._eggTypeData) continue;
+                    if (child._eggTypeData.armored) {
+                        remainingEggContainers.push(child);
+                        continue;
+                    }
+                    child.destroy();
+                }
+
+                if (remainingEggContainers.length === 1) {
+                    remainingEggContainers[0].x = 0;
+                } else if (remainingEggContainers.length > 1) {
+                    remainingEggContainers.forEach((entry, index) => {
+                        entry.x = index === 0 ? -10 : 10;
+                    });
+                }
+
+                this.updatePillowValueText(item);
+                this.flashValueText(item, "#ffb36b");
+                this.spawnImpactFx(item.container.x, item.container.y - 6, 0xff7a45);
                 this.pulseItem(item);
                 return;
             }

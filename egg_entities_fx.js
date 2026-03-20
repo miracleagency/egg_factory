@@ -129,7 +129,7 @@ window.EggGameModules.entitiesFx = {
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
         item.valueText.setText(`${Math.round(displayValue)}$`);
         item.valueText.setColor(item.permanentTextColor || color || "#ffffff");
-        item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0.5);
+        item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
 
     flashValueText(item, flashColor) {
@@ -147,7 +147,7 @@ window.EggGameModules.entitiesFx = {
             onYoyo: () => item.valueText.setColor(baseColor),
             onComplete: () => {
                 item.valueText.setColor(baseColor);
-                item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0.5);
+                item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
             }
         });
     },
