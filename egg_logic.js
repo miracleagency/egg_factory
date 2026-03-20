@@ -599,7 +599,7 @@ window.EggGameModules.logic = {
 
     breakMachine(def) {
         if (!def) return;
-        const baseDurationMs = 10000;
+        const baseDurationMs = 20000;
         const turbo = Math.max(0.01, this.getTurboMultiplier ? this.getTurboMultiplier() : 1);
         const slowestTurbo = Math.min(...(this.turboValues || [1]));
         const actualDurationMs = baseDurationMs * (slowestTurbo / turbo);
