@@ -253,6 +253,9 @@ window.EggGameModules.logic = {
         let maxSkip = 3;
         if (def.type === "half") {
             maxSkip = 2;
+        } else if (def.type === "crush") {
+            minSkip = 2;
+            maxSkip = 4;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
@@ -306,8 +309,50 @@ window.EggGameModules.logic = {
             return;
         }
 
-        this.spawnVerticalProjectile(def, line, stage, def.nextImpact, def.flightTime);
+        if (def.type === "crush") {
+            this.spawnCrusherAttack(def, line, stage, def.nextImpact);
+        } else {
+            this.spawnVerticalProjectile(def, line, stage, def.nextImpact, def.flightTime);
+        }
         schedule(def.nextImpact, false);
+    },
+
+    spawnCrusherAttack(def, line, stage, impactClock) {
+        const centerIndex = this.getNearestLineSlotIndex(line, def.container.x, impactClock);
+        const targetX = this.getLineSlotCenterXAtClock(line, centerIndex, impactClock);
+        const targetY = line.y + line.h * 0.5 - 10;
+        const startY = def.container.y + 38;
+
+        const press = this.add.container(targetX, startY).setDepth(5050);
+        const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
+        const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
+        const head = this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
+        press.add([shaft, top, head]);
+        this.fxLayer.add(press);
+
+        this.tweens.add({
+            targets: press,
+            y: targetY - 4,
+            duration: 180,
+            ease: "Quad.In",
+            onComplete: () => {
+                const items = this.getStageItems(stage);
+                const item = items.find(entry => entry.slotIndexLine === centerIndex)
+                    || items.find(entry => Math.abs(entry.x - targetX) <= line.slotWidth * 0.28);
+
+                if (item) this.applyMachineEffect(def, item);
+                this.spawnCrushFx(targetX, targetY);
+
+                this.tweens.add({
+                    targets: press,
+                    y: startY,
+                    alpha: 0,
+                    duration: 140,
+                    ease: "Quad.Out",
+                    onComplete: () => press.destroy()
+                });
+            }
+        });
     },
 
     spawnVerticalProjectile(def, line, stage, impactClock, flightTime) {
@@ -456,6 +501,27 @@ window.EggGameModules.logic = {
                 duration: 220,
                 onComplete: () => fire.destroy()
             });
+        }
+
+        if (def.type === "crush") {
+            item.destroyed = true;
+            item.armored = false;
+            this.clearWetFx(item);
+            if (!item.settled) {
+                this.addLose(item.spentCost || 0);
+                item.settled = true;
+            }
+
+            this.tweens.add({
+                targets: item.container,
+                scaleY: 0.18,
+                scaleX: 1.28,
+                alpha: 0,
+                duration: 170,
+                ease: "Quad.In",
+                onComplete: () => item.container.destroy()
+            });
+            return;
         }
     },
 

@@ -18,6 +18,9 @@ window.EggGameModules.entitiesFx = {
         if (def.type === "water") {
             fill = 0x59b7ff;
             stroke = 0x9fd7ff;
+        } else if (def.type === "crush") {
+            fill = 0x8a7363;
+            stroke = 0xd0b8a2;
         } else if (def.type === "fire") {
             fill = 0xd3412c;
             stroke = 0xff9f8f;
@@ -102,48 +105,64 @@ window.EggGameModules.entitiesFx = {
 
     createEggVisual(eggType, withShadow = false) {
         const container = this.add.container(0, 0);
+        const eggScale = 1.35;
 
         if (withShadow) {
-            const shadow = this.add.ellipse(0, 22, 22, 8, 0x000000, 0.15);
+            const shadow = this.add.ellipse(0, 24, 28, 10, 0x000000, 0.15);
             container.add(shadow);
         }
 
         if (eggType.armored) {
-            const shell = this.add.ellipse(0, 0, 31, 42, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
-            const band = this.add.rectangle(0, 0, 24, 30, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
+            const shell = this.add.ellipse(0, 0, 34, 46, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
+            const band = this.add.rectangle(0, 0, 26, 34, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
             const rivets = [
-                this.add.circle(-10, -10, 2.5, 0xe4eaf1, 1),
-                this.add.circle(10, -10, 2.5, 0xe4eaf1, 1),
-                this.add.circle(-10, 10, 2.5, 0xe4eaf1, 1),
-                this.add.circle(10, 10, 2.5, 0xe4eaf1, 1)
+                this.add.circle(-11, -11, 2.8, 0xe4eaf1, 1),
+                this.add.circle(11, -11, 2.8, 0xe4eaf1, 1),
+                this.add.circle(-11, 11, 2.8, 0xe4eaf1, 1),
+                this.add.circle(11, 11, 2.8, 0xe4eaf1, 1)
             ];
-            const shine = this.add.ellipse(-6, -10, 6, 10, 0xffffff, 0.22);
+            const shine = this.add.ellipse(-7, -12, 7, 12, 0xffffff, 0.22);
             container.add([shell, band, ...rivets, shine]);
+            container.setScale(eggScale);
             return { container, body: shell };
         }
 
-        const body = this.add.ellipse(0, 0, 29, 39, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
-        const shine = this.add.ellipse(-5, -8, 6, 10, 0xffffff, 0.35);
+        const body = this.add.ellipse(0, 0, 32, 44, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
+        const shine = this.add.ellipse(-6, -9, 7, 12, 0xffffff, 0.35);
         container.add([body, shine]);
 
         if (eggType.glow) {
-            const glow = this.add.ellipse(0, 0, 30, 40, eggType.glow, 0.24);
+            const glow = this.add.ellipse(0, 0, 46, 60, eggType.glow, 0.24);
             container.addAt(glow, withShadow ? 1 : 0);
         }
 
         if (eggType.goldFx) {
-            const sparkA = this.add.circle(-10, -10, 2.2, 0xfff29b, 0.95);
-            const sparkB = this.add.circle(11, 4, 1.8, 0xffd54b, 0.9);
-            const sparkC = this.add.circle(-2, 12, 1.6, 0xfff6bc, 0.88);
-            container.add([sparkA, sparkB, sparkC]);
+            const aura = this.add.ellipse(0, 0, 48, 62, 0xffdb58, 0.12);
+            const sparkA = this.add.circle(-14, -13, 2.8, 0xfff29b, 1);
+            const sparkB = this.add.circle(14, 5, 2.4, 0xffd54b, 0.95);
+            const sparkC = this.add.circle(-3, 16, 2.1, 0xfff6bc, 0.92);
+            const sparkD = this.add.circle(3, -18, 1.9, 0xfff0a0, 0.88);
+            container.addAt(aura, withShadow ? 1 : 0);
+            container.add([sparkA, sparkB, sparkC, sparkD]);
 
-            for (const spark of [sparkA, sparkB, sparkC]) {
+            this.tweens.add({
+                targets: aura,
+                alpha: 0.26,
+                scaleX: 1.08,
+                scaleY: 1.08,
+                duration: 420,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+
+            for (const spark of [sparkA, sparkB, sparkC, sparkD]) {
                 spark._baseAlpha = spark.alpha;
                 this.tweens.add({
                     targets: spark,
                     alpha: spark._baseAlpha * 0.22,
-                    scaleX: 1.8,
-                    scaleY: 1.8,
+                    scaleX: 2.4,
+                    scaleY: 2.4,
                     duration: 220 + Phaser.Math.Between(0, 180),
                     ease: "Sine.InOut",
                     yoyo: true,
@@ -154,20 +173,34 @@ window.EggGameModules.entitiesFx = {
         }
 
         if (eggType.diamondFx) {
-            const sparkA = this.add.circle(-11, -8, 2.1, 0xaeeeff, 0.95);
-            const sparkB = this.add.circle(10, 6, 1.9, 0x7ad9ff, 0.88);
-            const streak = this.add.rectangle(-16, -2, 8, 34, 0xffffff, 0.26);
+            const aura = this.add.ellipse(0, 0, 52, 68, 0x75e6ff, 0.12);
+            const sparkA = this.add.circle(-14, -10, 2.6, 0xaeeeff, 1);
+            const sparkB = this.add.circle(13, 7, 2.4, 0x7ad9ff, 0.92);
+            const sparkC = this.add.circle(2, -18, 2.2, 0xeaffff, 0.86);
+            const streak = this.add.rectangle(-20, -3, 10, 40, 0xffffff, 0.36);
             streak.angle = -18;
             streak.setScale(0.7, 1);
-            container.add([sparkA, sparkB, streak]);
+            container.addAt(aura, withShadow ? 1 : 0);
+            container.add([sparkA, sparkB, sparkC, streak]);
 
-            for (const spark of [sparkA, sparkB]) {
+            this.tweens.add({
+                targets: aura,
+                alpha: 0.24,
+                scaleX: 1.1,
+                scaleY: 1.1,
+                duration: 460,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+
+            for (const spark of [sparkA, sparkB, sparkC]) {
                 spark._baseAlpha = spark.alpha;
                 this.tweens.add({
                     targets: spark,
                     alpha: spark._baseAlpha * 0.18,
-                    scaleX: 2,
-                    scaleY: 2,
+                    scaleX: 2.6,
+                    scaleY: 2.6,
                     duration: 260 + Phaser.Math.Between(0, 220),
                     ease: "Sine.InOut",
                     yoyo: true,
@@ -178,20 +211,70 @@ window.EggGameModules.entitiesFx = {
 
             this.tweens.add({
                 targets: streak,
-                x: 16,
-                alpha: 0.04,
-                duration: 520,
+                x: 20,
+                alpha: 0.02,
+                duration: 560,
                 ease: "Quad.InOut",
                 repeat: -1,
-                repeatDelay: 900 + Phaser.Math.Between(0, 500),
+                repeatDelay: 700 + Phaser.Math.Between(0, 380),
                 onRepeat: () => {
-                    streak.x = -16;
-                    streak.alpha = 0.26;
+                    streak.x = -20;
+                    streak.alpha = 0.36;
                 }
             });
         }
 
+        container.setScale(eggScale);
         return { container, body };
+    },
+
+    spawnCrushFx(x, y) {
+        const shock = this.add.ellipse(x, y + 8, 88, 26, 0xe4c8aa, 0.28).setDepth(5100);
+        const dust = [];
+
+        this.fxLayer.add(shock);
+        this.tweens.add({
+            targets: shock,
+            scaleX: 1.55,
+            scaleY: 1.35,
+            alpha: 0,
+            duration: 180,
+            onComplete: () => shock.destroy()
+        });
+
+        for (let i = 0; i < 10; i++) {
+            const chunk = this.add.rectangle(
+                x + Phaser.Math.Between(-20, 20),
+                y + Phaser.Math.Between(-10, 8),
+                Phaser.Math.Between(5, 10),
+                Phaser.Math.Between(5, 10),
+                0xb5a18f,
+                0.95
+            ).setDepth(5101);
+            chunk.angle = Phaser.Math.Between(0, 180);
+            this.fxLayer.add(chunk);
+            dust.push(chunk);
+            this.tweens.add({
+                targets: chunk,
+                x: chunk.x + Phaser.Math.Between(-44, 44),
+                y: chunk.y + Phaser.Math.Between(-22, 14),
+                alpha: 0,
+                angle: chunk.angle + Phaser.Math.Between(-80, 80),
+                duration: 240 + Phaser.Math.Between(0, 90),
+                onComplete: () => chunk.destroy()
+            });
+        }
+
+        const flash = this.add.rectangle(x, y - 4, 54, 20, 0xfff0d9, 0.45).setDepth(5102);
+        this.fxLayer.add(flash);
+        this.tweens.add({
+            targets: flash,
+            scaleX: 1.8,
+            scaleY: 0.55,
+            alpha: 0,
+            duration: 140,
+            onComplete: () => flash.destroy()
+        });
     },
 
     updatePillowValueText(item, color = "#ffffff") {
