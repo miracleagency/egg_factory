@@ -188,7 +188,7 @@ window.EggGameModules.ui = {
     },
 
     layoutBottomUI() {
-        const y = this.H - 156;
+        const y = this.H - 188;
         let x = 60;
 
         this.bottomUI.setPosition(0, y);
@@ -360,7 +360,7 @@ window.EggGameModules.ui = {
 
     onPillowButtonOut(btn) {
         if (!btn) return;
-        if (!btn._pointerDown) {
+        if (!btn._pointerDown && !btn._bounceEvent) {
             this.stopPillowButtonBounce(btn);
             btn._manualDown = false;
             btn._pressDepth = 0;
@@ -384,7 +384,7 @@ window.EggGameModules.ui = {
         for (const key of Object.keys(this.pillowButtons)) {
             const btn = this.pillowButtons[key];
             if (btn && btn._pointerDown) {
-                this.onPillowButtonUp(btn, true);
+                this.onPillowButtonUp(btn, false);
             }
         }
     },
