@@ -596,10 +596,10 @@ window.EggGameModules.logic = {
 
     breakMachine(def) {
         if (!def) return;
-        def.brokenUntil = this.time.now + 20000;
+        def.brokenUntil = this.time.now + 10000;
         def.nextShot = 0;
         def.nextImpact = 0;
-        this.setMachineBrokenVisual(def, true, 20);
+        this.setMachineBrokenVisual(def, true, 10);
         if (def.hammerTween) {
             this.tweens.killTweensOf(def.hammer);
             def.hammerTween = null;

@@ -146,13 +146,49 @@ window.EggGameModules.entitiesFx = {
         container.add([body, shine]);
 
         if (eggType.bomb) {
-            const fuse = this.add.line(0, -28, 0, 0, 8, -12, 0xffd49a, 1).setLineWidth(3, 3);
-            const ember = this.add.circle(10, -13, 4, 0xffc44a, 0.95);
-            const emberGlow = this.add.circle(10, -13, 8, 0xff6b2d, 0.22);
-            container.add([fuse, emberGlow, ember]);
+            const fuse = this.add.line(0, -29, 0, 0, 9, -14, 0x1a1a1a, 1).setLineWidth(4, 4);
+            const ember = this.add.circle(11, -14, 4.5, 0xffdd57, 0.98);
+            const emberGlow = this.add.circle(11, -14, 10, 0xff5c2f, 0.26);
+            const flame = this.add.ellipse(12, -18, 10, 16, 0xff8b2d, 0.9).setStrokeStyle(2, 0xfff1b0, 0.8);
+            const spark = this.add.star(14, -20, 4, 2, 5, 0xfff4bd, 0.95);
+            container.add([fuse, emberGlow, flame, spark, ember]);
             container._bombFuse = fuse;
             container._bombEmber = ember;
             container._bombEmberGlow = emberGlow;
+            container._bombFlame = flame;
+            container._bombSpark = spark;
+
+            this.tweens.add({
+                targets: [ember, spark],
+                scaleX: 1.35,
+                scaleY: 1.35,
+                alpha: 0.35,
+                duration: 130,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+            this.tweens.add({
+                targets: flame,
+                y: -21,
+                scaleX: 0.82,
+                scaleY: 1.18,
+                alpha: 0.6,
+                duration: 110,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+            this.tweens.add({
+                targets: emberGlow,
+                scaleX: 1.28,
+                scaleY: 1.28,
+                alpha: 0.12,
+                duration: 180,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
         }
 
         if (eggType.glow) {
@@ -201,11 +237,8 @@ window.EggGameModules.entitiesFx = {
             const sparkA = this.add.circle(-14, -10, 2.6, 0xaeeeff, 1);
             const sparkB = this.add.circle(13, 7, 2.4, 0x7ad9ff, 0.92);
             const sparkC = this.add.circle(2, -18, 2.2, 0xeaffff, 0.86);
-            const streak = this.add.rectangle(-20, -3, 10, 40, 0xffffff, 0.36);
-            streak.angle = -18;
-            streak.setScale(0.7, 1);
             container.addAt(aura, withShadow ? 1 : 0);
-            container.add([sparkA, sparkB, sparkC, streak]);
+            container.add([sparkA, sparkB, sparkC]);
 
             this.tweens.add({
                 targets: aura,
@@ -232,20 +265,6 @@ window.EggGameModules.entitiesFx = {
                     delay: Phaser.Math.Between(0, 260)
                 });
             }
-
-            this.tweens.add({
-                targets: streak,
-                x: 20,
-                alpha: 0.02,
-                duration: 560,
-                ease: "Quad.InOut",
-                repeat: -1,
-                repeatDelay: 700 + Phaser.Math.Between(0, 380),
-                onRepeat: () => {
-                    streak.x = -20;
-                    streak.alpha = 0.36;
-                }
-            });
         }
 
         container.setScale(eggScale);
@@ -256,9 +275,13 @@ window.EggGameModules.entitiesFx = {
         if (!eggContainer || !eggContainer._bombEmber || !eggContainer._bombEmberGlow) return;
         eggContainer._bombEmber.setVisible(lit);
         eggContainer._bombEmberGlow.setVisible(lit);
+        if (eggContainer._bombFlame) eggContainer._bombFlame.setVisible(lit);
+        if (eggContainer._bombSpark) eggContainer._bombSpark.setVisible(lit);
         if (lit) {
             eggContainer._bombEmber.setAlpha(0.95);
             eggContainer._bombEmberGlow.setAlpha(0.22);
+            if (eggContainer._bombFlame) eggContainer._bombFlame.setAlpha(0.9);
+            if (eggContainer._bombSpark) eggContainer._bombSpark.setAlpha(0.95);
         }
     },
 
@@ -293,26 +316,65 @@ window.EggGameModules.entitiesFx = {
     },
 
     spawnBombExplosionFx(x, y) {
-        const flash = this.add.circle(x, y, 24, 0xffc76d, 0.42).setDepth(5120);
-        const fire = this.add.circle(x, y, 18, 0xff5c2f, 0.6).setDepth(5121);
-        this.fxLayer.add([flash, fire]);
+        const flash = this.add.circle(x, y, 28, 0xfff0c2, 0.55).setDepth(5120);
+        const core = this.add.circle(x, y, 24, 0xff7a2d, 0.72).setDepth(5121);
+        const ring = this.add.ellipse(x, y, 74, 52, 0xffb05a, 0.28).setDepth(5119);
+        this.fxLayer.add([ring, flash, core]);
 
         this.tweens.add({
-            targets: flash,
-            scaleX: 3.4,
-            scaleY: 3.4,
+            targets: ring,
+            scaleX: 2.2,
+            scaleY: 2,
             alpha: 0,
-            duration: 220,
+            duration: 260,
+            onComplete: () => ring.destroy()
+        });
+        this.tweens.add({
+            targets: flash,
+            scaleX: 4.2,
+            scaleY: 4.2,
+            alpha: 0,
+            duration: 240,
             onComplete: () => flash.destroy()
         });
         this.tweens.add({
-            targets: fire,
-            scaleX: 2.4,
-            scaleY: 2.4,
+            targets: core,
+            scaleX: 2.8,
+            scaleY: 2.8,
             alpha: 0,
-            duration: 220,
-            onComplete: () => fire.destroy()
+            duration: 260,
+            onComplete: () => core.destroy()
         });
+
+        for (let i = 0; i < 18; i++) {
+            const ember = this.add.circle(x, y, Phaser.Math.Between(3, 7), 0xff9d3d, 0.95).setDepth(5122);
+            this.fxLayer.add(ember);
+            this.tweens.add({
+                targets: ember,
+                x: x + Phaser.Math.Between(-90, 90),
+                y: y + Phaser.Math.Between(-70, 70),
+                alpha: 0,
+                scaleX: 0.4,
+                scaleY: 0.4,
+                duration: 320 + Phaser.Math.Between(0, 140),
+                onComplete: () => ember.destroy()
+            });
+        }
+
+        for (let i = 0; i < 10; i++) {
+            const shard = this.add.rectangle(x, y, Phaser.Math.Between(4, 10), Phaser.Math.Between(10, 22), 0xffe1b6, 0.9).setDepth(5123);
+            shard.angle = Phaser.Math.Between(0, 180);
+            this.fxLayer.add(shard);
+            this.tweens.add({
+                targets: shard,
+                x: x + Phaser.Math.Between(-110, 110),
+                y: y + Phaser.Math.Between(-90, 90),
+                alpha: 0,
+                angle: shard.angle + Phaser.Math.Between(-160, 160),
+                duration: 340 + Phaser.Math.Between(0, 120),
+                onComplete: () => shard.destroy()
+            });
+        }
     },
 
     spawnCrushFx(x, y) {
