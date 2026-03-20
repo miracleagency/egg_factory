@@ -361,7 +361,7 @@ window.EggGameModules.logic = {
         if (def.type === "half") {
             if (item.eggMultSum <= 0) return;
             item.eggMultSum *= 0.5;
-            item.currentValue *= 0.5;
+            item.currentValue = Math.max(1, item.currentValue * 0.5);
             this.updatePillowValueText(item);
             this.flashValueText(item, "#ff6d6d");
             this.pulseItem(item);
@@ -404,7 +404,7 @@ window.EggGameModules.logic = {
                 item.eggs = armoredEggs;
                 item.armored = true;
                 item.eggMultSum *= 0.5;
-                item.currentValue *= 0.5;
+                item.currentValue = Math.max(1, item.currentValue * 0.5);
                 item.permanentTextColor = "#d8e3ef";
 
                 const remainingEggContainers = [];

@@ -154,6 +154,8 @@ window.EggGameModules.ui = {
         this.events.once("shutdown", () => {
             this.input.off("pointermove", this.updateAutoDropDrag, this);
             this.input.off("pointerup", this.endAutoDropDrag, this);
+            this.input.off("pointerup", this.handleGlobalPillowPointerUp, this);
+            this.input.off("gameout", this.handleGlobalPillowPointerCancel, this);
         });
     },
 
@@ -256,6 +258,8 @@ window.EggGameModules.ui = {
         };
 
         this.uiLayer.add([this.pillowButtons.green, this.pillowButtons.purple, this.pillowButtons.red]);
+        this.input.on("pointerup", this.handleGlobalPillowPointerUp, this);
+        this.input.on("gameout", this.handleGlobalPillowPointerCancel, this);
         this.layoutPillowButtons();
         this.updatePillowButtonLabels();
     },
@@ -319,10 +323,10 @@ window.EggGameModules.ui = {
         c._flash = 0;
         c._manualDown = false;
         c._bounceScale = 1;
+        c._pointerDown = false;
 
         body.setInteractive({ useHandCursor: true })
             .on("pointerdown", () => this.onPillowButtonDown(c))
-            .on("pointerup", () => this.onPillowButtonUp(c))
             .on("pointerout", () => this.onPillowButtonOut(c));
 
         return c;
@@ -332,27 +336,57 @@ window.EggGameModules.ui = {
         if (!btn || btn._isDisabled) return;
         this.stopPillowButtonBounce(btn);
         btn._manualDown = true;
+        btn._pointerDown = true;
         btn._pressDepth = 16;
         btn._flash = 0.04;
         btn._bounceScale = 0.985;
         this.updateSinglePillowButtonVisual(btn);
     },
 
-    onPillowButtonUp(btn) {
+    onPillowButtonUp(btn, cancelled = false) {
         if (!btn || btn._isDisabled) return;
-        const wasDown = btn._manualDown;
+        const wasDown = btn._pointerDown;
+        btn._pointerDown = false;
         btn._manualDown = false;
         if (!wasDown) return;
+        if (cancelled) {
+            btn._pressDepth = 0;
+            btn._bounceScale = 1;
+            this.updateSinglePillowButtonVisual(btn);
+            return;
+        }
         this.handlePillowButtonPress(btn);
     },
 
     onPillowButtonOut(btn) {
         if (!btn) return;
-        this.stopPillowButtonBounce(btn);
-        btn._manualDown = false;
-        btn._pressDepth = 0;
-        btn._bounceScale = 1;
-        this.updateSinglePillowButtonVisual(btn);
+        if (!btn._pointerDown) {
+            this.stopPillowButtonBounce(btn);
+            btn._manualDown = false;
+            btn._pressDepth = 0;
+            btn._bounceScale = 1;
+            this.updateSinglePillowButtonVisual(btn);
+        }
+    },
+
+    handleGlobalPillowPointerUp() {
+        if (!this.pillowButtons) return;
+        for (const key of Object.keys(this.pillowButtons)) {
+            const btn = this.pillowButtons[key];
+            if (btn && btn._pointerDown) {
+                this.onPillowButtonUp(btn, false);
+            }
+        }
+    },
+
+    handleGlobalPillowPointerCancel() {
+        if (!this.pillowButtons) return;
+        for (const key of Object.keys(this.pillowButtons)) {
+            const btn = this.pillowButtons[key];
+            if (btn && btn._pointerDown) {
+                this.onPillowButtonUp(btn, true);
+            }
+        }
     },
 
     stopPillowButtonBounce(btn) {
@@ -380,6 +414,7 @@ window.EggGameModules.ui = {
 
         this.stopPillowButtonBounce(btn);
         btn._manualDown = false;
+        btn._pointerDown = false;
         btn._flash = success ? 0.16 : 0.08;
         btn._pressDepth = 15;
         btn._bounceScale = 0.985;

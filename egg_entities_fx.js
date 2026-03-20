@@ -1,6 +1,15 @@
 window.EggGameModules = window.EggGameModules || {};
 
 window.EggGameModules.entitiesFx = {
+    formatMoneyValue(value) {
+        const safeValue = Math.max(0, value || 0);
+        const roundedTenth = Math.round(safeValue * 10) / 10;
+        if (Math.abs(roundedTenth - Math.round(roundedTenth)) < 0.001) {
+            return `${Math.round(roundedTenth)}$`;
+        }
+        return `${roundedTenth.toFixed(1)}$`;
+    },
+
     createMachineBlock(def) {
         const container = this.add.container(0, 0).setDepth(200);
         let fill = 0x8694a8;
@@ -95,31 +104,91 @@ window.EggGameModules.entitiesFx = {
         const container = this.add.container(0, 0);
 
         if (withShadow) {
-            const shadow = this.add.ellipse(0, 18, 16, 6, 0x000000, 0.15);
+            const shadow = this.add.ellipse(0, 22, 22, 8, 0x000000, 0.15);
             container.add(shadow);
         }
 
         if (eggType.armored) {
-            const shell = this.add.ellipse(0, 0, 24, 32, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
-            const band = this.add.rectangle(0, 0, 18, 24, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
+            const shell = this.add.ellipse(0, 0, 31, 42, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
+            const band = this.add.rectangle(0, 0, 24, 30, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
             const rivets = [
-                this.add.circle(-8, -8, 2.2, 0xe4eaf1, 1),
-                this.add.circle(8, -8, 2.2, 0xe4eaf1, 1),
-                this.add.circle(-8, 8, 2.2, 0xe4eaf1, 1),
-                this.add.circle(8, 8, 2.2, 0xe4eaf1, 1)
+                this.add.circle(-10, -10, 2.5, 0xe4eaf1, 1),
+                this.add.circle(10, -10, 2.5, 0xe4eaf1, 1),
+                this.add.circle(-10, 10, 2.5, 0xe4eaf1, 1),
+                this.add.circle(10, 10, 2.5, 0xe4eaf1, 1)
             ];
-            const shine = this.add.ellipse(-5, -8, 5, 8, 0xffffff, 0.22);
+            const shine = this.add.ellipse(-6, -10, 6, 10, 0xffffff, 0.22);
             container.add([shell, band, ...rivets, shine]);
             return { container, body: shell };
         }
 
-        const body = this.add.ellipse(0, 0, 22, 30, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
-        const shine = this.add.ellipse(-4, -6, 5, 8, 0xffffff, 0.35);
+        const body = this.add.ellipse(0, 0, 29, 39, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
+        const shine = this.add.ellipse(-5, -8, 6, 10, 0xffffff, 0.35);
         container.add([body, shine]);
 
         if (eggType.glow) {
             const glow = this.add.ellipse(0, 0, 30, 40, eggType.glow, 0.24);
             container.addAt(glow, withShadow ? 1 : 0);
+        }
+
+        if (eggType.goldFx) {
+            const sparkA = this.add.circle(-10, -10, 2.2, 0xfff29b, 0.95);
+            const sparkB = this.add.circle(11, 4, 1.8, 0xffd54b, 0.9);
+            const sparkC = this.add.circle(-2, 12, 1.6, 0xfff6bc, 0.88);
+            container.add([sparkA, sparkB, sparkC]);
+
+            for (const spark of [sparkA, sparkB, sparkC]) {
+                spark._baseAlpha = spark.alpha;
+                this.tweens.add({
+                    targets: spark,
+                    alpha: spark._baseAlpha * 0.22,
+                    scaleX: 1.8,
+                    scaleY: 1.8,
+                    duration: 220 + Phaser.Math.Between(0, 180),
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1,
+                    delay: Phaser.Math.Between(0, 220)
+                });
+            }
+        }
+
+        if (eggType.diamondFx) {
+            const sparkA = this.add.circle(-11, -8, 2.1, 0xaeeeff, 0.95);
+            const sparkB = this.add.circle(10, 6, 1.9, 0x7ad9ff, 0.88);
+            const streak = this.add.rectangle(-16, -2, 8, 34, 0xffffff, 0.26);
+            streak.angle = -18;
+            streak.setScale(0.7, 1);
+            container.add([sparkA, sparkB, streak]);
+
+            for (const spark of [sparkA, sparkB]) {
+                spark._baseAlpha = spark.alpha;
+                this.tweens.add({
+                    targets: spark,
+                    alpha: spark._baseAlpha * 0.18,
+                    scaleX: 2,
+                    scaleY: 2,
+                    duration: 260 + Phaser.Math.Between(0, 220),
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1,
+                    delay: Phaser.Math.Between(0, 260)
+                });
+            }
+
+            this.tweens.add({
+                targets: streak,
+                x: 16,
+                alpha: 0.04,
+                duration: 520,
+                ease: "Quad.InOut",
+                repeat: -1,
+                repeatDelay: 900 + Phaser.Math.Between(0, 500),
+                onRepeat: () => {
+                    streak.x = -16;
+                    streak.alpha = 0.26;
+                }
+            });
         }
 
         return { container, body };
@@ -131,7 +200,7 @@ window.EggGameModules.entitiesFx = {
             return;
         }
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
-        item.valueText.setText(`${Math.round(displayValue)}$`);
+        item.valueText.setText(this.formatMoneyValue(displayValue));
         item.valueText.setColor(item.permanentTextColor || color || "#ffffff");
         item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
@@ -308,7 +377,7 @@ window.EggGameModules.entitiesFx = {
     },
 
     showCenterWin(amount) {
-        const txt = this.add.text(this.W * 0.5, this.H * 0.45, `+${Math.round(amount)}$`, {
+        const txt = this.add.text(this.W * 0.5, this.H * 0.45, `+${this.formatMoneyValue(amount).replace("$", "")}$`, {
             fontFamily: "Arial",
             fontSize: 192,
             color: "#7dff9c",
