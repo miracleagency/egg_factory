@@ -86,7 +86,7 @@ window.EggGameModules.logic = {
         const minLead = first ? 0.34 : 0.22;
         while (dt < minLead) dt += slotTravel;
 
-        dt += Phaser.Math.Between(3, 6) * slotTravel;
+        dt += Phaser.Math.Between(4, 7) * slotTravel;
         return fromClock + dt;
     },
 
@@ -372,6 +372,16 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "fire") {
+            if (item.wet) {
+                item.wet = false;
+                this.clearWetFx(item);
+                this.updatePillowValueText(item);
+                this.spawnImpactFx(item.container.x, item.container.y - 4, 0x59b7ff);
+                this.spawnDryFx(item);
+                this.pulseItem(item);
+                return;
+            }
+
             const armoredEggs = (item.eggs || []).filter(egg => egg.armored);
             const vulnerableEggs = (item.eggs || []).filter(egg => !egg.armored);
 
@@ -410,16 +420,6 @@ window.EggGameModules.logic = {
                 this.updatePillowValueText(item);
                 this.flashValueText(item, "#ffb36b");
                 this.spawnImpactFx(item.container.x, item.container.y - 6, 0xff7a45);
-                this.pulseItem(item);
-                return;
-            }
-
-            if (item.wet) {
-                item.wet = false;
-                this.clearWetFx(item);
-                this.updatePillowValueText(item);
-                this.spawnImpactFx(item.container.x, item.container.y - 4, 0x59b7ff);
-                this.spawnDryFx(item);
                 this.pulseItem(item);
                 return;
             }

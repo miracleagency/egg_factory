@@ -337,22 +337,30 @@ window.EggGameModules.ui = {
     animatePillowButtonPress(btn, success = true) {
         if (!btn || btn._isDisabled) return;
 
-        this.tweens.killTweensOf(btn);
+        this.tweens.killTweensOf([btn, btn._face, btn._txt]);
         btn._flash = success ? 1 : 0.45;
         this.tweens.add({
             targets: btn,
-            _pressDepth: 10,
-            duration: 85,
-            ease: "Quad.Out",
+            _pressDepth: 14,
+            duration: 110,
+            ease: "Back.Out",
             yoyo: true,
             onUpdate: () => this.updateSinglePillowButtonVisual(btn)
         });
         this.tweens.add({
             targets: btn,
             _flash: 0,
-            duration: 240,
-            ease: "Quad.Out",
+            duration: 320,
+            ease: "Sine.Out",
             onUpdate: () => this.updateSinglePillowButtonVisual(btn)
+        });
+        this.tweens.add({
+            targets: btn._txt,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 90,
+            ease: "Back.Out",
+            yoyo: true
         });
     },
 

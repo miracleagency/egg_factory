@@ -68,7 +68,7 @@ window.EggGameModules.entitiesFx = {
             fontStyle: "bold",
             stroke: "#101010",
             strokeThickness: 5
-        }).setOrigin(0.5).setAlpha(0.5);
+        }).setOrigin(0.5).setAlpha(0);
 
         container.add([shadow, body, gloss, valueText]);
 
