@@ -49,12 +49,18 @@ window.EggGameModules.logic = {
         if (slotIndex === this.autoDropCheckSlot) return;
         this.autoDropCheckSlot = slotIndex;
 
-        if (!this.autoDropSelectedKey) return;
+        const selectedKeys = Array.isArray(this.autoDropSelectedKeys) ? this.autoDropSelectedKeys : [];
+        if (selectedKeys.length === 0) return;
 
-        const btn = this.pillowButtons && this.pillowButtons[this.autoDropSelectedKey];
-        if (!btn) return;
+        const availableButtons = selectedKeys
+            .map(key => this.pillowButtons && this.pillowButtons[key])
+            .filter(Boolean);
+        if (availableButtons.length === 0) return;
         if (Math.random() > this.getAutoDropChance()) return;
 
+        const btn = this.autoDropMode === 2
+            ? Phaser.Utils.Array.GetRandom(availableButtons)
+            : availableButtons[0];
         this.placeLine1Pillow(btn._baseColor, btn._mult);
     },
 

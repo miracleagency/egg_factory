@@ -384,53 +384,37 @@ window.EggGameModules.ui = {
         this.stopPillowButtonBounce(btn);
         btn._manualDown = false;
         btn._manualPreview = true;
-        btn._flash = success ? 0.18 : 0.1;
-        btn._pressDepth = 16;
+        btn._flash = success ? 0.16 : 0.08;
+        btn._pressDepth = 15;
         btn._bounceScale = 0.985;
         this.updateSinglePillowButtonVisual(btn);
 
-        this.tweens.add({
-            targets: btn,
-            _pressDepth: 0,
-            duration: 120,
-            ease: "Quad.Out",
-            onUpdate: () => this.updateSinglePillowButtonVisual(btn),
-            onComplete: () => {
-                const amp = success ? 7.5 : 4.5;
-                const fHz = success ? 6.8 : 5.2;
-                const decay = success ? 7.2 : 8.2;
-                const t0 = this.time.now / 1000;
+        const amp = success ? 15 : 8;
+        const fHz = success ? 5.8 : 4.8;
+        const decay = success ? 6.6 : 7.5;
+        const t0 = this.time.now / 1000;
 
-                btn._bounceEvent = this.time.addEvent({
-                    loop: true,
-                    delay: 16,
-                    callback: () => {
-                        const t = this.time.now / 1000 - t0;
-                        const offset = amp * Math.sin(2 * Math.PI * fHz * t) * Math.exp(-decay * t);
-                        btn._pressDepth = -offset;
-                        btn._bounceScale = 1 + Math.max(0, offset) * 0.003;
-                        btn._flash = (success ? 0.12 : 0.06) * Math.exp(-6 * t);
-                        this.updateSinglePillowButtonVisual(btn);
+        btn._bounceEvent = this.time.addEvent({
+            loop: true,
+            delay: 16,
+            callback: () => {
+                const t = this.time.now / 1000 - t0;
+                const offset = amp * Math.cos(2 * Math.PI * fHz * t) * Math.exp(-decay * t);
+                btn._pressDepth = Math.max(-7, offset);
+                btn._bounceScale = 1 + Math.max(0, -offset) * 0.004;
+                btn._flash = (success ? 0.1 : 0.05) * Math.exp(-5.4 * t);
+                this.updateSinglePillowButtonVisual(btn);
 
-                        if (Math.abs(offset) < 0.22 || t > 1.6) {
-                            btn._bounceEvent.remove();
-                            btn._bounceEvent = null;
-                            btn._manualPreview = false;
-                            btn._pressDepth = 0;
-                            btn._bounceScale = 1;
-                            btn._flash = 0;
-                            this.updateSinglePillowButtonVisual(btn);
-                        }
-                    }
-                });
+                if (Math.abs(offset) < 0.22 || t > 1.6) {
+                    btn._bounceEvent.remove();
+                    btn._bounceEvent = null;
+                    btn._manualPreview = false;
+                    btn._pressDepth = 0;
+                    btn._bounceScale = 1;
+                    btn._flash = 0;
+                    this.updateSinglePillowButtonVisual(btn);
+                }
             }
-        });
-        this.tweens.add({
-            targets: btn,
-            _bounceScale: 1,
-            duration: 120,
-            ease: "Quad.Out",
-            onUpdate: () => this.updateSinglePillowButtonVisual(btn)
         });
     },
 
@@ -440,11 +424,13 @@ window.EggGameModules.ui = {
             const cost = this.bet * btn._mult;
             const canAfford = this.balance >= cost;
             const needsSelection = this.autoDropMode > 0;
+            const selectedKeys = Array.isArray(this.autoDropSelectedKeys) ? this.autoDropSelectedKeys : [];
 
             btn._txt.setText(`${cost}$`);
             btn._canAfford = canAfford;
-            btn._isDisabled = needsSelection ? this.autoDropSelectedKey !== key : !canAfford;
-            btn._isSelected = this.autoDropSelectedKey === key && this.autoDropMode > 0;
+            btn._isDisabled = !canAfford;
+            btn._autoSelectable = needsSelection;
+            btn._isSelected = selectedKeys.includes(key) && this.autoDropMode > 0;
             this.updateSinglePillowButtonVisual(btn);
         }
 
@@ -457,6 +443,7 @@ window.EggGameModules.ui = {
         const selected = !!btn._isSelected;
         const disabled = !!btn._isDisabled;
         const afford = btn._canAfford !== false;
+        const autoSelectable = !!btn._autoSelectable;
         const pressDepth = btn._pressDepth || 0;
         const flash = btn._flash || 0;
         const manualDown = !!btn._manualDown;
@@ -495,9 +482,19 @@ window.EggGameModules.ui = {
 
         this.autoDropMode = mode;
         this.autoDropCheckSlot = null;
-        this.autoDropSelectedKey = null;
-        this.autoDropSelectedMult = 0;
+        this.releaseAllAutoDropButtons();
+        this.autoDropSelectedKeys = [];
         this.updatePillowButtonLabels();
+    },
+
+    releaseAllAutoDropButtons() {
+        if (!this.pillowButtons) return;
+        for (const key of Object.keys(this.pillowButtons)) {
+            const btn = this.pillowButtons[key];
+            if (btn && btn._isSelected) {
+                this.animatePillowButtonPress(btn, false);
+            }
+        }
     },
 
     setAutoDropPillow(key) {
@@ -505,8 +502,29 @@ window.EggGameModules.ui = {
         const btn = this.pillowButtons[key];
         if (!btn) return;
 
-        this.autoDropSelectedKey = key;
-        this.autoDropSelectedMult = btn._mult;
+        const selectedKeys = Array.isArray(this.autoDropSelectedKeys) ? [...this.autoDropSelectedKeys] : [];
+
+        if (this.autoDropMode === 1) {
+            for (const oldKey of selectedKeys) {
+                if (oldKey !== key && this.pillowButtons[oldKey]) {
+                    this.animatePillowButtonPress(this.pillowButtons[oldKey], false);
+                }
+            }
+            this.autoDropSelectedKeys = [key];
+            this.updatePillowButtonLabels();
+            this.animatePillowButtonPress(btn, true);
+            return;
+        }
+
+        if (selectedKeys.includes(key)) {
+            this.autoDropSelectedKeys = selectedKeys.filter(entry => entry !== key);
+            this.updatePillowButtonLabels();
+            this.animatePillowButtonPress(btn, false);
+            return;
+        }
+
+        selectedKeys.push(key);
+        this.autoDropSelectedKeys = selectedKeys;
         this.updatePillowButtonLabels();
         this.animatePillowButtonPress(btn, true);
     },
