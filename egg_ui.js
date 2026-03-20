@@ -317,11 +317,38 @@ window.EggGameModules.ui = {
         c._isDisabled = false;
         c._pressDepth = 0;
         c._flash = 0;
+        c._manualDown = false;
+        c._bounceScale = 1;
 
         body.setInteractive({ useHandCursor: true })
-            .on("pointerdown", () => this.handlePillowButtonPress(c));
+            .on("pointerdown", () => this.onPillowButtonDown(c))
+            .on("pointerup", () => this.onPillowButtonUp(c))
+            .on("pointerout", () => this.onPillowButtonOut(c));
 
         return c;
+    },
+
+    onPillowButtonDown(btn) {
+        if (!btn || btn._isDisabled) return;
+        btn._manualDown = true;
+        btn._pressDepth = 16;
+        btn._flash = 0.2;
+        this.updateSinglePillowButtonVisual(btn);
+    },
+
+    onPillowButtonUp(btn) {
+        if (!btn || btn._isDisabled) return;
+        const wasDown = btn._manualDown;
+        btn._manualDown = false;
+        if (!wasDown) return;
+        this.handlePillowButtonPress(btn);
+    },
+
+    onPillowButtonOut(btn) {
+        if (!btn) return;
+        btn._manualDown = false;
+        btn._pressDepth = 0;
+        this.updateSinglePillowButtonVisual(btn);
     },
 
     handlePillowButtonPress(btn) {
@@ -338,11 +365,14 @@ window.EggGameModules.ui = {
         if (!btn || btn._isDisabled) return;
 
         this.tweens.killTweensOf([btn, btn._face, btn._txt]);
+        btn._manualDown = false;
         btn._flash = success ? 1 : 0.45;
+        btn._pressDepth = 16;
+        btn._bounceScale = 1;
         this.tweens.add({
             targets: btn,
-            _pressDepth: 14,
-            duration: 110,
+            _pressDepth: -6,
+            duration: 160,
             ease: "Back.Out",
             yoyo: true,
             onUpdate: () => this.updateSinglePillowButtonVisual(btn)
@@ -355,12 +385,12 @@ window.EggGameModules.ui = {
             onUpdate: () => this.updateSinglePillowButtonVisual(btn)
         });
         this.tweens.add({
-            targets: btn._txt,
-            scaleX: 1.08,
-            scaleY: 1.08,
-            duration: 90,
+            targets: btn,
+            _bounceScale: 1.08,
+            duration: 130,
             ease: "Back.Out",
-            yoyo: true
+            yoyo: true,
+            onUpdate: () => this.updateSinglePillowButtonVisual(btn)
         });
     },
 
@@ -389,6 +419,8 @@ window.EggGameModules.ui = {
         const afford = btn._canAfford !== false;
         const pressDepth = btn._pressDepth || 0;
         const flash = btn._flash || 0;
+        const manualDown = !!btn._manualDown;
+        const bounceScale = btn._bounceScale || 1;
 
         const topColor = disabled
             ? this.mixColor(btn._baseColor, 0x444444, 60)
@@ -400,15 +432,16 @@ window.EggGameModules.ui = {
             : this.mixColor(btn._baseColor, 0x070707, selected ? 52 : 62);
 
         btn._face.y = (selected ? 4 : -10) + pressDepth;
-        btn._shadow.y = selected ? 28 : 42;
-        btn._shadow.alpha = selected ? 0.08 : 0.22;
+        btn._face.setScale(bounceScale);
+        btn._shadow.y = (selected ? 28 : 42) - Math.max(0, pressDepth * 0.6);
+        btn._shadow.alpha = manualDown ? 0.08 : (selected ? 0.08 : 0.22);
 
         btn._body.setFillStyle(this.mixColor(topColor, 0xffffff, flash * 38), 1);
         btn._body.setStrokeStyle(4, selected || flash > 0.05 ? 0xffffff : this.mixColor(btn._baseColor, 0xffffff, 32));
         btn._socket.setFillStyle(sideColor, 0.98).setStrokeStyle(4, this.mixColor(btn._baseColor, 0xffffff, selected ? 28 : 18));
-        btn._gloss.alpha = selected ? 0.24 : 0.11 + flash * 0.12;
+        btn._gloss.alpha = selected || manualDown ? 0.26 : 0.11 + flash * 0.12;
         btn._txt.setAlpha(disabled && !selected ? 0.58 : afford ? 1 : 0.72);
-        btn._txt.setScale(1 + flash * 0.06);
+        btn._txt.setScale((1 + flash * 0.06) * bounceScale);
         btn.setAlpha(disabled && !selected ? 0.72 : 1);
     },
 

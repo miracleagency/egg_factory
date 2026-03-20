@@ -126,6 +126,10 @@ window.EggGameModules.entitiesFx = {
     },
 
     updatePillowValueText(item, color = "#ffffff") {
+        if (item.eggMultSum <= 0) {
+            item.valueText.setAlpha(0);
+            return;
+        }
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
         item.valueText.setText(`${Math.round(displayValue)}$`);
         item.valueText.setColor(item.permanentTextColor || color || "#ffffff");
