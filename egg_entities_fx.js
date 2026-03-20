@@ -137,7 +137,7 @@ window.EggGameModules.entitiesFx = {
     },
 
     flashValueText(item, flashColor) {
-        if (!item || !item.valueText) return;
+        if (!item || !item.valueText || item.eggMultSum <= 0) return;
         const baseColor = item.permanentTextColor || "#ffffff";
         this.tweens.killTweensOf(item.valueText);
         item.valueText.setAlpha(1);

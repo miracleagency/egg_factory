@@ -353,6 +353,7 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "half") {
+            if (item.eggMultSum <= 0) return;
             item.eggMultSum *= 0.5;
             item.currentValue *= 0.5;
             this.updatePillowValueText(item);
@@ -362,6 +363,7 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "mul") {
+            if (item.eggMultSum <= 0) return;
             item.eggMultSum *= def.value;
             item.currentValue *= def.value;
             if (def.rarity === "gold") item.permanentTextColor = "#f1cb4a";
