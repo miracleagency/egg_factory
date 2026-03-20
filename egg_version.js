@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-20-pointerout-fix-v7"
+    version: "2026-03-20-layout-lift-v8"
 };
