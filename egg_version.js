@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-20-no-half-v15"
+    version: "2026-03-20-bombfire-smash-v16"
 };

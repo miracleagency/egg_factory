@@ -146,13 +146,11 @@ window.EggGameModules.entitiesFx = {
         container.add([body, shine]);
 
         if (eggType.bomb) {
-            const fuse = this.add.line(0, -29, 0, 0, 9, -14, 0x1a1a1a, 1).setLineWidth(4, 4);
-            const ember = this.add.circle(11, -14, 4.5, 0xffdd57, 0.98);
-            const emberGlow = this.add.circle(11, -14, 10, 0xff5c2f, 0.26);
-            const flame = this.add.ellipse(12, -18, 10, 16, 0xff8b2d, 0.9).setStrokeStyle(2, 0xfff1b0, 0.8);
-            const spark = this.add.star(14, -20, 4, 2, 5, 0xfff4bd, 0.95);
-            container.add([fuse, emberGlow, flame, spark, ember]);
-            container._bombFuse = fuse;
+            const ember = this.add.circle(11, -14, 6.2, 0xffdd57, 0.98);
+            const emberGlow = this.add.circle(11, -14, 14, 0xff5c2f, 0.26);
+            const flame = this.add.ellipse(12, -19, 14, 24, 0xff8b2d, 0.92).setStrokeStyle(2, 0xfff1b0, 0.8);
+            const spark = this.add.star(15, -21, 5, 2.4, 6.8, 0xfff4bd, 0.98);
+            container.add([emberGlow, flame, spark, ember]);
             container._bombEmber = ember;
             container._bombEmberGlow = emberGlow;
             container._bombFlame = flame;
@@ -160,8 +158,8 @@ window.EggGameModules.entitiesFx = {
 
             this.tweens.add({
                 targets: [ember, spark],
-                scaleX: 1.35,
-                scaleY: 1.35,
+                scaleX: 1.55,
+                scaleY: 1.55,
                 alpha: 0.35,
                 duration: 130,
                 ease: "Sine.InOut",
@@ -170,9 +168,9 @@ window.EggGameModules.entitiesFx = {
             });
             this.tweens.add({
                 targets: flame,
-                y: -21,
-                scaleX: 0.82,
-                scaleY: 1.18,
+                y: -23,
+                scaleX: 0.76,
+                scaleY: 1.3,
                 alpha: 0.6,
                 duration: 110,
                 ease: "Sine.InOut",
@@ -181,8 +179,8 @@ window.EggGameModules.entitiesFx = {
             });
             this.tweens.add({
                 targets: emberGlow,
-                scaleX: 1.28,
-                scaleY: 1.28,
+                scaleX: 1.5,
+                scaleY: 1.5,
                 alpha: 0.12,
                 duration: 180,
                 ease: "Sine.InOut",
