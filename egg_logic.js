@@ -38,7 +38,7 @@ window.EggGameModules.logic = {
 
     getAutoDropChance() {
         if (this.autoDropMode === 1) return 1;
-        if (this.autoDropMode === 2) return 0.78;
+        if (this.autoDropMode === 2) return 0.58;
         return 0;
     },
 
@@ -250,10 +250,10 @@ window.EggGameModules.logic = {
             maxSkip = 4;
         } else if (def.type === "fire") {
             minSkip = 0;
-            maxSkip = stage === 2 ? 2 : 1;
+            maxSkip = 1;
         } else if (def.rarity === "gold") {
-            minSkip = def.fastGold ? 4 : 5;
-            maxSkip = def.fastGold ? 8 : 9;
+            minSkip = def.fastGold ? 5 : 6;
+            maxSkip = def.fastGold ? 10 : 12;
         }
 
         dt += Phaser.Math.Between(minSkip, maxSkip) * slotTravel;

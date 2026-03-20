@@ -34,7 +34,7 @@ window.EggGameModules.entitiesFx = {
         def.nextShot = 0;
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
-        def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.06, 0.18) : Phaser.Math.FloatBetween(0.22, 0.52);
+        def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.02, 0.08) : Phaser.Math.FloatBetween(0.12, 0.26);
 
         return def;
     },
