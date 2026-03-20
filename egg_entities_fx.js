@@ -37,12 +37,26 @@ window.EggGameModules.entitiesFx = {
             color: def.rarity === "gold" ? "#4a2a00" : "#ffffff",
             fontStyle: "bold"
         }).setOrigin(0.5);
+        const timerText = this.add.text(0, -2, "", {
+            fontFamily: "Arial",
+            fontSize: "28px",
+            color: "#ffe9a3",
+            fontStyle: "bold"
+        }).setOrigin(0.5).setVisible(false);
+        const hammer = this.add.container(0, -42).setVisible(false);
+        const hammerHandle = this.add.rectangle(-6, -6, 8, 32, 0x8f6748, 1).setStrokeStyle(2, 0xe2c6aa);
+        const hammerHead = this.add.rectangle(8, -18, 24, 12, 0xc8d0db, 1).setStrokeStyle(2, 0xffffff);
+        hammer.add([hammerHandle, hammerHead]);
 
-        container.add([body, lip, label]);
+        container.add([body, lip, label, timerText, hammer]);
         container.setScale(1.12);
         this.machineLayer.add(container);
 
         def.container = container;
+        def.labelText = label;
+        def.timerText = timerText;
+        def.hammer = hammer;
+        def.baseLabel = def.label;
         def.nextShot = 0;
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
@@ -130,6 +144,16 @@ window.EggGameModules.entitiesFx = {
         const body = this.add.ellipse(0, 0, 32, 44, eggType.color, 1).setStrokeStyle(2, eggType.stroke);
         const shine = this.add.ellipse(-6, -9, 7, 12, 0xffffff, 0.35);
         container.add([body, shine]);
+
+        if (eggType.bomb) {
+            const fuse = this.add.line(0, -28, 0, 0, 8, -12, 0xffd49a, 1).setLineWidth(3, 3);
+            const ember = this.add.circle(10, -13, 4, 0xffc44a, 0.95);
+            const emberGlow = this.add.circle(10, -13, 8, 0xff6b2d, 0.22);
+            container.add([fuse, emberGlow, ember]);
+            container._bombFuse = fuse;
+            container._bombEmber = ember;
+            container._bombEmberGlow = emberGlow;
+        }
 
         if (eggType.glow) {
             const glow = this.add.ellipse(0, 0, 46, 60, eggType.glow, 0.24);
@@ -226,6 +250,69 @@ window.EggGameModules.entitiesFx = {
 
         container.setScale(eggScale);
         return { container, body };
+    },
+
+    setBombVisualState(eggContainer, lit) {
+        if (!eggContainer || !eggContainer._bombEmber || !eggContainer._bombEmberGlow) return;
+        eggContainer._bombEmber.setVisible(lit);
+        eggContainer._bombEmberGlow.setVisible(lit);
+        if (lit) {
+            eggContainer._bombEmber.setAlpha(0.95);
+            eggContainer._bombEmberGlow.setAlpha(0.22);
+        }
+    },
+
+    setMachineBrokenVisual(def, broken, secondsLeft = 0) {
+        if (!def || !def.labelText || !def.timerText || !def.hammer) return;
+        def.labelText.setVisible(!broken);
+        def.timerText.setVisible(broken);
+        def.timerText.setText(broken ? `${secondsLeft.toFixed(1)}s` : "");
+        def.hammer.setVisible(broken);
+        def.container.setAlpha(broken ? 0.82 : 1);
+    },
+
+    spawnMachineRepairSparks(def) {
+        if (!def || !def.container) return;
+        const x = def.container.x;
+        const y = def.container.y - 8;
+
+        for (let i = 0; i < 5; i++) {
+            const spark = this.add.rectangle(x, y, 4, 16, 0xffc44a, 0.95).setDepth(5100);
+            spark.angle = Phaser.Math.Between(-60, 60);
+            this.fxLayer.add(spark);
+            this.tweens.add({
+                targets: spark,
+                x: x + Phaser.Math.Between(-26, 26),
+                y: y + Phaser.Math.Between(-12, 18),
+                alpha: 0,
+                scaleY: 0.3,
+                duration: 180,
+                onComplete: () => spark.destroy()
+            });
+        }
+    },
+
+    spawnBombExplosionFx(x, y) {
+        const flash = this.add.circle(x, y, 24, 0xffc76d, 0.42).setDepth(5120);
+        const fire = this.add.circle(x, y, 18, 0xff5c2f, 0.6).setDepth(5121);
+        this.fxLayer.add([flash, fire]);
+
+        this.tweens.add({
+            targets: flash,
+            scaleX: 3.4,
+            scaleY: 3.4,
+            alpha: 0,
+            duration: 220,
+            onComplete: () => flash.destroy()
+        });
+        this.tweens.add({
+            targets: fire,
+            scaleX: 2.4,
+            scaleY: 2.4,
+            alpha: 0,
+            duration: 220,
+            onComplete: () => fire.destroy()
+        });
     },
 
     spawnCrushFx(x, y) {

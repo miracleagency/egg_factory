@@ -144,9 +144,11 @@ window.EggGameModules.logic = {
 
             if (pillow) {
                 egg.state = "saved";
-                pillow.eggs.push(egg.typeData);
-                pillow.eggMultSum += egg.typeData.mult;
-                pillow.currentValue += pillow.spentCost * egg.typeData.mult;
+                const eggData = { ...egg.typeData };
+                if (eggData.bomb) eggData.bombLit = true;
+                pillow.eggs.push(eggData);
+                pillow.eggMultSum += eggData.mult;
+                pillow.currentValue += pillow.spentCost * eggData.mult;
                 if (egg.typeData.armored) {
                     pillow.armored = true;
                     pillow.permanentTextColor = "#d8e3ef";
@@ -163,7 +165,10 @@ window.EggGameModules.logic = {
                 }
 
                 egg.container.y = -26;
-                egg.container._eggTypeData = egg.typeData;
+                egg.container._eggTypeData = eggData;
+                if (eggData.bomb) {
+                    this.setBombVisualState(egg.container, true);
+                }
                 this.updatePillowValueText(pillow);
             } else {
                 egg.state = "dead";
@@ -254,8 +259,8 @@ window.EggGameModules.logic = {
         if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
-            minSkip = 2;
-            maxSkip = 4;
+            minSkip = 1;
+            maxSkip = 3;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
@@ -291,6 +296,8 @@ window.EggGameModules.logic = {
     },
 
     maybeFireMachine(def, line, stage) {
+        if (def.brokenUntil && this.time.now < def.brokenUntil) return;
+
         const schedule = (fromClock, first) => {
             const flight = this.getMachineFlightTime(def, line);
             const impact = this.computeNextMachineImpactClock(def, line, stage, fromClock + flight, first);
@@ -319,7 +326,7 @@ window.EggGameModules.logic = {
 
     spawnCrusherAttack(def, line, stage, impactClock) {
         const centerIndex = this.getNearestLineSlotIndex(line, def.container.x, impactClock);
-        const targetX = this.getLineSlotCenterXAtClock(line, centerIndex, impactClock);
+        const targetX = def.container.x;
         const targetY = line.y + line.h * 0.5 - 10;
         const startY = def.container.y + 38;
 
@@ -394,8 +401,20 @@ window.EggGameModules.logic = {
     applyMachineEffect(def, item) {
         if (item.destroyed || item.finished) return;
 
+        const bombEggs = (item.eggs || []).filter(egg => egg.bomb);
+        const litBombEggs = bombEggs.filter(egg => egg.bombLit !== false);
+
         if (def.type === "water") {
             item.wet = true;
+            for (const egg of bombEggs) {
+                egg.bombLit = false;
+            }
+            for (const child of item.container.list) {
+                if (child && child._eggTypeData && child._eggTypeData.bomb) {
+                    child._eggTypeData.bombLit = false;
+                    this.setBombVisualState(child, false);
+                }
+            }
             this.ensureWetFx(item);
             this.flashValueText(item, "#7fc8ff");
             this.spawnWaterEggSplash(item);
@@ -427,11 +446,40 @@ window.EggGameModules.logic = {
         if (def.type === "fire") {
             if (item.wet) {
                 item.wet = false;
+                for (const egg of bombEggs) {
+                    egg.bombLit = true;
+                }
+                for (const child of item.container.list) {
+                    if (child && child._eggTypeData && child._eggTypeData.bomb) {
+                        child._eggTypeData.bombLit = true;
+                        this.setBombVisualState(child, true);
+                    }
+                }
                 this.clearWetFx(item);
                 this.updatePillowValueText(item);
                 this.spawnImpactFx(item.container.x, item.container.y - 4, 0x59b7ff);
                 this.spawnDryFx(item);
                 this.pulseItem(item);
+                return;
+            }
+
+            if (litBombEggs.length > 0) {
+                this.breakMachine(def);
+                item.destroyed = true;
+                this.clearWetFx(item);
+                if (!item.settled) {
+                    this.addLose(item.spentCost || 0);
+                    item.settled = true;
+                }
+                this.spawnBombExplosionFx(item.container.x, item.container.y - 10);
+                this.tweens.add({
+                    targets: item.container,
+                    scaleX: 1.5,
+                    scaleY: 1.5,
+                    alpha: 0,
+                    duration: 180,
+                    onComplete: () => item.container.destroy()
+                });
                 return;
             }
 
@@ -504,6 +552,27 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "crush") {
+            if (litBombEggs.length > 0) {
+                this.breakMachine(def);
+                item.destroyed = true;
+                this.clearWetFx(item);
+                if (!item.settled) {
+                    this.addLose(item.spentCost || 0);
+                    item.settled = true;
+                }
+                this.spawnBombExplosionFx(item.container.x, item.container.y - 8);
+                this.tweens.add({
+                    targets: item.container,
+                    scaleY: 0.18,
+                    scaleX: 1.48,
+                    alpha: 0,
+                    duration: 170,
+                    ease: "Quad.In",
+                    onComplete: () => item.container.destroy()
+                });
+                return;
+            }
+
             item.destroyed = true;
             item.armored = false;
             this.clearWetFx(item);
@@ -525,7 +594,54 @@ window.EggGameModules.logic = {
         }
     },
 
+    breakMachine(def) {
+        if (!def) return;
+        def.brokenUntil = this.time.now + 20000;
+        def.nextShot = 0;
+        def.nextImpact = 0;
+        this.setMachineBrokenVisual(def, true, 20);
+        if (def.hammerTween) {
+            this.tweens.killTweensOf(def.hammer);
+            def.hammerTween = null;
+        }
+        def.hammer.y = -42;
+        def.hammer.angle = -12;
+        def.hammerTween = this.tweens.add({
+            targets: def.hammer,
+            angle: 22,
+            y: -26,
+            duration: 180,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: -1,
+            onYoyo: () => this.spawnMachineRepairSparks(def)
+        });
+    },
+
+    updateBrokenMachines(machineDefs) {
+        for (const def of machineDefs) {
+            if (!def.brokenUntil) continue;
+            const msLeft = def.brokenUntil - this.time.now;
+            if (msLeft <= 0) {
+                def.brokenUntil = 0;
+                if (def.hammerTween) {
+                    this.tweens.killTweensOf(def.hammer);
+                    def.hammerTween = null;
+                }
+                def.hammer.setVisible(false);
+                def.hammer.angle = 0;
+                def.hammer.y = -42;
+                this.setMachineBrokenVisual(def, false, 0);
+                continue;
+            }
+            this.setMachineBrokenVisual(def, true, msLeft / 1000);
+        }
+    },
+
     handleMachineLogic() {
+        this.updateBrokenMachines(this.line1Machines);
+        this.updateBrokenMachines(this.line2Machines);
+        this.updateBrokenMachines(this.line3Machines);
         for (const def of this.line1Machines) this.maybeFireMachine(def, this.lines.line1, 1);
         for (const def of this.line2Machines) this.maybeFireMachine(def, this.lines.line2, 2);
         for (const def of this.line3Machines) this.maybeFireMachine(def, this.lines.line3, 3);
