@@ -318,7 +318,6 @@ window.EggGameModules.ui = {
         c._pressDepth = 0;
         c._flash = 0;
         c._manualDown = false;
-        c._manualPreview = false;
         c._bounceScale = 1;
 
         body.setInteractive({ useHandCursor: true })
@@ -333,7 +332,6 @@ window.EggGameModules.ui = {
         if (!btn || btn._isDisabled) return;
         this.stopPillowButtonBounce(btn);
         btn._manualDown = true;
-        btn._manualPreview = true;
         btn._pressDepth = 16;
         btn._flash = 0.04;
         btn._bounceScale = 0.985;
@@ -352,7 +350,6 @@ window.EggGameModules.ui = {
         if (!btn) return;
         this.stopPillowButtonBounce(btn);
         btn._manualDown = false;
-        btn._manualPreview = false;
         btn._pressDepth = 0;
         btn._bounceScale = 1;
         this.updateSinglePillowButtonVisual(btn);
@@ -383,7 +380,6 @@ window.EggGameModules.ui = {
 
         this.stopPillowButtonBounce(btn);
         btn._manualDown = false;
-        btn._manualPreview = true;
         btn._flash = success ? 0.16 : 0.08;
         btn._pressDepth = 15;
         btn._bounceScale = 0.985;
@@ -405,14 +401,13 @@ window.EggGameModules.ui = {
                 btn._flash = (success ? 0.1 : 0.05) * Math.exp(-5.4 * t);
                 this.updateSinglePillowButtonVisual(btn);
 
-                if (Math.abs(offset) < 0.22 || t > 1.6) {
-                    btn._bounceEvent.remove();
-                    btn._bounceEvent = null;
-                    btn._manualPreview = false;
-                    btn._pressDepth = 0;
-                    btn._bounceScale = 1;
-                    btn._flash = 0;
-                    this.updateSinglePillowButtonVisual(btn);
+                        if (Math.abs(offset) < 0.22 || t > 1.6) {
+                            btn._bounceEvent.remove();
+                            btn._bounceEvent = null;
+                            btn._pressDepth = 0;
+                            btn._bounceScale = 1;
+                            btn._flash = 0;
+                            this.updateSinglePillowButtonVisual(btn);
                 }
             }
         });
@@ -447,9 +442,8 @@ window.EggGameModules.ui = {
         const pressDepth = btn._pressDepth || 0;
         const flash = btn._flash || 0;
         const manualDown = !!btn._manualDown;
-        const manualPreview = !!btn._manualPreview;
         const bounceScale = btn._bounceScale || 1;
-        const pressedLike = selected || manualDown || manualPreview;
+        const pressedLike = selected || manualDown;
 
         const topColor = disabled
             ? this.mixColor(btn._baseColor, 0x444444, 60)
