@@ -36,6 +36,28 @@ window.EggGameModules.logic = {
         return Math.ceil((-this.lines.line1.speed * this.speedClock) / this.lines.line1.slotWidth);
     },
 
+    getAutoDropChance() {
+        if (this.autoDropMode === 1) return 1;
+        if (this.autoDropMode === 2) return 0.78;
+        return 0;
+    },
+
+    handleAutoDrop() {
+        if (this.autoDropMode === 0) return;
+
+        const slotIndex = this.getLine1FirstVisibleSlotIndex();
+        if (slotIndex === this.autoDropCheckSlot) return;
+        this.autoDropCheckSlot = slotIndex;
+
+        if (!this.autoDropSelectedKey) return;
+
+        const btn = this.pillowButtons && this.pillowButtons[this.autoDropSelectedKey];
+        if (!btn) return;
+        if (Math.random() > this.getAutoDropChance()) return;
+
+        this.placeLine1Pillow(btn._baseColor, btn._mult);
+    },
+
     placeLine1Pillow(color, multiplier) {
         const slotIndex = this.getLine1FirstVisibleSlotIndex();
         const cost = this.bet * multiplier;

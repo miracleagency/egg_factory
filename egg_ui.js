@@ -37,7 +37,6 @@ window.EggGameModules.ui = {
         this.betBg = this.add.rectangle(0, 0, 140, 68, 0x12203b, 0.98)
             .setStrokeStyle(4, 0x304a72)
             .setOrigin(0, 0.5);
-
         this.betText = this.add.text(70, 0, "$1", {
             fontFamily: "Arial",
             fontSize: "52px",
@@ -56,25 +55,7 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
         this.infoBtn.add([infoEgg, infoBadge, infoTxt]);
 
-        this.winPanel = this.add.container(0, 0);
-        const winBg = this.add.rectangle(0, 0, 220, 50, 0x17301f, 0.95).setStrokeStyle(3, 0x2f6a45);
-        this.winText = this.add.text(0, 0, "WIN: 0", {
-            fontFamily: "Arial",
-            fontSize: "28px",
-            color: "#a7ffc0",
-            fontStyle: "bold"
-        }).setOrigin(0.5);
-        this.winPanel.add([winBg, this.winText]);
-
-        this.losePanel = this.add.container(0, 0);
-        const loseBg = this.add.rectangle(0, 0, 220, 50, 0x3a1b1b, 0.95).setStrokeStyle(3, 0x7e3a3a);
-        this.loseText = this.add.text(0, 0, "LOSE: 0", {
-            fontFamily: "Arial",
-            fontSize: "28px",
-            color: "#ffb2b2",
-            fontStyle: "bold"
-        }).setOrigin(0.5);
-        this.losePanel.add([loseBg, this.loseText]);
+        this.createAutoDropSwitch();
 
         infoEgg.setInteractive({ useHandCursor: true })
             .on("pointerdown", () => this.toggleEggInfo(true));
@@ -93,10 +74,77 @@ window.EggGameModules.ui = {
             this.plusBtn,
             this.infoBtn
         ]);
-        this.uiLayer.add([this.winPanel, this.losePanel]);
 
         this.updateTurboVisual();
-        this.updateWinLoseLabels();
+        this.updateAutoDropSwitchVisual();
+    },
+
+    createAutoDropSwitch() {
+        this.autoDropSwitch = this.add.container(0, 0).setDepth(7000);
+        this.uiLayer.add(this.autoDropSwitch);
+
+        this.autoDropPanelShadow = this.add.rectangle(0, 26, 392, 104, 0x000000, 0.22);
+        this.autoDropPanel = this.add.rectangle(0, 0, 392, 98, 0x16243f, 0.98)
+            .setStrokeStyle(4, 0x334f7f);
+        this.autoDropTitle = this.add.text(0, -56, "AUTO DROP", {
+            fontFamily: "Arial",
+            fontSize: "28px",
+            color: "#e7efff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        this.autoDropTrack = this.add.rectangle(0, 6, 318, 42, 0x09111f, 1)
+            .setStrokeStyle(3, 0x26344d);
+        this.autoDropGroove = this.add.rectangle(0, 6, 300, 18, 0x253246, 1)
+            .setStrokeStyle(2, 0x4d6484);
+        this.autoDropGlow = this.add.rectangle(-108, 6, 84, 22, 0x6d7d91, 0.18);
+        this.autoDropKnobShadow = this.add.ellipse(-108, 28, 88, 24, 0x000000, 0.2);
+        this.autoDropKnob = this.add.circle(-108, 6, 28, 0x7f8ea3, 1).setStrokeStyle(4, 0xd8e3f5);
+        this.autoDropKnobInner = this.add.circle(-108, 6, 14, 0xecf2fa, 0.9);
+        this.autoDropKnobLine = this.add.rectangle(-108, 6, 8, 28, 0x455469, 0.95);
+
+        this.autoDropLabels = [
+            this.add.text(-108, 48, "STOP", {
+                fontFamily: "Arial",
+                fontSize: "22px",
+                color: "#91a0b8",
+                fontStyle: "bold"
+            }).setOrigin(0.5),
+            this.add.text(0, 48, "EVERY", {
+                fontFamily: "Arial",
+                fontSize: "22px",
+                color: "#91a0b8",
+                fontStyle: "bold"
+            }).setOrigin(0.5),
+            this.add.text(108, 48, "RANDOM", {
+                fontFamily: "Arial",
+                fontSize: "22px",
+                color: "#91a0b8",
+                fontStyle: "bold"
+            }).setOrigin(0.5)
+        ];
+
+        this.autoDropSwitch.add([
+            this.autoDropPanelShadow,
+            this.autoDropPanel,
+            this.autoDropTitle,
+            this.autoDropTrack,
+            this.autoDropGroove,
+            this.autoDropGlow,
+            this.autoDropKnobShadow,
+            this.autoDropKnob,
+            this.autoDropKnobInner,
+            this.autoDropKnobLine,
+            ...this.autoDropLabels
+        ]);
+
+        const snapTargets = [-108, 0, 108];
+        for (let i = 0; i < snapTargets.length; i++) {
+            const zone = this.add.rectangle(snapTargets[i], 6, 104, 58, 0xffffff, 0.001)
+                .setInteractive({ useHandCursor: true });
+            zone.on("pointerdown", () => this.setAutoDropMode(i));
+            this.autoDropSwitch.add(zone);
+        }
     },
 
     layoutBottomUI() {
@@ -133,6 +181,8 @@ window.EggGameModules.ui = {
 
     createMiniButton(label, onClick) {
         const c = this.add.container(0, 0);
+        const shadow = this.add.rectangle(0, 8, 64, 68, 0x09111f, 0.38).setStrokeStyle(0);
+        const face = this.add.container(0, -4);
         const bg = this.add.rectangle(0, 0, 64, 68, 0x12203b, 0.98)
             .setStrokeStyle(4, 0x304a72);
         const txt = this.add.text(0, 0, label, {
@@ -142,19 +192,35 @@ window.EggGameModules.ui = {
             fontStyle: "bold"
         }).setOrigin(0.5);
 
-        c.add([bg, txt]);
+        face.add([bg, txt]);
+        c.add([shadow, face]);
+        c._shadow = shadow;
+        c._face = face;
+        c._bg = bg;
+        c._txt = txt;
+
+        const press = pressed => {
+            face.y = pressed ? 2 : -4;
+            shadow.alpha = pressed ? 0.16 : 0.38;
+            bg.setFillStyle(pressed ? 0x1d3359 : 0x12203b, 1).setStrokeStyle(4, pressed ? 0x5e8ed2 : 0x304a72);
+        };
 
         bg.setInteractive({ useHandCursor: true })
-            .on("pointerdown", onClick);
+            .on("pointerdown", () => press(true))
+            .on("pointerup", () => {
+                press(false);
+                onClick();
+            })
+            .on("pointerout", () => press(false));
 
         return c;
     },
 
     createPillowButtons() {
         this.pillowButtons = {
-            green: this.createPillowButton(0x46c466, 1),
-            purple: this.createPillowButton(0x8e64ff, 2),
-            red: this.createPillowButton(0xf04d4d, 5)
+            green: this.createPillowButton("green", 0x46c466, 1),
+            purple: this.createPillowButton("purple", 0x8e64ff, 2),
+            red: this.createPillowButton("red", 0xf04d4d, 5)
         };
 
         this.uiLayer.add([
@@ -187,39 +253,75 @@ window.EggGameModules.ui = {
         this.pillowButtons.purple.setPosition(startX + w + gap, baseY);
         this.pillowButtons.red.setPosition(startX + (w + gap) * 2, baseY);
 
-        const panelY = baseY - Math.round(86 * scale);
-        this.winPanel.setScale(scale);
-        this.losePanel.setScale(scale);
-        this.winPanel.setPosition(this.W * 0.5 - (110 * scale + 12), panelY);
-        this.losePanel.setPosition(this.W * 0.5 + (110 * scale + 12), panelY);
+        const switchY = baseY - Math.round(120 * scale);
+        this.autoDropSwitch.setScale(scale);
+        this.autoDropSwitch.setPosition(this.W * 0.5, switchY);
     },
 
-    createPillowButton(color, mult) {
+    createPillowButton(key, color, mult) {
         const c = this.add.container(0, 0).setDepth(7000);
 
-        const shadow = this.add.ellipse(0, 34, 150, 22, 0x000000, 0.28);
-        const body = this.add.rectangle(0, 0, 240, 86, color, 1)
-            .setStrokeStyle(4, 0xffffff);
-
+        const shadow = this.add.ellipse(0, 42, 164, 24, 0x000000, 0.2);
+        const socket = this.add.roundRectangle ? this.add.roundRectangle(0, 14, 236, 96, 28, 0x231818, 0.18) : this.add.rectangle(0, 14, 236, 96, 0x231818, 0.18);
+        const face = this.add.container(0, -8);
+        const body = this.add.rectangle(0, 0, 240, 86, color, 1).setStrokeStyle(4, 0xffffff);
         const gloss = this.add.rectangle(0, -16, 160, 20, 0xffffff, 0.12);
-
         const txt = this.add.text(0, 0, "0$", {
             fontFamily: "Arial",
             fontSize: "56px",
             color: "#ffffff",
             fontStyle: "bold"
         }).setOrigin(0.5);
+        const badge = this.add.text(0, -48, `x${mult}`, {
+            fontFamily: "Arial",
+            fontSize: "24px",
+            color: "#eff6ff",
+            fontStyle: "bold",
+            stroke: "#101010",
+            strokeThickness: 4
+        }).setOrigin(0.5);
 
-        c.add([shadow, body, gloss, txt]);
+        face.add([body, gloss, txt, badge]);
+        c.add([shadow, socket, face]);
+
+        c._key = key;
         c._mult = mult;
         c._txt = txt;
         c._body = body;
+        c._gloss = gloss;
+        c._face = face;
+        c._shadow = shadow;
+        c._badge = badge;
         c._baseColor = color;
+        c._isSelected = false;
+        c._isDisabled = false;
 
         body.setInteractive({ useHandCursor: true })
-            .on("pointerdown", () => this.placeLine1Pillow(color, mult));
+            .on("pointerdown", () => this.handlePillowButtonPress(c));
 
         return c;
+    },
+
+    handlePillowButtonPress(btn) {
+        if (this.autoDropMode > 0) {
+            this.setAutoDropPillow(btn._key);
+            return;
+        }
+
+        this.animatePillowButtonPress(btn);
+        this.placeLine1Pillow(btn._baseColor, btn._mult);
+    },
+
+    animatePillowButtonPress(btn) {
+        if (!btn || btn._isDisabled) return;
+        this.tweens.killTweensOf(btn._face);
+        this.tweens.add({
+            targets: btn._face,
+            y: 2,
+            duration: 70,
+            yoyo: true,
+            onUpdate: () => this.updateSinglePillowButtonVisual(btn)
+        });
     },
 
     updatePillowButtonLabels() {
@@ -227,34 +329,103 @@ window.EggGameModules.ui = {
             const btn = this.pillowButtons[key];
             const cost = this.bet * btn._mult;
             const canAfford = this.balance >= cost;
+            const needsSelection = this.autoDropMode > 0;
+
             btn._txt.setText(`${cost}$`);
-            btn._body.setFillStyle(canAfford ? btn._baseColor : 0x7a7a7a, 1);
-            btn.setAlpha(canAfford ? 1 : 0.86);
-            btn._txt.setAlpha(canAfford ? 1 : 0.82);
+            btn._canAfford = canAfford;
+            btn._isDisabled = needsSelection ? this.autoDropSelectedKey !== key : !canAfford;
+            btn._isSelected = this.autoDropSelectedKey === key && this.autoDropMode > 0;
+            this.updateSinglePillowButtonVisual(btn);
         }
 
         this.balanceText.setText(`$${Math.round(this.balance)}`);
         this.betText.setText(`$${this.bet}`);
-        this.updateWinLoseLabels();
+        this.updateAutoDropSwitchVisual();
     },
 
-    updateWinLoseLabels() {
-        if (!this.winText || !this.loseText) return;
-        this.winText.setText(`WIN: ${Math.round(this.winTotal)}$`);
-        this.loseText.setText(`LOSE: ${Math.round(this.loseTotal)}$`);
+    updateSinglePillowButtonVisual(btn) {
+        const selected = !!btn._isSelected;
+        const disabled = !!btn._isDisabled;
+        const afford = btn._canAfford !== false;
+
+        const color = disabled
+            ? 0x6f6f78
+            : selected
+                ? btn._baseColor
+                : Phaser.Display.Color.Interpolate.ColorWithColor(
+                    Phaser.Display.Color.ValueToColor(btn._baseColor),
+                    Phaser.Display.Color.ValueToColor(0x1c1c22),
+                    100,
+                    28
+                ).color;
+
+        const faceY = selected ? 4 : -8;
+        btn._face.y = faceY;
+        btn._shadow.y = selected ? 28 : 42;
+        btn._shadow.alpha = selected ? 0.08 : 0.2;
+        btn._body.setFillStyle(color, selected ? 1 : 0.92);
+        btn._body.setStrokeStyle(4, selected ? 0xffffff : 0xd2d9e7);
+        btn._gloss.alpha = selected ? 0.2 : 0.08;
+        btn._badge.setAlpha(selected ? 1 : 0.78);
+        btn._txt.setAlpha(disabled && !selected ? 0.58 : afford ? 1 : 0.72);
+        btn.setAlpha(disabled && !selected ? 0.72 : 1);
     },
 
-    addWin(amount) {
-        if (amount <= 0) return;
-        this.winTotal += amount;
-        this.updateWinLoseLabels();
+    setAutoDropMode(mode) {
+        if (this.autoDropMode === mode) return;
+        this.autoDropMode = mode;
+        this.autoDropCheckSlot = null;
+
+        if (mode === 0) {
+            this.autoDropSelectedKey = null;
+            this.autoDropSelectedMult = 0;
+        } else {
+            this.autoDropSelectedKey = null;
+            this.autoDropSelectedMult = 0;
+        }
+
+        this.updatePillowButtonLabels();
     },
 
-    addLose(amount) {
-        if (amount <= 0) return;
-        this.loseTotal += amount;
-        this.updateWinLoseLabels();
+    setAutoDropPillow(key) {
+        if (this.autoDropMode === 0) return;
+        const btn = this.pillowButtons[key];
+        if (!btn) return;
+
+        this.autoDropSelectedKey = key;
+        this.autoDropSelectedMult = btn._mult;
+        this.updatePillowButtonLabels();
+        this.animatePillowButtonPress(btn);
     },
+
+    updateAutoDropSwitchVisual() {
+        if (!this.autoDropSwitch) return;
+
+        const xPositions = [-108, 0, 108];
+        const fills = [0x7f8ea3, 0x48c86b, 0xf0b947];
+        const glowColors = [0x8a9ab0, 0x52e17b, 0xffd570];
+        const activeX = xPositions[this.autoDropMode] || -108;
+
+        this.tweens.killTweensOf([this.autoDropGlow, this.autoDropKnobShadow, this.autoDropKnob, this.autoDropKnobInner, this.autoDropKnobLine]);
+        this.tweens.add({
+            targets: [this.autoDropGlow, this.autoDropKnobShadow, this.autoDropKnob, this.autoDropKnobInner, this.autoDropKnobLine],
+            x: activeX,
+            duration: 120,
+            ease: "Sine.Out"
+        });
+
+        this.autoDropGlow.setFillStyle(glowColors[this.autoDropMode] || 0x8a9ab0, this.autoDropMode === 0 ? 0.16 : 0.28);
+        this.autoDropKnob.setFillStyle(fills[this.autoDropMode] || 0x7f8ea3, 1);
+
+        for (let i = 0; i < this.autoDropLabels.length; i++) {
+            this.autoDropLabels[i].setColor(i === this.autoDropMode ? "#ffffff" : "#91a0b8");
+            this.autoDropLabels[i].setAlpha(i === this.autoDropMode ? 1 : 0.7);
+        }
+    },
+
+    addWin() {},
+
+    addLose() {},
 
     changeBet(dir) {
         this.betIndex = Phaser.Math.Clamp(this.betIndex + dir, 0, this.betSteps.length - 1);
