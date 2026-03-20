@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-20-bomb-repair-v11"
+    version: "2026-03-20-machine-rebalance-v12"
 };
