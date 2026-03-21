@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-deferred-value-text-v46"
+    version: "2026-03-21-value-text-rebuild-v47"
 };

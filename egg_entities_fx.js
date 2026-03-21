@@ -87,14 +87,7 @@ window.EggGameModules.entitiesFx = {
         const shadow = this.add.ellipse(0, 16, 112, 18, 0x000000, 0.28);
         const body = this.add.rectangle(0, 0, 108, 40, color, 1).setStrokeStyle(4, 0xffffff);
         const gloss = this.add.rectangle(0, -8, 72, 14, 0xffffff, 0.12);
-        const valueText = this.add.text(0, 34, `${cost}$`, {
-            fontFamily: "Arial",
-            fontSize: "54px",
-            color: "#ffffff",
-            fontStyle: "bold",
-            stroke: "#101010",
-            strokeThickness: 5
-        }).setOrigin(0.5).setAlpha(0);
+        const valueText = this.createPillowValueText(`${cost}$`);
 
         container.add([shadow, body, gloss, valueText]);
 
@@ -115,6 +108,43 @@ window.EggGameModules.entitiesFx = {
             settled: false,
             permanentTextColor: null
         };
+    },
+
+    createPillowValueText(textValue) {
+        return this.add.text(0, 34, textValue, {
+            fontFamily: "Arial",
+            fontSize: "54px",
+            color: "#ffffff",
+            fontStyle: "bold",
+            stroke: "#101010",
+            strokeThickness: 5
+        }).setOrigin(0.5).setAlpha(0);
+    },
+
+    rebuildPillowValueText(item, textValue) {
+        if (!item || !item.container || item.destroyed || item.finished) return null;
+
+        const oldText = item.valueText;
+        const alpha = oldText && typeof oldText.alpha === "number" ? oldText.alpha : 0;
+        const scaleX = oldText && typeof oldText.scaleX === "number" ? oldText.scaleX : 1;
+        const scaleY = oldText && typeof oldText.scaleY === "number" ? oldText.scaleY : 1;
+
+        if (oldText) {
+            if (this.tweens && typeof this.tweens.killTweensOf === "function") {
+                this.tweens.killTweensOf(oldText);
+            }
+            if (item.container.list && item.container.list.includes(oldText)) {
+                item.container.remove(oldText);
+            }
+            if (oldText.scene && oldText.destroy) oldText.destroy();
+        }
+
+        const textObj = this.createPillowValueText(textValue);
+        textObj.setAlpha(alpha);
+        textObj.setScale(scaleX, scaleY);
+        item.valueText = textObj;
+        item.container.addAt(textObj, Math.min(3, item.container.length));
+        return textObj;
     },
 
     createEggVisual(eggType, withShadow = false, options = {}) {
@@ -574,22 +604,26 @@ window.EggGameModules.entitiesFx = {
     },
 
     updatePillowValueText(item, color = "#ffffff") {
-        if (!item || !item.valueText || !item.valueText.scene || item.valueText.destroyed) return;
+        if (!item || !item.container || item.destroyed || item.finished) return;
         if (this.gameplayPaused) {
             item._queuedValueTextColor = item.permanentTextColor || color || "#ffffff";
             this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
             this.pendingValueTextRefresh.add(item);
             return;
         }
+        if (!item.valueText || !item.valueText.scene || item.valueText.destroyed) {
+            item.valueText = this.rebuildPillowValueText(item, this.formatMoneyValue(item.currentValue || item.spentCost || 0));
+        }
         if (item.eggMultSum <= 0) {
-            item.valueText.setAlpha(0);
+            if (item.valueText) item.valueText.setAlpha(0);
             return;
         }
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
-        item.valueText.setText(this.formatMoneyValue(displayValue));
-        this.applySafeValueTextColor(item.valueText, item._queuedValueTextColor || item.permanentTextColor || color || "#ffffff", false);
+        const textObj = this.rebuildPillowValueText(item, this.formatMoneyValue(displayValue));
+        if (!textObj) return;
+        this.applySafeValueTextColor(textObj, item._queuedValueTextColor || item.permanentTextColor || color || "#ffffff", false);
         item._queuedValueTextColor = null;
-        item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
+        textObj.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
 
     flashValueText(item, flashColor) {
