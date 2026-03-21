@@ -344,6 +344,24 @@ window.EggGameModules.logic = {
         });
     },
 
+    destroyDisplayObjectSafe(obj) {
+        if (!obj) return;
+
+        if (obj.list && Array.isArray(obj.list)) {
+            for (const child of obj.list.slice()) {
+                this.destroyDisplayObjectSafe(child);
+            }
+        }
+
+        if (this.tweens && typeof this.tweens.killTweensOf === "function") {
+            this.tweens.killTweensOf(obj);
+        }
+
+        if (obj.destroy && obj.scene) {
+            obj.destroy();
+        }
+    },
+
     beginGameplayPause(focusContainers = []) {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
@@ -429,7 +447,7 @@ window.EggGameModules.logic = {
         if (!item || !item.container) return;
 
         for (const child of item.container.list.slice()) {
-            if (child && child._eggTypeData) child.destroy();
+            if (child && child._eggTypeData) this.destroyDisplayObjectSafe(child);
         }
 
         item.eggs = eggs;
@@ -777,7 +795,7 @@ window.EggGameModules.logic = {
                         remainingEggContainers.push(child);
                         continue;
                     }
-                    child.destroy();
+                    this.destroyDisplayObjectSafe(child);
                 }
 
                 if (remainingEggContainers.length === 1) {
