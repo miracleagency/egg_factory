@@ -427,16 +427,33 @@ window.EggGameModules.logic = {
             this.gameplayFocusOverlay.destroy();
             this.gameplayFocusOverlay = null;
         }
+
+        for (const item of this.getAllActiveItems()) {
+            if (!item || !item.pendingEggVisuals || !item.pendingEggVisuals.length) continue;
+            this.setItemEggs(item, item.pendingEggVisuals.map(egg => ({ ...egg })));
+            item.pendingEggVisuals = null;
+        }
         this.gameplayPaused = false;
         this.gameplayPauseStartedAt = 0;
         this.lastTime = this.time.now;
+    },
+
+    isItemInTransferStage(item) {
+        if (!item) return false;
+        return [12, 23, 121, 122, 231, 232].includes(item.stage);
     },
 
     animateMysteryTransformItem(item, mapEgg, flashColor) {
         if (!item || item.destroyed || item.finished || !item.eggs || item.eggs.length === 0) return;
         const baseY = typeof item.y === "number" ? item.y : item.container.y;
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
-        this.setItemEggs(item, nextEggs);
+        if (this.isItemInTransferStage(item)) {
+            item.eggs = nextEggs;
+            item.armored = nextEggs.some(egg => egg.armored);
+            item.pendingEggVisuals = nextEggs.map(egg => ({ ...egg }));
+        } else {
+            this.setItemEggs(item, nextEggs);
+        }
         this.flashValueText(item, flashColor);
         this.tweens.add({
             targets: item.container,
