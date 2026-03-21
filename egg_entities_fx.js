@@ -574,20 +574,29 @@ window.EggGameModules.entitiesFx = {
     },
 
     updatePillowValueText(item, color = "#ffffff") {
+        if (!item || !item.valueText || !item.valueText.scene || item.valueText.destroyed) return;
+        if (this.gameplayPaused) {
+            item._queuedValueTextColor = item.permanentTextColor || color || "#ffffff";
+            this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
+            this.pendingValueTextRefresh.add(item);
+            return;
+        }
         if (item.eggMultSum <= 0) {
             item.valueText.setAlpha(0);
             return;
         }
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
         item.valueText.setText(this.formatMoneyValue(displayValue));
-        this.applySafeValueTextColor(item.valueText, item.permanentTextColor || color || "#ffffff", !!this.gameplayPaused);
+        this.applySafeValueTextColor(item.valueText, item._queuedValueTextColor || item.permanentTextColor || color || "#ffffff", false);
+        item._queuedValueTextColor = null;
         item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
 
     flashValueText(item, flashColor) {
         if (!item || !item.valueText || item.eggMultSum <= 0) return;
+        if (this.gameplayPaused) return;
         const baseColor = item.permanentTextColor || "#ffffff";
-        const preferTint = !!this.gameplayPaused;
+        const preferTint = false;
         this.tweens.killTweensOf(item.valueText);
         item.valueText.setAlpha(1);
         this.applySafeValueTextColor(item.valueText, flashColor, preferTint);
