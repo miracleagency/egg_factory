@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-20-x2-gold-up-v19"
+    version: "2026-03-21-random-smasher-v20"
 };
