@@ -403,8 +403,6 @@ window.EggGameModules.logic = {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
-        this.gameplayPausedTweens = this.getPlayableTweens();
-        for (const tween of this.gameplayPausedTweens) tween.pause();
 
         this.gameplayFocusOverlay = this.add.rectangle(0, 0, this.W, this.H, 0x000000, 0.4)
             .setOrigin(0, 0)
@@ -429,12 +427,6 @@ window.EggGameModules.logic = {
             this.gameplayFocusOverlay.destroy();
             this.gameplayFocusOverlay = null;
         }
-
-        for (const tween of this.gameplayPausedTweens || []) {
-            if (!this.canResumeTweenSafely(tween)) continue;
-            if (tween && tween.isPaused && tween.isPaused()) tween.resume();
-        }
-        this.gameplayPausedTweens = [];
         this.gameplayPaused = false;
         this.gameplayPauseStartedAt = 0;
         this.lastTime = this.time.now;
