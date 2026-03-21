@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-live-mystery-values-v48"
+    version: "2026-03-21-mystery-rate-v49"
 };
