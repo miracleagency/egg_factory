@@ -195,43 +195,63 @@ window.EggGameModules.entitiesFx = {
         }
 
         if (eggType.mysteryFx) {
-            const aura = this.add.ellipse(0, 0, 52, 66, 0xffd36d, 0.13);
-            const patchA = this.add.ellipse(-8, -6, 14, 11, 0x4fd7ff, 0.95).setStrokeStyle(2, 0xe9feff, 0.85);
-            const patchB = this.add.ellipse(7, 5, 12, 10, 0xff58b5, 0.92).setStrokeStyle(2, 0xffd2f0, 0.85);
-            const patchC = this.add.ellipse(1, -15, 11, 8, 0xffcf4a, 0.94).setStrokeStyle(2, 0xfff3be, 0.8);
-            const sigil = this.add.star(0, 1, 5, 3.4, 6.8, 0x6a46ff, 0.95).setStrokeStyle(2, 0xf6eeff, 0.8);
-            const flashA = this.add.circle(-15, -14, 2.3, 0x7cecff, 1);
-            const flashB = this.add.circle(15, -4, 2.1, 0xff7ccc, 0.95);
-            const flashC = this.add.circle(-2, 17, 1.9, 0xffef89, 0.92);
-            const flashD = this.add.circle(9, -18, 1.8, 0xffffff, 0.96);
-            container.addAt(aura, withShadow ? 1 : 0);
-            container.add([patchA, patchB, patchC, sigil, flashA, flashB, flashC, flashD]);
+            body.setFillStyle(0x572783, 1).setStrokeStyle(2, 0xf3dcff, 1);
+            const bodyShade = this.add.ellipse(4, 7, 26, 34, 0x2a1238, 0.22);
+            const stripeA = this.add.ellipse(-9, -5, 14, 39, 0xff9341, 0.94).setStrokeStyle(1, 0xffdaae, 0.75);
+            const stripeB = this.add.ellipse(3, 2, 13, 42, 0x69d66a, 0.92).setStrokeStyle(1, 0xd8ffd4, 0.72);
+            const stripeC = this.add.ellipse(13, -2, 12, 36, 0xffb13a, 0.9).setStrokeStyle(1, 0xffecb8, 0.7);
+            stripeA.angle = -18;
+            stripeB.angle = 7;
+            stripeC.angle = 18;
+
+            const topGlow = this.add.ellipse(0, -11, 20, 13, 0xffffff, 0.18);
+            const shineCore = this.add.ellipse(-8, -12, 8, 15, 0xffffff, 0.48);
+            const shineEdge = this.add.ellipse(-3, -2, 5, 10, 0xfff2ff, 0.22);
+            const sigil = this.add.star(1, 3, 6, 3.1, 6.5, 0x7f5cff, 0.96).setStrokeStyle(2, 0xffffff, 0.82);
+            const sigilGlow = this.add.star(1, 3, 6, 4.2, 8.8, 0xff8c42, 0.2);
+            const flashA = this.add.star(-16, -15, 4, 1.8, 4.9, 0x7cecff, 1);
+            const flashB = this.add.star(16, -4, 4, 1.8, 4.6, 0xff86d2, 0.98);
+            const flashC = this.add.star(-3, 17, 4, 1.5, 4.2, 0xffef89, 0.95);
+            const flashD = this.add.star(10, -19, 4, 1.4, 3.9, 0xc7ff77, 0.96);
+            const auraOuter = this.add.ellipse(0, 0, 58, 72, 0x8a44ff, 0.12);
+            const auraInner = this.add.ellipse(0, 0, 48, 62, 0xffa04c, 0.10);
+            container.addAt(auraOuter, withShadow ? 1 : 0);
+            container.addAt(auraInner, withShadow ? 2 : 1);
+            container.add([bodyShade, stripeA, stripeB, stripeC, topGlow, shineCore, shineEdge, sigilGlow, sigil, flashA, flashB, flashC, flashD]);
 
             this.tweens.add({
-                targets: aura,
-                alpha: 0.28,
-                scaleX: 1.16,
-                scaleY: 1.12,
-                duration: 380,
+                targets: [auraOuter, auraInner],
+                alpha: 0.24,
+                scaleX: 1.18,
+                scaleY: 1.14,
+                duration: 360,
                 ease: "Sine.InOut",
                 yoyo: true,
                 repeat: -1
             });
             this.tweens.add({
-                targets: [patchA, patchB, patchC],
-                angle: 10,
-                duration: 520,
+                targets: [stripeA, stripeB, stripeC],
+                y: "-=2",
+                duration: 440,
                 ease: "Sine.InOut",
                 yoyo: true,
                 repeat: -1
             });
             this.tweens.add({
-                targets: sigil,
-                angle: 22,
-                scaleX: 1.16,
-                scaleY: 1.16,
-                alpha: 0.72,
-                duration: 320,
+                targets: [sigil, sigilGlow],
+                angle: 24,
+                scaleX: 1.18,
+                scaleY: 1.18,
+                alpha: 0.74,
+                duration: 300,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+            this.tweens.add({
+                targets: [shineCore, shineEdge, topGlow],
+                alpha: 0.16,
+                duration: 240,
                 ease: "Sine.InOut",
                 yoyo: true,
                 repeat: -1
@@ -242,9 +262,10 @@ window.EggGameModules.entitiesFx = {
                 this.tweens.add({
                     targets: flash,
                     alpha: flash._baseAlpha * 0.15,
-                    scaleX: 2.8,
-                    scaleY: 2.8,
-                    duration: 180 + Phaser.Math.Between(0, 160),
+                    scaleX: 3.2,
+                    scaleY: 3.2,
+                    angle: Phaser.Math.Between(-24, 24),
+                    duration: 140 + Phaser.Math.Between(0, 140),
                     ease: "Sine.InOut",
                     yoyo: true,
                     repeat: -1,
