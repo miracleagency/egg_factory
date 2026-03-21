@@ -437,7 +437,10 @@ window.EggGameModules.logic = {
             const items = Array.from(this.pendingValueTextRefresh);
             this.pendingValueTextRefresh.clear();
             for (const item of items) {
-                if (!item || item.destroyed || item.finished || !item.valueText || !item.valueText.scene) continue;
+                if (!item || item.destroyed || item.finished) continue;
+                if (typeof this.clearTransientPillowValueText === "function") {
+                    this.clearTransientPillowValueText(item);
+                }
                 this.updatePillowValueText(item);
             }
         }

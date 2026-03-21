@@ -147,6 +147,46 @@ window.EggGameModules.entitiesFx = {
         return textObj;
     },
 
+    rebuildTransientPillowValueText(item, textValue) {
+        if (!item || !item.container || item.destroyed || item.finished) return null;
+
+        const oldText = item.pauseValueText;
+        const alpha = oldText && typeof oldText.alpha === "number" ? oldText.alpha : 0;
+        const scaleX = oldText && typeof oldText.scaleX === "number" ? oldText.scaleX : 1;
+        const scaleY = oldText && typeof oldText.scaleY === "number" ? oldText.scaleY : 1;
+
+        if (oldText) {
+            if (this.tweens && typeof this.tweens.killTweensOf === "function") {
+                this.tweens.killTweensOf(oldText);
+            }
+            if (item.container.list && item.container.list.includes(oldText)) {
+                item.container.remove(oldText);
+            }
+            if (oldText.scene && oldText.destroy) oldText.destroy();
+        }
+
+        const textObj = this.createPillowValueText(textValue);
+        textObj.setAlpha(alpha);
+        textObj.setScale(scaleX, scaleY);
+        item.pauseValueText = textObj;
+        item.container.add(textObj);
+        return textObj;
+    },
+
+    clearTransientPillowValueText(item) {
+        if (!item || !item.pauseValueText) return;
+        if (this.tweens && typeof this.tweens.killTweensOf === "function") {
+            this.tweens.killTweensOf(item.pauseValueText);
+        }
+        if (item.container && item.container.list && item.container.list.includes(item.pauseValueText)) {
+            item.container.remove(item.pauseValueText);
+        }
+        if (item.pauseValueText.scene && item.pauseValueText.destroy) {
+            item.pauseValueText.destroy();
+        }
+        item.pauseValueText = null;
+    },
+
     createEggVisual(eggType, withShadow = false, options = {}) {
         const container = this.add.container(0, 0);
         const eggScale = 1.35;
@@ -606,11 +646,21 @@ window.EggGameModules.entitiesFx = {
     updatePillowValueText(item, color = "#ffffff") {
         if (!item || !item.container || item.destroyed || item.finished) return;
         if (this.gameplayPaused) {
+            const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
             item._queuedValueTextColor = item.permanentTextColor || color || "#ffffff";
             this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
             this.pendingValueTextRefresh.add(item);
+            const tempText = this.rebuildTransientPillowValueText(item, this.formatMoneyValue(displayValue));
+            if (tempText) {
+                this.applySafeValueTextColor(tempText, item._queuedValueTextColor, false);
+                tempText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
+            }
+            if (item.valueText && item.valueText.scene && !item.valueText.destroyed) {
+                item.valueText.setAlpha(0);
+            }
             return;
         }
+        this.clearTransientPillowValueText(item);
         if (!item.valueText || !item.valueText.scene || item.valueText.destroyed) {
             item.valueText = this.rebuildPillowValueText(item, this.formatMoneyValue(item.currentValue || item.spentCost || 0));
         }
