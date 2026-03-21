@@ -364,6 +364,19 @@ window.EggGameModules.logic = {
         }
     },
 
+    stopDisplayObjectTweens(obj) {
+        if (!obj) return;
+        if (obj.list && Array.isArray(obj.list)) {
+            for (const child of obj.list.slice()) {
+                this.stopDisplayObjectTweens(child);
+            }
+        }
+        this.detachPausedTweensForTarget(obj);
+        if (this.tweens && typeof this.tweens.killTweensOf === "function") {
+            this.tweens.killTweensOf(obj);
+        }
+    },
+
     detachPausedTweensForTarget(target) {
         if (!target || !Array.isArray(this.gameplayPausedTweens)) return;
         this.gameplayPausedTweens = this.gameplayPausedTweens.filter(tween => !this.tweenHasTarget(tween, target));
@@ -417,15 +430,6 @@ window.EggGameModules.logic = {
             this.gameplayFocusOverlay = null;
         }
 
-        if (this.needsEggFxRefresh) {
-            for (const item of this.getAllActiveItems()) {
-                if (!item || !item.deferEggFxRefresh || !item.eggs || item.eggs.length === 0) continue;
-                item.deferEggFxRefresh = false;
-                this.setItemEggs(item, item.eggs.map(egg => ({ ...egg })));
-            }
-            this.needsEggFxRefresh = false;
-        }
-
         for (const tween of this.gameplayPausedTweens || []) {
             if (!this.canResumeTweenSafely(tween)) continue;
             if (tween && tween.isPaused && tween.isPaused()) tween.resume();
@@ -442,8 +446,7 @@ window.EggGameModules.logic = {
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
         item.eggs = nextEggs;
         item.armored = nextEggs.some(egg => egg.armored);
-        item.deferEggFxRefresh = true;
-        this.needsEggFxRefresh = true;
+        this.replaceItemEggVisualsSoft(item, nextEggs);
         this.flashValueText(item, flashColor);
         this.tweens.add({
             targets: item.container,
@@ -457,6 +460,41 @@ window.EggGameModules.logic = {
                 item.container.y = baseY;
                 item.container.setScale(1);
             }
+        });
+    },
+
+    replaceItemEggVisualsSoft(item, eggs) {
+        if (!item || !item.container) return;
+
+        for (const child of item.container.list.slice()) {
+            if (!child || !child._eggTypeData) continue;
+            this.stopDisplayObjectTweens(child);
+            child._eggTypeData = null;
+            child.setVisible(false);
+            child.setAlpha(0);
+        }
+
+        const positions = eggs.length <= 1
+            ? [0]
+            : eggs.map((_, index) => (index === 0 ? -10 : 10));
+
+        eggs.forEach((eggData, index) => {
+            const visual = this.createEggVisual(eggData, false, { disableAmbientFx: false });
+            visual.container.x = positions[index] || 0;
+            visual.container.y = -26;
+            visual.container._eggTypeData = eggData;
+            if (eggData.bomb) this.setBombVisualState(visual.container, eggData.bombLit !== false);
+            item.container.add(visual.container);
+            visual.container.setScale(0.72);
+            visual.container.setAlpha(0.12);
+            this.tweens.add({
+                targets: visual.container,
+                scaleX: 1,
+                scaleY: 1,
+                alpha: 1,
+                duration: 130,
+                ease: "Back.Out"
+            });
         });
     },
 
@@ -489,8 +527,6 @@ window.EggGameModules.logic = {
 
         item.eggs = eggs;
         item.armored = eggs.some(egg => egg.armored);
-        item.deferEggFxRefresh = !!this.gameplayPaused;
-        if (item.deferEggFxRefresh) this.needsEggFxRefresh = true;
 
         const positions = eggs.length <= 1
             ? [0]
