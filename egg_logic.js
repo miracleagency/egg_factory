@@ -322,11 +322,33 @@ window.EggGameModules.logic = {
             .filter(def => def && def.container && (def.type === "fire" || def.type === "crush"));
     },
 
+    getPlayableTweens() {
+        const manager = this.tweens;
+        if (!manager) return [];
+
+        let tweens = [];
+        if (typeof manager.getTweens === "function") {
+            tweens = manager.getTweens();
+        } else {
+            const buckets = [manager._active, manager._pending, manager._add];
+            for (const bucket of buckets) {
+                if (Array.isArray(bucket)) tweens.push(...bucket);
+            }
+        }
+
+        return tweens.filter((tween, index, list) => {
+            if (!tween) return false;
+            if (list.indexOf(tween) !== index) return false;
+            if (typeof tween.isPlaying === "function") return tween.isPlaying();
+            return tween.isPlaying === true || tween.paused === false;
+        });
+    },
+
     beginGameplayPause(focusContainers = []) {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
-        this.gameplayPausedTweens = this.tweens.getAllTweens().filter(tween => tween && tween.isPlaying && tween.isPlaying());
+        this.gameplayPausedTweens = this.getPlayableTweens();
         for (const tween of this.gameplayPausedTweens) tween.pause();
 
         this.gameplayFocusOverlay = this.add.rectangle(0, 0, this.W, this.H, 0x000000, 0.4)
