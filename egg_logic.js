@@ -92,7 +92,7 @@ window.EggGameModules.logic = {
         const minLead = first ? 0.34 : 0.22;
         while (dt < minLead) dt += slotTravel;
 
-        dt += Phaser.Math.Between(3, 5) * slotTravel;
+        dt += Phaser.Math.Between(3, 4) * slotTravel;
         return fromClock + dt;
     },
 
