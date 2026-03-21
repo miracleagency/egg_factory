@@ -555,6 +555,24 @@ window.EggGameModules.entitiesFx = {
         });
     },
 
+    applySafeValueTextColor(textObj, cssColor, preferTint = false) {
+        if (!textObj || !textObj.scene || textObj.destroyed) return;
+        const safeColor = cssColor || "#ffffff";
+        let tint = 0xffffff;
+
+        try {
+            tint = Phaser.Display.Color.HexStringToColor(safeColor).color;
+        } catch (_) {}
+
+        try {
+            textObj.setTint(tint);
+        } catch (error) {
+            if (typeof window.__eggPushDomDebug === "function") {
+                window.__eggPushDomDebug(`VALUE_TEXT_COLOR_FAIL ${safeColor} preferTint=${preferTint ? 1 : 0} ${error && error.message ? error.message : error}`);
+            }
+        }
+    },
+
     updatePillowValueText(item, color = "#ffffff") {
         if (item.eggMultSum <= 0) {
             item.valueText.setAlpha(0);
@@ -562,25 +580,26 @@ window.EggGameModules.entitiesFx = {
         }
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
         item.valueText.setText(this.formatMoneyValue(displayValue));
-        item.valueText.setColor(item.permanentTextColor || color || "#ffffff");
+        this.applySafeValueTextColor(item.valueText, item.permanentTextColor || color || "#ffffff", !!this.gameplayPaused);
         item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
 
     flashValueText(item, flashColor) {
         if (!item || !item.valueText || item.eggMultSum <= 0) return;
         const baseColor = item.permanentTextColor || "#ffffff";
+        const preferTint = !!this.gameplayPaused;
         this.tweens.killTweensOf(item.valueText);
         item.valueText.setAlpha(1);
-        item.valueText.setColor(flashColor);
+        this.applySafeValueTextColor(item.valueText, flashColor, preferTint);
         this.tweens.add({
             targets: item.valueText,
             alpha: 0.3,
             duration: 140,
             ease: "Sine.InOut",
             yoyo: true,
-            onYoyo: () => item.valueText.setColor(baseColor),
+            onYoyo: () => this.applySafeValueTextColor(item.valueText, baseColor, preferTint),
             onComplete: () => {
-                item.valueText.setColor(baseColor);
+                this.applySafeValueTextColor(item.valueText, baseColor, preferTint);
                 item.valueText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
             }
         });
