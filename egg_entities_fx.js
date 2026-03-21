@@ -194,6 +194,65 @@ window.EggGameModules.entitiesFx = {
             container.addAt(glow, withShadow ? 1 : 0);
         }
 
+        if (eggType.mysteryFx) {
+            const aura = this.add.ellipse(0, 0, 52, 66, 0xffd36d, 0.13);
+            const patchA = this.add.ellipse(-8, -6, 14, 11, 0x4fd7ff, 0.95).setStrokeStyle(2, 0xe9feff, 0.85);
+            const patchB = this.add.ellipse(7, 5, 12, 10, 0xff58b5, 0.92).setStrokeStyle(2, 0xffd2f0, 0.85);
+            const patchC = this.add.ellipse(1, -15, 11, 8, 0xffcf4a, 0.94).setStrokeStyle(2, 0xfff3be, 0.8);
+            const sigil = this.add.star(0, 1, 5, 3.4, 6.8, 0x6a46ff, 0.95).setStrokeStyle(2, 0xf6eeff, 0.8);
+            const flashA = this.add.circle(-15, -14, 2.3, 0x7cecff, 1);
+            const flashB = this.add.circle(15, -4, 2.1, 0xff7ccc, 0.95);
+            const flashC = this.add.circle(-2, 17, 1.9, 0xffef89, 0.92);
+            const flashD = this.add.circle(9, -18, 1.8, 0xffffff, 0.96);
+            container.addAt(aura, withShadow ? 1 : 0);
+            container.add([patchA, patchB, patchC, sigil, flashA, flashB, flashC, flashD]);
+
+            this.tweens.add({
+                targets: aura,
+                alpha: 0.28,
+                scaleX: 1.16,
+                scaleY: 1.12,
+                duration: 380,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+            this.tweens.add({
+                targets: [patchA, patchB, patchC],
+                angle: 10,
+                duration: 520,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+            this.tweens.add({
+                targets: sigil,
+                angle: 22,
+                scaleX: 1.16,
+                scaleY: 1.16,
+                alpha: 0.72,
+                duration: 320,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+
+            for (const flash of [flashA, flashB, flashC, flashD]) {
+                flash._baseAlpha = flash.alpha;
+                this.tweens.add({
+                    targets: flash,
+                    alpha: flash._baseAlpha * 0.15,
+                    scaleX: 2.8,
+                    scaleY: 2.8,
+                    duration: 180 + Phaser.Math.Between(0, 160),
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1,
+                    delay: Phaser.Math.Between(0, 240)
+                });
+            }
+        }
+
         if (eggType.goldFx) {
             const aura = this.add.ellipse(0, 0, 48, 62, 0xffdb58, 0.12);
             const sparkA = this.add.circle(-14, -13, 2.8, 0xfff29b, 1);
@@ -421,6 +480,48 @@ window.EggGameModules.entitiesFx = {
             alpha: 0,
             duration: 140,
             onComplete: () => flash.destroy()
+        });
+    },
+
+    spawnMysteryBonusText(text, color = "#fff1b0", accent = 0xffd46b) {
+        const x = this.W * 0.5;
+        const y = this.safe.top + 120;
+        const wrap = this.add.container(x, y).setDepth(9200);
+        const glow = this.add.ellipse(0, 0, 520, 96, accent, 0.14);
+        const plate = this.add.rectangle(0, 0, 438, 74, 0x241931, 0.94).setStrokeStyle(4, accent, 0.92);
+        const label = this.add.text(0, 0, text, {
+            fontFamily: "Arial",
+            fontSize: "34px",
+            color,
+            fontStyle: "bold",
+            stroke: "#0d0916",
+            strokeThickness: 6
+        }).setOrigin(0.5);
+
+        wrap.add([glow, plate, label]);
+        this.popupLayer.add(wrap);
+
+        this.tweens.add({
+            targets: [glow, plate],
+            scaleX: 1.05,
+            scaleY: 1.08,
+            duration: 180,
+            ease: "Back.Out"
+        });
+        this.tweens.add({
+            targets: wrap,
+            y: y - 18,
+            duration: 180,
+            ease: "Quad.Out"
+        });
+        this.tweens.add({
+            targets: wrap,
+            alpha: 0,
+            y: y - 54,
+            delay: 980,
+            duration: 320,
+            ease: "Quad.In",
+            onComplete: () => wrap.destroy()
         });
     },
 
