@@ -465,36 +465,52 @@ window.EggGameModules.logic = {
 
     replaceItemEggVisualsSoft(item, eggs) {
         if (!item || !item.container) return;
-
-        for (const child of item.container.list.slice()) {
-            if (!child || !child._eggTypeData) continue;
-            this.stopDisplayObjectTweens(child);
-            child._eggTypeData = null;
-            child.setVisible(false);
-            child.setAlpha(0);
+        if (item.transformOverlay) {
+            this.stopDisplayObjectTweens(item.transformOverlay);
+            this.destroyDisplayObjectSafe(item.transformOverlay);
+            item.transformOverlay = null;
         }
 
-        const positions = eggs.length <= 1
-            ? [0]
-            : eggs.map((_, index) => (index === 0 ? -10 : 10));
+        const positions = eggs.length <= 1 ? [0] : eggs.map((_, index) => (index === 0 ? -10 : 10));
+        const overlay = this.add.container(0, 0);
+        const allArmored = eggs.length > 0 && eggs.every(egg => egg.armored);
+        const allGold = eggs.length > 0 && eggs.every(egg => egg.key === "gold" || egg.goldFx);
 
-        eggs.forEach((eggData, index) => {
-            const visual = this.createEggVisual(eggData, false, { disableAmbientFx: false });
-            visual.container.x = positions[index] || 0;
-            visual.container.y = -26;
-            visual.container._eggTypeData = eggData;
-            if (eggData.bomb) this.setBombVisualState(visual.container, eggData.bombLit !== false);
-            item.container.add(visual.container);
-            visual.container.setScale(0.72);
-            visual.container.setAlpha(0.12);
-            this.tweens.add({
-                targets: visual.container,
-                scaleX: 1,
-                scaleY: 1,
-                alpha: 1,
-                duration: 130,
-                ease: "Back.Out"
-            });
+        if (allArmored) {
+            for (const x of positions) {
+                const shell = this.add.ellipse(x, -26, 36, 48, 0xa3adb9, 0.4).setStrokeStyle(2, 0xe8eef6, 0.95);
+                const band = this.add.rectangle(x, -26, 24, 28, 0x727d89, 0.5).setStrokeStyle(1, 0xd4dce6, 0.85);
+                const rivetA = this.add.circle(x - 9, -36, 2.2, 0xf1f5fb, 0.95);
+                const rivetB = this.add.circle(x + 9, -16, 2.2, 0xf1f5fb, 0.95);
+                overlay.add([shell, band, rivetA, rivetB]);
+            }
+        } else if (allGold) {
+            for (const x of positions) {
+                const glow = this.add.ellipse(x, -26, 44, 58, 0xffd34d, 0.18);
+                const ring = this.add.ellipse(x, -26, 35, 47, 0xffef9a, 0.12).setStrokeStyle(2, 0xffef9a, 0.9);
+                const sparkA = this.add.circle(x - 12, -38, 2.4, 0xfff3b0, 0.95);
+                const sparkB = this.add.circle(x + 11, -16, 2.1, 0xffd556, 0.95);
+                const sparkC = this.add.circle(x + 2, -46, 1.9, 0xffffff, 0.98);
+                overlay.add([glow, ring, sparkA, sparkB, sparkC]);
+            }
+        }
+
+        if (overlay.length === 0) {
+            overlay.destroy();
+            return;
+        }
+
+        item.container.add(overlay);
+        item.transformOverlay = overlay;
+        overlay.setAlpha(0);
+        overlay.setScale(0.78);
+        this.tweens.add({
+            targets: overlay,
+            alpha: 1,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 140,
+            ease: "Back.Out"
         });
     },
 

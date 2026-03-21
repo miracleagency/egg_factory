@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-mystery-soft-replace-v31"
+    version: "2026-03-21-mystery-overlay-v32"
 };
