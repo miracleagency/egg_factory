@@ -440,7 +440,10 @@ window.EggGameModules.logic = {
         if (!item || item.destroyed || item.finished || !item.eggs || item.eggs.length === 0) return;
         const baseY = typeof item.y === "number" ? item.y : item.container.y;
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
-        this.setItemEggs(item, nextEggs);
+        item.eggs = nextEggs;
+        item.armored = nextEggs.some(egg => egg.armored);
+        item.deferEggFxRefresh = true;
+        this.needsEggFxRefresh = true;
         this.flashValueText(item, flashColor);
         this.tweens.add({
             targets: item.container,
