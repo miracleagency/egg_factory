@@ -117,9 +117,10 @@ window.EggGameModules.entitiesFx = {
         };
     },
 
-    createEggVisual(eggType, withShadow = false) {
+    createEggVisual(eggType, withShadow = false, options = {}) {
         const container = this.add.container(0, 0);
         const eggScale = 1.35;
+        const disableAmbientFx = !!options.disableAmbientFx;
 
         if (withShadow) {
             const shadow = this.add.ellipse(0, 24, 28, 10, 0x000000, 0.15);
@@ -156,37 +157,39 @@ window.EggGameModules.entitiesFx = {
             container._bombFlame = flame;
             container._bombSpark = spark;
 
-            this.tweens.add({
-                targets: [ember, spark],
-                scaleX: 1.55,
-                scaleY: 1.55,
-                alpha: 0.35,
-                duration: 130,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-            this.tweens.add({
-                targets: flame,
-                y: -23,
-                scaleX: 0.76,
-                scaleY: 1.3,
-                alpha: 0.6,
-                duration: 110,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-            this.tweens.add({
-                targets: emberGlow,
-                scaleX: 1.5,
-                scaleY: 1.5,
-                alpha: 0.12,
-                duration: 180,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
+            if (!disableAmbientFx) {
+                this.tweens.add({
+                    targets: [ember, spark],
+                    scaleX: 1.55,
+                    scaleY: 1.55,
+                    alpha: 0.35,
+                    duration: 130,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                this.tweens.add({
+                    targets: flame,
+                    y: -23,
+                    scaleX: 0.76,
+                    scaleY: 1.3,
+                    alpha: 0.6,
+                    duration: 110,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                this.tweens.add({
+                    targets: emberGlow,
+                    scaleX: 1.5,
+                    scaleY: 1.5,
+                    alpha: 0.12,
+                    duration: 180,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+            }
         }
 
         if (eggType.glow) {
@@ -219,58 +222,60 @@ window.EggGameModules.entitiesFx = {
             container.addAt(auraInner, withShadow ? 2 : 1);
             container.add([bodyShade, stripeA, stripeB, stripeC, topGlow, shineCore, shineEdge, sigilGlow, sigil, flashA, flashB, flashC, flashD]);
 
-            this.tweens.add({
-                targets: [auraOuter, auraInner],
-                alpha: 0.24,
-                scaleX: 1.18,
-                scaleY: 1.14,
-                duration: 360,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-            this.tweens.add({
-                targets: [stripeA, stripeB, stripeC],
-                y: "-=2",
-                duration: 440,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-            this.tweens.add({
-                targets: [sigil, sigilGlow],
-                angle: 24,
-                scaleX: 1.18,
-                scaleY: 1.18,
-                alpha: 0.74,
-                duration: 300,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-            this.tweens.add({
-                targets: [shineCore, shineEdge, topGlow],
-                alpha: 0.16,
-                duration: 240,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-
-            for (const flash of [flashA, flashB, flashC, flashD]) {
-                flash._baseAlpha = flash.alpha;
+            if (!disableAmbientFx) {
                 this.tweens.add({
-                    targets: flash,
-                    alpha: flash._baseAlpha * 0.15,
-                    scaleX: 3.2,
-                    scaleY: 3.2,
-                    angle: Phaser.Math.Between(-24, 24),
-                    duration: 140 + Phaser.Math.Between(0, 140),
+                    targets: [auraOuter, auraInner],
+                    alpha: 0.24,
+                    scaleX: 1.18,
+                    scaleY: 1.14,
+                    duration: 360,
                     ease: "Sine.InOut",
                     yoyo: true,
-                    repeat: -1,
-                    delay: Phaser.Math.Between(0, 240)
+                    repeat: -1
                 });
+                this.tweens.add({
+                    targets: [stripeA, stripeB, stripeC],
+                    y: "-=2",
+                    duration: 440,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                this.tweens.add({
+                    targets: [sigil, sigilGlow],
+                    angle: 24,
+                    scaleX: 1.18,
+                    scaleY: 1.18,
+                    alpha: 0.74,
+                    duration: 300,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                this.tweens.add({
+                    targets: [shineCore, shineEdge, topGlow],
+                    alpha: 0.16,
+                    duration: 240,
+                    ease: "Sine.InOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+
+                for (const flash of [flashA, flashB, flashC, flashD]) {
+                    flash._baseAlpha = flash.alpha;
+                    this.tweens.add({
+                        targets: flash,
+                        alpha: flash._baseAlpha * 0.15,
+                        scaleX: 3.2,
+                        scaleY: 3.2,
+                        angle: Phaser.Math.Between(-24, 24),
+                        duration: 140 + Phaser.Math.Between(0, 140),
+                        ease: "Sine.InOut",
+                        yoyo: true,
+                        repeat: -1,
+                        delay: Phaser.Math.Between(0, 240)
+                    });
+                }
             }
         }
 
@@ -283,30 +288,32 @@ window.EggGameModules.entitiesFx = {
             container.addAt(aura, withShadow ? 1 : 0);
             container.add([sparkA, sparkB, sparkC, sparkD]);
 
-            this.tweens.add({
-                targets: aura,
-                alpha: 0.26,
-                scaleX: 1.08,
-                scaleY: 1.08,
-                duration: 420,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-
-            for (const spark of [sparkA, sparkB, sparkC, sparkD]) {
-                spark._baseAlpha = spark.alpha;
+            if (!disableAmbientFx) {
                 this.tweens.add({
-                    targets: spark,
-                    alpha: spark._baseAlpha * 0.22,
-                    scaleX: 2.4,
-                    scaleY: 2.4,
-                    duration: 220 + Phaser.Math.Between(0, 180),
+                    targets: aura,
+                    alpha: 0.26,
+                    scaleX: 1.08,
+                    scaleY: 1.08,
+                    duration: 420,
                     ease: "Sine.InOut",
                     yoyo: true,
-                    repeat: -1,
-                    delay: Phaser.Math.Between(0, 220)
+                    repeat: -1
                 });
+
+                for (const spark of [sparkA, sparkB, sparkC, sparkD]) {
+                    spark._baseAlpha = spark.alpha;
+                    this.tweens.add({
+                        targets: spark,
+                        alpha: spark._baseAlpha * 0.22,
+                        scaleX: 2.4,
+                        scaleY: 2.4,
+                        duration: 220 + Phaser.Math.Between(0, 180),
+                        ease: "Sine.InOut",
+                        yoyo: true,
+                        repeat: -1,
+                        delay: Phaser.Math.Between(0, 220)
+                    });
+                }
             }
         }
 
@@ -318,30 +325,32 @@ window.EggGameModules.entitiesFx = {
             container.addAt(aura, withShadow ? 1 : 0);
             container.add([sparkA, sparkB, sparkC]);
 
-            this.tweens.add({
-                targets: aura,
-                alpha: 0.24,
-                scaleX: 1.1,
-                scaleY: 1.1,
-                duration: 460,
-                ease: "Sine.InOut",
-                yoyo: true,
-                repeat: -1
-            });
-
-            for (const spark of [sparkA, sparkB, sparkC]) {
-                spark._baseAlpha = spark.alpha;
+            if (!disableAmbientFx) {
                 this.tweens.add({
-                    targets: spark,
-                    alpha: spark._baseAlpha * 0.18,
-                    scaleX: 2.6,
-                    scaleY: 2.6,
-                    duration: 260 + Phaser.Math.Between(0, 220),
+                    targets: aura,
+                    alpha: 0.24,
+                    scaleX: 1.1,
+                    scaleY: 1.1,
+                    duration: 460,
                     ease: "Sine.InOut",
                     yoyo: true,
-                    repeat: -1,
-                    delay: Phaser.Math.Between(0, 260)
+                    repeat: -1
                 });
+
+                for (const spark of [sparkA, sparkB, sparkC]) {
+                    spark._baseAlpha = spark.alpha;
+                    this.tweens.add({
+                        targets: spark,
+                        alpha: spark._baseAlpha * 0.18,
+                        scaleX: 2.6,
+                        scaleY: 2.6,
+                        duration: 260 + Phaser.Math.Between(0, 220),
+                        ease: "Sine.InOut",
+                        yoyo: true,
+                        repeat: -1,
+                        delay: Phaser.Math.Between(0, 260)
+                    });
+                }
             }
         }
 

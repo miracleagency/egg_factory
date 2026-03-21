@@ -393,6 +393,15 @@ window.EggGameModules.logic = {
             this.gameplayFocusOverlay = null;
         }
 
+        if (this.needsEggFxRefresh) {
+            for (const item of this.getAllActiveItems()) {
+                if (!item || !item.deferEggFxRefresh || !item.eggs || item.eggs.length === 0) continue;
+                item.deferEggFxRefresh = false;
+                this.setItemEggs(item, item.eggs.map(egg => ({ ...egg })));
+            }
+            this.needsEggFxRefresh = false;
+        }
+
         for (const tween of this.gameplayPausedTweens || []) {
             if (tween && tween.isPaused && tween.isPaused()) tween.resume();
         }
@@ -452,13 +461,15 @@ window.EggGameModules.logic = {
 
         item.eggs = eggs;
         item.armored = eggs.some(egg => egg.armored);
+        item.deferEggFxRefresh = !!this.gameplayPaused;
+        if (item.deferEggFxRefresh) this.needsEggFxRefresh = true;
 
         const positions = eggs.length <= 1
             ? [0]
             : eggs.map((_, index) => (index === 0 ? -10 : 10));
 
         eggs.forEach((eggData, index) => {
-            const visual = this.createEggVisual(eggData, false);
+            const visual = this.createEggVisual(eggData, false, { disableAmbientFx: this.gameplayPaused });
             visual.container.x = positions[index] || 0;
             visual.container.y = -26;
             visual.container._eggTypeData = eggData;
