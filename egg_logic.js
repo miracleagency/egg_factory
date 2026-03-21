@@ -481,7 +481,9 @@ window.EggGameModules.logic = {
         if (!item || !item.container) return;
 
         for (const child of item.container.list.slice()) {
-            if (child && child._eggTypeData) this.destroyDisplayObjectSafe(child);
+            if (!child || !child._eggTypeData) continue;
+            item.container.remove(child);
+            this.destroyDisplayObjectSafe(child);
         }
 
         item.eggs = eggs;
@@ -829,6 +831,7 @@ window.EggGameModules.logic = {
                         remainingEggContainers.push(child);
                         continue;
                     }
+                    item.container.remove(child);
                     this.destroyDisplayObjectSafe(child);
                 }
 
