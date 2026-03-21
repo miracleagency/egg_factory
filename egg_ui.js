@@ -620,7 +620,7 @@ window.EggGameModules.ui = {
             .setOrigin(0, 0)
             .setInteractive();
 
-        this.infoBg = this.add.rectangle(0, 0, 780, 620, 0x13213b, 0.98)
+        this.infoBg = this.add.rectangle(0, 0, 780, 700, 0x13213b, 0.98)
             .setStrokeStyle(4, 0x39547e);
 
         this.infoTitle = this.add.text(0, 0, "Egg Types", {
@@ -643,14 +643,17 @@ window.EggGameModules.ui = {
         this.infoRows = [];
         for (const egg of this.eggTypes) {
             const row = this.add.container(0, 0);
-            const icon = this.add.ellipse(0, 0, 36, 46, egg.color, 1).setStrokeStyle(2, egg.stroke);
-            const txt = this.add.text(40, -16, `${egg.label} - ${egg.mult}x`, {
+            const iconWrap = this.add.container(0, 0);
+            const icon = this.createEggVisual(egg, false).container;
+            icon.setScale(1.08);
+            iconWrap.add(icon);
+            const txt = this.add.text(56, -16, `${egg.label} - ${egg.mult}x`, {
                 fontFamily: "Arial",
                 fontSize: "30px",
                 color: Phaser.Display.Color.IntegerToColor(egg.color).rgba,
                 fontStyle: "bold"
             });
-            row.add([icon, txt]);
+            row.add([iconWrap, txt]);
             this.infoRows.push(row);
         }
 
@@ -675,10 +678,10 @@ window.EggGameModules.ui = {
         this.infoTitle.setPosition(cx, cy - 240);
         this.infoClose.setPosition(cx + 330, cy - 240);
 
-        let y = cy - 160;
+        let y = cy - 196;
         for (const row of this.infoRows) {
-            row.setPosition(cx - 230, y);
-            y += 72;
+            row.setPosition(cx - 248, y);
+            y += 82;
         }
     },
 

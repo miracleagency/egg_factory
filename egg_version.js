@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-mystery-visual-v23"
+    version: "2026-03-21-mystery-pause-info-v24"
 };
