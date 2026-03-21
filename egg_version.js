@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-dom-debug-v40"
+    version: "2026-03-21-mystery-no-egg-rebuild-v41"
 };

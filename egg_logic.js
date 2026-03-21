@@ -428,20 +428,47 @@ window.EggGameModules.logic = {
             this.gameplayFocusOverlay = null;
         }
 
-        for (const item of this.getAllActiveItems()) {
-            if (!item || !item.pendingEggVisuals || !item.pendingEggVisuals.length) continue;
-            this.addDebugLog(`rebuild visuals stage=${item.stage} eggs=${item.pendingEggVisuals.map(egg => egg.key).join(",")}`);
-            this.setItemEggs(item, item.pendingEggVisuals.map(egg => ({ ...egg })));
-            item.pendingEggVisuals = null;
-        }
         this.gameplayPaused = false;
         this.gameplayPauseStartedAt = 0;
         this.lastTime = this.time.now;
     },
 
-    isItemInTransferStage(item) {
-        if (!item) return false;
-        return [12, 23, 121, 122, 231, 232].includes(item.stage);
+    applyMysteryStateAccent(item, state) {
+        if (!item || !item.container) return;
+
+        if (item.transformBadge) {
+            this.stopDisplayObjectTweens(item.transformBadge);
+            this.destroyDisplayObjectSafe(item.transformBadge);
+            item.transformBadge = null;
+        }
+
+        const badge = this.add.container(0, -4);
+        if (state === "armored") {
+            const plate = this.add.rectangle(0, 0, 30, 20, 0x74808d, 0.95).setStrokeStyle(2, 0xdce5ef, 0.95);
+            const rivetA = this.add.circle(-9, 0, 2.2, 0xf2f6fb, 1);
+            const rivetB = this.add.circle(9, 0, 2.2, 0xf2f6fb, 1);
+            badge.add([plate, rivetA, rivetB]);
+            item.body.setFillStyle(0x97a3b0, 1).setStrokeStyle(4, 0xe4edf6);
+            this.spawnImpactFx(item.container.x, item.container.y - 8, 0xc8d0db);
+        } else if (state === "gold") {
+            const glow = this.add.ellipse(0, 0, 34, 24, 0xffdb58, 0.18);
+            const star = this.add.star(0, 0, 5, 3.5, 7.8, 0xffef9a, 0.96).setStrokeStyle(2, 0xffffff, 0.8);
+            badge.add([glow, star]);
+            this.tweens.add({
+                targets: [glow, star],
+                scaleX: 1.18,
+                scaleY: 1.18,
+                alpha: 0.72,
+                duration: 220,
+                yoyo: true,
+                repeat: -1
+            });
+            item.body.setFillStyle(0xe0bd38, 1).setStrokeStyle(4, 0xffef9a);
+            this.spawnImpactFx(item.container.x, item.container.y - 8, 0xffd54b);
+        }
+
+        item.container.add(badge);
+        item.transformBadge = badge;
     },
 
     animateMysteryTransformItem(item, mapEgg, flashColor) {
@@ -450,7 +477,6 @@ window.EggGameModules.logic = {
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
         item.eggs = nextEggs;
         item.armored = nextEggs.some(egg => egg.armored);
-        item.pendingEggVisuals = nextEggs.map(egg => ({ ...egg }));
         this.addDebugLog(`mystery step stage=${item.stage} eggs=${nextEggs.map(egg => egg.key).join(",")}`);
         this.flashValueText(item, flashColor);
         this.tweens.add({
@@ -551,6 +577,7 @@ window.EggGameModules.logic = {
                     item.armored = true;
                     item.permanentTextColor = "#d8e3ef";
                     this.updatePillowValueText(item);
+                    this.applyMysteryStateAccent(item, "armored");
                 });
 
             this.runMysterySequence({
@@ -589,6 +616,7 @@ window.EggGameModules.logic = {
                     item.currentValue *= 10;
                     item.permanentTextColor = "#f1cb4a";
                     this.updatePillowValueText(item);
+                    this.applyMysteryStateAccent(item, "gold");
                 });
 
             this.runMysterySequence({
