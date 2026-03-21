@@ -430,6 +430,7 @@ window.EggGameModules.logic = {
 
         for (const item of this.getAllActiveItems()) {
             if (!item || !item.pendingEggVisuals || !item.pendingEggVisuals.length) continue;
+            this.addDebugLog(`rebuild visuals stage=${item.stage} eggs=${item.pendingEggVisuals.map(egg => egg.key).join(",")}`);
             this.setItemEggs(item, item.pendingEggVisuals.map(egg => ({ ...egg })));
             item.pendingEggVisuals = null;
         }
@@ -447,13 +448,10 @@ window.EggGameModules.logic = {
         if (!item || item.destroyed || item.finished || !item.eggs || item.eggs.length === 0) return;
         const baseY = typeof item.y === "number" ? item.y : item.container.y;
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
-        if (this.isItemInTransferStage(item)) {
-            item.eggs = nextEggs;
-            item.armored = nextEggs.some(egg => egg.armored);
-            item.pendingEggVisuals = nextEggs.map(egg => ({ ...egg }));
-        } else {
-            this.setItemEggs(item, nextEggs);
-        }
+        item.eggs = nextEggs;
+        item.armored = nextEggs.some(egg => egg.armored);
+        item.pendingEggVisuals = nextEggs.map(egg => ({ ...egg }));
+        this.addDebugLog(`mystery step stage=${item.stage} eggs=${nextEggs.map(egg => egg.key).join(",")}`);
         this.flashValueText(item, flashColor);
         this.tweens.add({
             targets: item.container,
@@ -473,6 +471,7 @@ window.EggGameModules.logic = {
     runMysterySequence(config) {
         const focusContainers = (config.focusItems || []).map(item => item.container)
             .concat((config.focusMachines || []).map(def => def.container));
+        this.addDebugLog(`mystery start ${config.title} items=${(config.focusItems || []).length} machines=${(config.focusMachines || []).length}`);
         this.beginGameplayPause(focusContainers);
         this.spawnMysteryBonusText(config.title, config.textColor, config.accent);
 
@@ -480,6 +479,7 @@ window.EggGameModules.logic = {
         let index = 0;
         const runNext = () => {
             if (index >= steps.length) {
+                this.addDebugLog(`mystery finish ${config.title}`);
                 this.time.delayedCall(config.finishDelay || 440, () => this.endGameplayPause());
                 return;
             }

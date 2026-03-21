@@ -88,6 +88,61 @@ window.EggGameModules.ui = {
         this.updateAutoDropSwitchVisual(true);
     },
 
+    createDebugOverlay() {
+        this.debugLogs = [];
+        this.debugOverlay = this.add.container(0, 0).setDepth(9800).setVisible(false);
+        this.popupLayer.add(this.debugOverlay);
+
+        this.debugOverlayBg = this.add.rectangle(0, 0, 940, 520, 0x120f18, 0.96)
+            .setStrokeStyle(4, 0xff8f6b);
+        this.debugOverlayTitle = this.add.text(0, 0, "Debug Log", {
+            fontFamily: "Arial",
+            fontSize: "32px",
+            color: "#ffd8c9",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        this.debugOverlayText = this.add.text(0, 0, "", {
+            fontFamily: "Courier New",
+            fontSize: "20px",
+            color: "#fff1ea",
+            lineSpacing: 6,
+            wordWrap: { width: 860 }
+        }).setOrigin(0, 0);
+        this.debugOverlayClose = this.add.text(0, 0, "CLOSE", {
+            fontFamily: "Arial",
+            fontSize: "24px",
+            color: "#ffffff",
+            fontStyle: "bold",
+            backgroundColor: "#a43d2c"
+        }).setPadding(12, 8, 12, 8).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        this.debugOverlayClose.on("pointerdown", () => this.toggleDebugOverlay(false));
+
+        this.debugOverlay.add([
+            this.debugOverlayBg,
+            this.debugOverlayTitle,
+            this.debugOverlayText,
+            this.debugOverlayClose
+        ]);
+    },
+
+    addDebugLog(message) {
+        const stamp = new Date().toISOString().slice(11, 19);
+        this.debugLogs = this.debugLogs || [];
+        this.debugLogs.push(`[${stamp}] ${message}`);
+        if (this.debugLogs.length > 18) this.debugLogs.shift();
+        if (this.debugOverlayText) {
+            this.debugOverlayText.setText(this.debugLogs.join("\n"));
+        }
+    },
+
+    toggleDebugOverlay(show) {
+        if (!this.debugOverlay) return;
+        this.debugOverlay.setVisible(show);
+        if (show && this.debugOverlayText) {
+            this.debugOverlayText.setText((this.debugLogs || []).join("\n"));
+        }
+    },
+
     createAutoDropSwitch() {
         this.autoDropSwitch = this.add.container(0, 0).setDepth(7000);
         this.uiLayer.add(this.autoDropSwitch);
@@ -682,6 +737,13 @@ window.EggGameModules.ui = {
         for (const row of this.infoRows) {
             row.setPosition(cx - 248, y);
             y += 82;
+        }
+
+        if (this.debugOverlay) {
+            this.debugOverlayBg.setPosition(cx, cy);
+            this.debugOverlayTitle.setPosition(cx, cy - 218);
+            this.debugOverlayText.setPosition(cx - 430, cy - 178);
+            this.debugOverlayClose.setPosition(cx, cy + 214);
         }
     },
 
