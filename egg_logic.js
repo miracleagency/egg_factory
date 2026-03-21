@@ -356,14 +356,7 @@ window.EggGameModules.logic = {
             .setDepth(9050);
         this.popupLayer.add(this.gameplayFocusOverlay);
 
-        this.gameplayFocusTargets = [];
-        for (const container of focusContainers) {
-            if (!container || !container.parentContainer) continue;
-            const parent = container.parentContainer;
-            container.removeFromDisplayList();
-            this.popupLayer.add(container);
-            this.gameplayFocusTargets.push({ container, parent });
-        }
+        this.gameplayFocusTargets = focusContainers.filter(Boolean);
     },
 
     endGameplayPause() {
@@ -375,11 +368,6 @@ window.EggGameModules.logic = {
             if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
         }
 
-        for (const entry of this.gameplayFocusTargets || []) {
-            if (!entry || !entry.container || !entry.parent) continue;
-            entry.container.removeFromDisplayList();
-            entry.parent.add(entry.container);
-        }
         this.gameplayFocusTargets = [];
 
         if (this.gameplayFocusOverlay) {
