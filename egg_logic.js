@@ -353,6 +353,8 @@ window.EggGameModules.logic = {
             }
         }
 
+        this.detachPausedTweensForTarget(obj);
+
         if (this.tweens && typeof this.tweens.killTweensOf === "function") {
             this.tweens.killTweensOf(obj);
         }
@@ -360,6 +362,28 @@ window.EggGameModules.logic = {
         if (obj.destroy && obj.scene) {
             obj.destroy();
         }
+    },
+
+    detachPausedTweensForTarget(target) {
+        if (!target || !Array.isArray(this.gameplayPausedTweens)) return;
+        this.gameplayPausedTweens = this.gameplayPausedTweens.filter(tween => !this.tweenHasTarget(tween, target));
+    },
+
+    tweenHasTarget(tween, target) {
+        if (!tween || !target) return false;
+        const entries = Array.isArray(tween.data) ? tween.data : [];
+        return entries.some(entry => entry && entry.target === target);
+    },
+
+    canResumeTweenSafely(tween) {
+        if (!tween) return false;
+        const entries = Array.isArray(tween.data) ? tween.data : [];
+        if (entries.length === 0) return false;
+        return entries.every(entry => {
+            const target = entry && entry.target;
+            if (!target) return false;
+            return !!target.scene && !target.destroyed;
+        });
     },
 
     beginGameplayPause(focusContainers = []) {
@@ -403,6 +427,7 @@ window.EggGameModules.logic = {
         }
 
         for (const tween of this.gameplayPausedTweens || []) {
+            if (!this.canResumeTweenSafely(tween)) continue;
             if (tween && tween.isPaused && tween.isPaused()) tween.resume();
         }
         this.gameplayPausedTweens = [];

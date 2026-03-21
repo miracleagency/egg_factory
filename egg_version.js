@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-gold-transform-fix-v28"
+    version: "2026-03-21-paused-tween-fix-v29"
 };
