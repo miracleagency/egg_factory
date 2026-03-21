@@ -262,8 +262,8 @@ window.EggGameModules.logic = {
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
-            minSkip = 1;
-            maxSkip = 2;
+            minSkip = 0;
+            maxSkip = 1;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
@@ -298,15 +298,6 @@ window.EggGameModules.logic = {
         return this.travelItems.filter(item => !item.destroyed && !item.finished && item.stage === stage);
     },
 
-    getRandomMachineTargetSection(line) {
-        return Phaser.Math.Between(0, Math.max(0, (line.slotCount || 1) - 1));
-    },
-
-    getSectionSlotIndexAtClock(line, sectionIndex, clock = this.speedClock) {
-        const targetX = line.startX + line.slotWidth * (sectionIndex + 0.5);
-        return this.getNearestLineSlotIndex(line, targetX, clock);
-    },
-
     maybeFireMachine(def, line, stage) {
         if (def.brokenUntil && this.time.now < def.brokenUntil) return;
 
@@ -317,7 +308,6 @@ window.EggGameModules.logic = {
             def.nextShot = impact - flight + desync;
             def.nextImpact = impact;
             def.flightTime = flight;
-            def.nextTargetSection = this.getRandomMachineTargetSection(line);
         };
 
         if (!def.nextShot || def.nextShot < this.speedClock - 5) schedule(this.speedClock, true);
@@ -330,20 +320,20 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "crush") {
-            this.spawnCrusherAttack(def, line, stage, def.nextImpact, def.nextTargetSection);
+            this.spawnCrusherAttack(def, line, stage, def.nextImpact);
         } else {
-            this.spawnVerticalProjectile(def, line, stage, def.nextImpact, def.flightTime, def.nextTargetSection);
+            this.spawnVerticalProjectile(def, line, stage, def.nextImpact, def.flightTime);
         }
         schedule(def.nextImpact, false);
     },
 
-    spawnCrusherAttack(def, line, stage, impactClock, targetSection = 0) {
-        const centerIndex = this.getSectionSlotIndexAtClock(line, targetSection, impactClock);
-        const targetX = this.getLineSlotCenterXAtClock(line, centerIndex, impactClock);
+    spawnCrusherAttack(def, line, stage, impactClock) {
+        const centerIndex = this.getNearestLineSlotIndex(line, def.container.x, impactClock);
+        const targetX = def.container.x;
         const targetY = line.y + line.h * 0.5 - 10;
         const startY = def.container.y + 38;
 
-        const press = this.add.container(def.container.x, startY).setDepth(5050);
+        const press = this.add.container(targetX, startY).setDepth(5050);
         const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
         const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
         const head = this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
@@ -352,7 +342,6 @@ window.EggGameModules.logic = {
 
         this.tweens.add({
             targets: press,
-            x: targetX,
             y: targetY - 4,
             duration: 180,
             ease: "Quad.In",
@@ -376,10 +365,10 @@ window.EggGameModules.logic = {
         });
     },
 
-    spawnVerticalProjectile(def, line, stage, impactClock, flightTime, targetSection = 0) {
+    spawnVerticalProjectile(def, line, stage, impactClock, flightTime) {
         const startX = def.container.x;
         const startY = def.container.y + 36;
-        const centerIndex = this.getSectionSlotIndexAtClock(line, targetSection, impactClock);
+        const centerIndex = this.getNearestLineSlotIndex(line, startX, impactClock);
         const endX = this.getLineSlotCenterXAtClock(line, centerIndex, impactClock);
         const endY = line.y + line.h * 0.5 - 6;
         const travelDuration = Math.round((flightTime || this.getMachineFlightTime(def, line)) * 1000);

@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-random-smasher-v20"
+    version: "2026-03-21-smasher-frequency-v21"
 };
