@@ -436,10 +436,8 @@ window.EggGameModules.logic = {
         if (!item || item.destroyed || item.finished || !item.eggs || item.eggs.length === 0) return;
         const baseY = typeof item.y === "number" ? item.y : item.container.y;
         const nextEggs = item.eggs.map((egg, index) => mapEgg({ ...egg }, item, index)).filter(Boolean);
-        item.eggs = nextEggs;
-        item.armored = nextEggs.some(egg => egg.armored);
+        this.setItemEggs(item, nextEggs);
         this.flashValueText(item, flashColor);
-        this.pulseItem(item);
         this.tweens.add({
             targets: item.container,
             y: baseY - 12,
@@ -453,48 +451,6 @@ window.EggGameModules.logic = {
                 item.container.setScale(1);
             }
         });
-    },
-
-    applyMysteryItemStateVisual(item, state) {
-        if (!item || !item.body) return;
-
-        if (item.transformBadge) {
-            this.stopDisplayObjectTweens(item.transformBadge);
-            this.destroyDisplayObjectSafe(item.transformBadge);
-            item.transformBadge = null;
-        }
-
-        if (state === "armored") {
-            item.body.setFillStyle(0x97a3b0, 1).setStrokeStyle(4, 0xe4edf6);
-            const badge = this.add.container(0, -2);
-            const plate = this.add.rectangle(0, 0, 26, 18, 0x6e7883, 0.95).setStrokeStyle(2, 0xdce4ee, 0.9);
-            const rivetA = this.add.circle(-8, 0, 2, 0xf3f7fb, 1);
-            const rivetB = this.add.circle(8, 0, 2, 0xf3f7fb, 1);
-            badge.add([plate, rivetA, rivetB]);
-            item.container.add(badge);
-            item.transformBadge = badge;
-            this.spawnImpactFx(item.container.x, item.container.y - 8, 0xc8d0db);
-        } else if (state === "gold") {
-            item.body.setFillStyle(0xe0bd38, 1).setStrokeStyle(4, 0xffef9a);
-            const badge = this.add.container(0, -2);
-            const glow = this.add.ellipse(0, 0, 32, 22, 0xffdb58, 0.18);
-            const crown = this.add.star(0, 0, 5, 4, 8, 0xffef9a, 0.96).setStrokeStyle(2, 0xffffff, 0.8);
-            badge.add([glow, crown]);
-            item.container.add(badge);
-            item.transformBadge = badge;
-            this.tweens.add({
-                targets: [glow, crown],
-                scaleX: 1.18,
-                scaleY: 1.18,
-                alpha: 0.68,
-                duration: 220,
-                yoyo: true,
-                repeat: -1
-            });
-            this.spawnImpactFx(item.container.x, item.container.y - 8, 0xffd54b);
-        } else {
-            item.body.setFillStyle(item.baseColor, 1).setStrokeStyle(4, 0xffffff);
-        }
     },
 
     runMysterySequence(config) {
@@ -578,7 +534,6 @@ window.EggGameModules.logic = {
                     item.armored = true;
                     item.permanentTextColor = "#d8e3ef";
                     this.updatePillowValueText(item);
-                    this.applyMysteryItemStateVisual(item, "armored");
                 });
 
             this.runMysterySequence({
@@ -617,7 +572,6 @@ window.EggGameModules.logic = {
                     item.currentValue *= 10;
                     item.permanentTextColor = "#f1cb4a";
                     this.updatePillowValueText(item);
-                    this.applyMysteryItemStateVisual(item, "gold");
                 });
 
             this.runMysterySequence({

@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-21-mystery-safe-pillow-v34"
+    version: "2026-03-21-mystery-gold-lite-v35"
 };
