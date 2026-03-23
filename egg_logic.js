@@ -54,6 +54,18 @@ window.EggGameModules.logic = {
         this.roundEggPreview = [...pool, ...hidden];
         this.roundEggPool = this.roundEggPreview.map(egg => this.cloneEggTypeData(egg));
         this.roundEggHiddenStartIndex = 10;
+        this.spawnedEggBoxCount = 0;
+        this.line1EntryCheckCount = 0;
+
+        const boxRoll = Math.random();
+        this.eggBoxTargetCount = boxRoll < 0.03 ? 3 : (boxRoll < 0.18 ? 2 : 1);
+        this.eggBoxForcedEntryChecks = [Phaser.Math.Between(2, 3)];
+        if (this.eggBoxTargetCount >= 2) {
+            this.eggBoxForcedEntryChecks.push(this.eggBoxForcedEntryChecks[0] + Phaser.Math.Between(3, 5));
+        }
+        if (this.eggBoxTargetCount >= 3) {
+            this.eggBoxForcedEntryChecks.push(this.eggBoxForcedEntryChecks[1] + Phaser.Math.Between(4, 6));
+        }
     },
 
     chooseEggType() {
@@ -96,17 +108,31 @@ window.EggGameModules.logic = {
         return Math.ceil((-this.lines.line1.speed * this.speedClock) / this.lines.line1.slotWidth);
     },
 
+    getLine1EntrySlotIndex() {
+        return this.getLine1FirstVisibleSlotIndex() - 1;
+    },
+
     getLine1SlotEntryType(slotIndex) {
-        if ((this.spawnedEggBoxCount || 0) >= 2) return "pillow";
         if (this.line1Pillows.has(slotIndex)) return "pillow";
+
+        const targetCount = this.eggBoxTargetCount || 1;
+        const spawnedCount = this.spawnedEggBoxCount || 0;
+        if (spawnedCount >= targetCount) return "pillow";
+
+        this.line1EntryCheckCount = (this.line1EntryCheckCount || 0) + 1;
+
+        const forcedAt = (this.eggBoxForcedEntryChecks || [])[spawnedCount] || 999;
+        if (this.line1EntryCheckCount >= forcedAt) return "box";
+
+        const chanceByIndex = [0.09, 0.04, 0.016];
         const roll = Math.random();
-        return roll < 0.07 ? "box" : "pillow";
+        return roll < (chanceByIndex[spawnedCount] || 0.01) ? "box" : "pillow";
     },
 
     handleAutoDrop() {
         if (this.roundPopupShown || this.eggsSpawnedThisRound >= this.roundEggLimit) return;
 
-        const slotIndex = this.getLine1FirstVisibleSlotIndex();
+        const slotIndex = this.getLine1EntrySlotIndex();
         if (slotIndex === this.autoDropCheckSlot) return;
         this.autoDropCheckSlot = slotIndex;
         if (this.getLine1SlotEntryType(slotIndex) === "box") {
@@ -117,7 +143,7 @@ window.EggGameModules.logic = {
     },
 
     placeLine1Pillow(color = 0x46c466, multiplier = 1) {
-        const slotIndex = this.getLine1FirstVisibleSlotIndex();
+        const slotIndex = this.getLine1EntrySlotIndex();
         return this.ensureLine1PillowAtSlot(slotIndex, color, multiplier);
     },
 
@@ -646,10 +672,19 @@ window.EggGameModules.logic = {
                 this.updatePillowValueText(item);
                 this.flashValueText(item, "#fff2a3");
                 this.pulseItem(item);
-                txt.destroy();
-                def.container.setDepth(prevMachineDepth);
-                item.container.setDepth(prevItemDepth);
-                this.endGameplayPause();
+                this.tweens.add({
+                    targets: txt,
+                    scaleX: 1.08,
+                    scaleY: 1.08,
+                    duration: 150,
+                    ease: "Back.Out"
+                });
+                this.time.delayedCall(1000, () => {
+                    txt.destroy();
+                    def.container.setDepth(prevMachineDepth);
+                    item.container.setDepth(prevItemDepth);
+                    this.endGameplayPause();
+                });
             }
         });
     },

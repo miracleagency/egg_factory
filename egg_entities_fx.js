@@ -112,52 +112,85 @@ window.EggGameModules.entitiesFx = {
 
     createTravelEggBox() {
         const container = this.add.container(0, 0);
-        const shadow = this.add.ellipse(0, 18, 116, 20, 0x000000, 0.30);
-        const body = this.add.rectangle(0, 0, 88, 62, 0x6d7988, 1).setStrokeStyle(4, 0xd9e2ed);
-        const rim = this.add.rectangle(0, -18, 76, 12, 0x9aa8b8, 1).setStrokeStyle(2, 0xf4f7fb);
-        const slot = this.add.rectangle(0, -6, 46, 8, 0x2a313a, 1).setStrokeStyle(2, 0xb9c8d7, 0.5);
-        const labelA = this.add.text(0, 8, "EGGS", {
+        const shadow = this.add.ellipse(0, 28, 156, 28, 0x000000, 0.32);
+        const rearShadow = this.add.ellipse(0, 10, 128, 18, 0x000000, 0.12);
+        const backPlate = this.add.roundRectangle ? this.add.roundRectangle(0, -8, 118, 86, 16, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc) : this.add.rectangle(0, -8, 118, 86, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc);
+        const body = this.add.roundRectangle ? this.add.roundRectangle(0, 0, 132, 94, 18, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef) : this.add.rectangle(0, 0, 132, 94, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef);
+        const topLid = this.add.roundRectangle ? this.add.roundRectangle(0, -28, 118, 24, 10, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff) : this.add.rectangle(0, -28, 118, 24, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff);
+        const midBand = this.add.rectangle(0, -2, 120, 12, 0x394552, 1).setStrokeStyle(2, 0x7f8d9b, 0.8);
+        const hatch = this.add.roundRectangle ? this.add.roundRectangle(0, -14, 60, 16, 8, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55) : this.add.rectangle(0, -14, 60, 16, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55);
+        const stripeLeft = this.add.rectangle(-34, 18, 18, 44, 0xe0a73b, 1).setAngle(-18);
+        const stripeCenter = this.add.rectangle(0, 18, 18, 48, 0xf0bf4e, 1).setAngle(-18);
+        const stripeRight = this.add.rectangle(34, 18, 18, 44, 0xe0a73b, 1).setAngle(-18);
+        const labelPlate = this.add.rectangle(0, 24, 88, 28, 0x2e3946, 0.92).setStrokeStyle(2, 0xb5c3d3, 0.75);
+        const labelA = this.add.text(0, 10, "EGGS", {
             fontFamily: "Arial",
-            fontSize: "20px",
+            fontSize: "24px",
             color: "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
-        const labelB = this.add.text(0, 26, "BOX", {
+        const labelB = this.add.text(0, 34, "BOX", {
             fontFamily: "Arial",
-            fontSize: "18px",
+            fontSize: "22px",
             color: "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
+        const rivets = [
+            [-48, -30], [48, -30], [-56, -4], [56, -4],
+            [-56, 30], [56, 30], [-30, 40], [30, 40]
+        ].map(([x, y]) => {
+            const rivet = this.add.circle(x, y, 4.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280);
+            const shine = this.add.circle(x - 1.2, y - 1.2, 1.4, 0xffffff, 0.55);
+            return [rivet, shine];
+        }).flat();
         const crackA = this.add.graphics().setVisible(false);
-        crackA.lineStyle(2, 0x1f262f, 0.95);
+        crackA.lineStyle(3, 0x171d25, 0.96);
         crackA.beginPath();
-        crackA.moveTo(-16, -10);
-        crackA.lineTo(-8, -2);
-        crackA.lineTo(-14, 8);
-        crackA.lineTo(-4, 18);
+        crackA.moveTo(-26, -18);
+        crackA.lineTo(-14, -4);
+        crackA.lineTo(-22, 10);
+        crackA.lineTo(-8, 24);
         crackA.strokePath();
         const crackB = this.add.graphics().setVisible(false);
-        crackB.lineStyle(2, 0x1a2028, 0.95);
+        crackB.lineStyle(3, 0x141a22, 0.96);
         crackB.beginPath();
-        crackB.moveTo(14, -16);
-        crackB.lineTo(8, -4);
-        crackB.lineTo(16, 4);
-        crackB.lineTo(6, 16);
-        crackB.moveTo(8, -4);
-        crackB.lineTo(-2, 2);
+        crackB.moveTo(24, -26);
+        crackB.lineTo(12, -10);
+        crackB.lineTo(24, 4);
+        crackB.lineTo(10, 22);
+        crackB.moveTo(12, -10);
+        crackB.lineTo(-4, 0);
         crackB.strokePath();
         const crackC = this.add.graphics().setVisible(false);
-        crackC.lineStyle(2, 0x141a21, 1);
+        crackC.lineStyle(3, 0x10151c, 1);
         crackC.beginPath();
-        crackC.moveTo(-4, -18);
-        crackC.lineTo(0, -6);
-        crackC.lineTo(-8, 6);
-        crackC.lineTo(2, 20);
-        crackC.moveTo(0, -6);
-        crackC.lineTo(12, 2);
+        crackC.moveTo(-6, -30);
+        crackC.lineTo(2, -10);
+        crackC.lineTo(-12, 10);
+        crackC.lineTo(4, 28);
+        crackC.moveTo(2, -10);
+        crackC.lineTo(18, 2);
         crackC.strokePath();
 
-        container.add([shadow, body, rim, slot, labelA, labelB, crackA, crackB, crackC]);
+        container.add([
+            shadow,
+            rearShadow,
+            backPlate,
+            body,
+            topLid,
+            midBand,
+            hatch,
+            stripeLeft,
+            stripeCenter,
+            stripeRight,
+            labelPlate,
+            labelA,
+            labelB,
+            ...rivets,
+            crackA,
+            crackB,
+            crackC
+        ]);
         container._eggBoxCracks = [crackA, crackB, crackC];
 
         return {
