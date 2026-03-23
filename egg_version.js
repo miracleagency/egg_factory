@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-single-dropper-no-pillows-v71"
+    version: "2026-03-23-dropper-speed-fall-fix-v72"
 };
