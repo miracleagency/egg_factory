@@ -884,7 +884,7 @@ window.EggGameModules.ui = {
                 visual.setScale(1.12);
                 cell.add(visual);
                 cell._revealed = true;
-                continue;
+                return;
             }
 
             const hiddenEgg = this.createQuestionEggVisual();
