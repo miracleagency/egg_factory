@@ -1360,7 +1360,9 @@ window.EggGameModules.logic = {
                 item.settled = true;
             }
 
-            this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
+            if ((item.eggs || []).length > 0) {
+                this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
+            }
             this.tweens.add({
                 targets: item.container,
                 scaleY: 0.18,
