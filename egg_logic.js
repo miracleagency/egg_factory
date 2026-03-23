@@ -725,6 +725,32 @@ window.EggGameModules.logic = {
         const bombEggs = (item.eggs || []).filter(egg => egg.bomb);
         const litBombEggs = bombEggs.filter(egg => egg.bombLit !== false);
         const mysteryEggs = (item.eggs || []).filter(egg => egg.key === "mystery");
+        const damageArmoredEggs = (keepOnlyArmored) => {
+            const armoredEggsLocal = (item.eggs || []).filter(egg => egg.armored);
+            if (armoredEggsLocal.length === 0) return false;
+
+            const nextDamage = Math.max(...armoredEggsLocal.map(egg => egg.armorDamage || 0)) + 1;
+            if (nextDamage >= 3) return false;
+
+            const nextEggs = armoredEggsLocal.map(egg => ({
+                ...egg,
+                armorDamage: nextDamage
+            }));
+
+            item.eggs = nextEggs;
+            item.armored = true;
+            item.permanentTextColor = "#d8e3ef";
+
+            if (keepOnlyArmored) {
+                item.eggMultSum *= 0.5;
+                item.currentValue = Math.max(1, item.currentValue * 0.5);
+                this.updatePillowValueText(item);
+            }
+
+            this.setItemEggs(item, nextEggs);
+            this.flashValueText(item, nextDamage === 1 ? "#d8e3ef" : "#ffb36b");
+            return true;
+        };
 
         if (def.type === "water") {
             item.wet = true;
@@ -809,43 +835,19 @@ window.EggGameModules.logic = {
             const vulnerableEggs = (item.eggs || []).filter(egg => !egg.armored);
 
             if (armoredEggs.length > 0 && vulnerableEggs.length === 0) {
-                this.flashValueText(item, "#d8e3ef");
-                this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
-                this.pulseItem(item);
-                return;
+                if (damageArmoredEggs(false)) {
+                    this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
+                    this.pulseItem(item);
+                    return;
+                }
             }
 
             if (armoredEggs.length > 0 && vulnerableEggs.length > 0) {
-                item.eggs = armoredEggs;
-                item.armored = true;
-                item.eggMultSum *= 0.5;
-                item.currentValue = Math.max(1, item.currentValue * 0.5);
-                item.permanentTextColor = "#d8e3ef";
-
-                const remainingEggContainers = [];
-                for (const child of item.container.list.slice()) {
-                    if (!child || !child._eggTypeData) continue;
-                    if (child._eggTypeData.armored) {
-                        remainingEggContainers.push(child);
-                        continue;
-                    }
-                    item.container.remove(child);
-                    this.destroyDisplayObjectSafe(child);
+                if (damageArmoredEggs(true)) {
+                    this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
+                    this.pulseItem(item);
+                    return;
                 }
-
-                if (remainingEggContainers.length === 1) {
-                    remainingEggContainers[0].x = 0;
-                } else if (remainingEggContainers.length > 1) {
-                    remainingEggContainers.forEach((entry, index) => {
-                        entry.x = index === 0 ? -10 : 10;
-                    });
-                }
-
-                this.updatePillowValueText(item);
-                this.flashValueText(item, "#ffb36b");
-                this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
-                this.pulseItem(item);
-                return;
             }
 
             item.destroyed = true;
@@ -877,7 +879,9 @@ window.EggGameModules.logic = {
         if (def.type === "crush") {
             const armoredEggs = (item.eggs || []).filter(egg => egg.armored);
             const vulnerableEggs = (item.eggs || []).filter(egg => !egg.armored);
-            const freshArmoredEggs = armoredEggs.filter(egg => (egg.armorDamage || 0) === 0);
+            const maxArmorDamage = armoredEggs.length > 0
+                ? Math.max(...armoredEggs.map(egg => egg.armorDamage || 0))
+                : 0;
 
             if (mysteryEggs.length > 0) {
                 if (litBombEggs.length > 0) {
@@ -927,34 +931,15 @@ window.EggGameModules.logic = {
                 return;
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && freshArmoredEggs.length > 0) {
-                const nextEggs = armoredEggs.map(egg => ({
-                    ...egg,
-                    armorDamage: Math.min(1, (egg.armorDamage || 0) + 1)
-                }));
-                item.eggs = nextEggs;
-                item.armored = true;
-                item.permanentTextColor = "#d8e3ef";
-                this.setItemEggs(item, nextEggs);
-                this.flashValueText(item, "#d8e3ef");
+            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 2) {
+                damageArmoredEggs(false);
                 this.spawnCrushFx(item.container.x, item.container.y - 4);
                 this.pulseItem(item);
                 return;
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length > 0) {
-                const nextEggs = armoredEggs.map(egg => ({
-                    ...egg,
-                    armorDamage: Math.min(1, (egg.armorDamage || 0) + 1)
-                }));
-                item.eggs = nextEggs;
-                item.armored = true;
-                item.eggMultSum *= 0.5;
-                item.currentValue = Math.max(1, item.currentValue * 0.5);
-                item.permanentTextColor = "#d8e3ef";
-                this.setItemEggs(item, nextEggs);
-                this.updatePillowValueText(item);
-                this.flashValueText(item, "#d8e3ef");
+            if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 2) {
+                damageArmoredEggs(true);
                 this.spawnCrushFx(item.container.x, item.container.y - 4);
                 this.pulseItem(item);
                 return;

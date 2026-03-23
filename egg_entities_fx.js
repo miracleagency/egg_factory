@@ -239,21 +239,38 @@ window.EggGameModules.entitiesFx = {
                 this.add.circle(11, 11, 2.8, 0xe4eaf1, 1)
             ];
             const shine = this.add.ellipse(-7, -12, 7, 12, 0xffffff, 0.22);
-            const crack = this.add.graphics();
-            crack.lineStyle(2, 0x25303a, 0.92);
-            crack.beginPath();
-            crack.moveTo(-4, -12);
-            crack.lineTo(0, -4);
-            crack.lineTo(-5, 5);
-            crack.lineTo(2, 12);
-            crack.moveTo(0, -4);
-            crack.lineTo(6, 2);
-            crack.moveTo(-2, 6);
-            crack.lineTo(-9, 12);
-            crack.strokePath();
-            crack.setVisible((eggType.armorDamage || 0) > 0);
-            container.add([shell, band, ...rivets, shine, crack]);
-            container._armorCrack = crack;
+            const crackA = this.add.graphics();
+            crackA.lineStyle(2, 0x25303a, 0.92);
+            crackA.beginPath();
+            crackA.moveTo(-4, -12);
+            crackA.lineTo(0, -4);
+            crackA.lineTo(-5, 5);
+            crackA.lineTo(2, 12);
+            crackA.moveTo(0, -4);
+            crackA.lineTo(6, 2);
+            crackA.moveTo(-2, 6);
+            crackA.lineTo(-9, 12);
+            crackA.strokePath();
+
+            const crackB = this.add.graphics();
+            crackB.lineStyle(2, 0x1f262f, 0.96);
+            crackB.beginPath();
+            crackB.moveTo(6, -14);
+            crackB.lineTo(2, -5);
+            crackB.lineTo(7, 3);
+            crackB.lineTo(1, 11);
+            crackB.moveTo(2, -5);
+            crackB.lineTo(-4, 1);
+            crackB.moveTo(7, 3);
+            crackB.lineTo(11, 10);
+            crackB.strokePath();
+
+            const armorDamage = eggType.armorDamage || 0;
+            crackA.setVisible(armorDamage >= 1);
+            crackB.setVisible(armorDamage >= 2);
+            container.add([shell, band, ...rivets, shine, crackA, crackB]);
+            container._armorCrackA = crackA;
+            container._armorCrackB = crackB;
             container.setScale(eggScale);
             return { container, body: shell };
         }
