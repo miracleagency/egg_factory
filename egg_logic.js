@@ -321,13 +321,11 @@ window.EggGameModules.logic = {
 
     updateFallingEggs() {
         const duration = this.fallDuration();
-        const line = this.lines.line1;
 
         for (const egg of this.fallingEggs) {
             if (egg.state !== "falling") continue;
             const p = Phaser.Math.Clamp((this.speedClock - egg.spawnClock) / duration, 0, 1);
             egg.container.y = Phaser.Math.Linear(this.eggStartY, this.eggLandingY, p);
-            egg.container.x = this.getLineSlotCenterXAtClock(line, egg.slotIndexAtLanding, this.speedClock);
 
             if (p < 1) continue;
             const pillow = this.line1Pillows.get(egg.slotIndexAtLanding);

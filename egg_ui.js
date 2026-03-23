@@ -1040,11 +1040,13 @@ window.EggGameModules.ui = {
         const revealNext = (queue) => {
             if (queue.length === 0) {
                 this.roundSetupErrorText.setText("");
-                this.balance -= cost;
-                if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
-                this.roundSetupPopup.setVisible(false);
-                if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
-                this.updatePillowButtonLabels();
+                this.time.delayedCall(1000, () => {
+                    this.balance -= cost;
+                    if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
+                    this.roundSetupPopup.setVisible(false);
+                    if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
+                    this.updatePillowButtonLabels();
+                });
                 return;
             }
 
