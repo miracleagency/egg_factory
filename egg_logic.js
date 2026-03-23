@@ -68,13 +68,10 @@ window.EggGameModules.logic = {
         const a = (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * fromClock) / line.slotWidth;
         let dt = (a - Math.floor(a)) * slotTravel;
 
-        const minLead = first ? 0.34 : 0.22;
+        const minLead = first ? 0.08 : 0.22;
         while (dt < minLead) dt += slotTravel;
 
-        dt += Phaser.Math.Between(3, 4) * slotTravel;
-        if (first) {
-            dt += Phaser.Math.FloatBetween(0.06, 0.32);
-        }
+        dt += (first ? Phaser.Math.Between(0, 1) : Phaser.Math.Between(3, 4)) * slotTravel;
         return fromClock + dt;
     },
 

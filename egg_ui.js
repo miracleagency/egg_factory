@@ -276,10 +276,10 @@ window.EggGameModules.ui = {
         const scale = Phaser.Math.Clamp(this.W / 1080, 0.82, 1.02);
         this.bottomUI.setScale(scale);
         this.bottomUI.setPosition(0, y);
-        this.roundHudLeft.setPosition(120, 0);
+        this.roundHudLeft.setPosition(0, 0);
         this.roundHudRight.setPosition(this.W / scale - 130, -82);
-        this.betText.setPosition(0, 30);
-        this.balanceText.setPosition(this.W / scale - 240, 30);
+        this.balanceText.setPosition(92, 30);
+        this.betText.setPosition(this.W / scale - 120, 30);
         this.turboBtn.setPosition(-56, 0).setScale(1.2);
         this.infoBtn.setPosition(46, 0).setScale(1.2);
 
@@ -287,7 +287,7 @@ window.EggGameModules.ui = {
             ? this.lines.line1.y + this.lines.line1.h + 80
             : this.H * 0.56;
         const hudBottom = y - 120;
-        const midY = Math.round((hudTop + hudBottom) * 0.5);
+        const midY = Math.round((hudTop + hudBottom) * 0.5) - 26;
         this.midHud.setPosition(this.W * 0.5, midY);
         this.eggsHud.setPosition(-150, 0);
         this.winHud.setPosition(150, 0);
