@@ -1029,7 +1029,7 @@ window.EggGameModules.ui = {
             this.balance -= cost;
             if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
             this.roundSetupPopup.setVisible(false);
-            this.roundSetupActive = false;
+            if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
             this.updatePillowButtonLabels();
             return;
         }
@@ -1041,7 +1041,7 @@ window.EggGameModules.ui = {
                     this.balance -= cost;
                     if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
                     this.roundSetupPopup.setVisible(false);
-                    this.roundSetupActive = false;
+                    if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
                     this.updatePillowButtonLabels();
                 });
                 return;

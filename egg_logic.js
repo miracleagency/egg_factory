@@ -175,6 +175,14 @@ window.EggGameModules.logic = {
         }
     },
 
+    armRoundGameplayStart() {
+        this.roundSetupActive = false;
+        this.autoDropCheckSlot = null;
+        this.nextEggSpawnA = this.computeNextEggSpawnClock(() => this.dropperAX, this.speedClock, true);
+        this.nextEggSpawnB = this.computeNextEggSpawnClock(() => this.dropperBX, this.speedClock, true);
+        this.lastTime = this.time.now;
+    },
+
     hasActiveRoundEggs() {
         if ((this.fallingEggs || []).some(egg => egg && egg.state === "falling")) return true;
         if (Array.from(this.line1Pillows.values()).some(item => item && item.eggs && item.eggs.length > 0 && !item.destroyed && !item.finished)) return true;
