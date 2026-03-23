@@ -806,8 +806,7 @@ window.EggGameModules.entitiesFx = {
 
     getValueTierTextColor(value) {
         const amount = Math.max(0, value || 0);
-        if (amount <= 10) return "#ffffff";
-        if (amount <= 20) return "#6dff8f";
+        if (amount <= 20) return "#ffffff";
         if (amount <= 50) return "#c58cff";
         if (amount <= 100) return "#f1cb4a";
         return "#7cecff";

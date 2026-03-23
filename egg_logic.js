@@ -273,8 +273,8 @@ window.EggGameModules.logic = {
     armRoundGameplayStart() {
         this.roundSetupActive = false;
         this.autoDropCheckSlot = null;
-        this.gameplayEggSpawnsArmed = false;
-        this.nextEggSpawnA = Infinity;
+        this.gameplayEggSpawnsArmed = true;
+        this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.speedClock, false);
         this.nextEggSpawnB = Infinity;
         this.lastTime = this.time.now;
     },
@@ -321,11 +321,13 @@ window.EggGameModules.logic = {
 
     updateFallingEggs() {
         const duration = this.fallDuration();
+        const line = this.lines.line1;
 
         for (const egg of this.fallingEggs) {
             if (egg.state !== "falling") continue;
             const p = Phaser.Math.Clamp((this.speedClock - egg.spawnClock) / duration, 0, 1);
             egg.container.y = Phaser.Math.Linear(this.eggStartY, this.eggLandingY, p);
+            egg.container.x = this.getLineSlotCenterXAtClock(line, egg.slotIndexAtLanding, this.speedClock);
 
             if (p < 1) continue;
             const pillow = this.line1Pillows.get(egg.slotIndexAtLanding);
@@ -451,8 +453,8 @@ window.EggGameModules.logic = {
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
-            minSkip = 1;
-            maxSkip = 2;
+            minSkip = def.slowCrush ? 2 : 1;
+            maxSkip = def.slowCrush ? 3 : 2;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
