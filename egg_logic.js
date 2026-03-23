@@ -706,31 +706,12 @@ window.EggGameModules.logic = {
         const endY = line.y + line.h * 0.5 - 6;
         const travelDuration = Math.round((flightTime || this.getMachineFlightTime(def, line)) * 1000);
 
-        let color = 0xaab7c8;
-        if (def.type === "water") color = 0x59b7ff;
-        else if (def.type === "fire") color = 0xe34932;
-        else if (def.rarity === "gold") color = 0xe3cf47;
-
-        const shot = this.add.rectangle(startX, startY, 14, 14, color, 1)
-            .setStrokeStyle(2, 0xffffff, 0.55)
-            .setDepth(5000);
-        this.fxLayer.add(shot);
-
-        this.tweens.add({
-            targets: shot,
-            x: endX,
-            y: endY,
-            duration: travelDuration,
-            angle: 180,
-            ease: "Sine.In",
-            onComplete: () => {
-                const items = this.getStageItems(stage);
-                const item = items.find(entry => entry.slotIndexLine === centerIndex)
-                    || items.find(entry => Math.abs(entry.x - endX) <= line.slotWidth * 0.28);
-                shot.destroy();
-                if (item) this.applyMachineEffect(def, item);
-                this.spawnImpactFx(endX, endY, color);
-            }
+        this.spawnMachineProjectile(def, startX, startY, endX, endY, travelDuration, () => {
+            const items = this.getStageItems(stage);
+            const item = items.find(entry => entry.slotIndexLine === centerIndex)
+                || items.find(entry => Math.abs(entry.x - endX) <= line.slotWidth * 0.28);
+            if (item) this.applyMachineEffect(def, item);
+            this.spawnMachineImpactFx(def, endX, endY);
         });
     },
 
@@ -794,7 +775,7 @@ window.EggGameModules.logic = {
                 }
                 this.clearWetFx(item);
                 this.updatePillowValueText(item);
-                this.spawnImpactFx(item.container.x, item.container.y - 4, 0x59b7ff);
+                this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
                 this.spawnDryFx(item);
                 this.pulseItem(item);
                 return;
@@ -825,7 +806,7 @@ window.EggGameModules.logic = {
 
             if (armoredEggs.length > 0 && vulnerableEggs.length === 0) {
                 this.flashValueText(item, "#d8e3ef");
-                this.spawnImpactFx(item.container.x, item.container.y - 6, 0xc8d0db);
+                this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
                 this.pulseItem(item);
                 return;
             }
@@ -858,7 +839,7 @@ window.EggGameModules.logic = {
 
                 this.updatePillowValueText(item);
                 this.flashValueText(item, "#ffb36b");
-                this.spawnImpactFx(item.container.x, item.container.y - 6, 0xff7a45);
+                this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
                 this.pulseItem(item);
                 return;
             }
@@ -1215,6 +1196,8 @@ window.EggGameModules.logic = {
                     }
                     item.settled = true;
                     this.updatePillowButtonLabels();
+                    const hasGoldEgg = (item.eggs || []).some(egg => egg && (egg.goldFx || egg.key === "gold"));
+                    this.pulseFinalCollector(0x63ff8d, hasGoldEgg ? 1.35 : 1);
                     this.spawnImpactFx(this.W - 16, item.y, 0x63ff8d);
                     this.showCenterWin(item.currentValue || 0);
                     item.container.destroy();

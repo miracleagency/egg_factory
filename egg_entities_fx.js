@@ -110,6 +110,38 @@ window.EggGameModules.entitiesFx = {
         };
     },
 
+    spawnRadialSparkBurst(x, y, config = {}) {
+        const count = config.count || 10;
+        const color = config.color || 0xffffff;
+        const colorAlt = config.colorAlt || color;
+        const depth = config.depth || 5100;
+        const minSpeed = config.minSpeed || 70;
+        const maxSpeed = config.maxSpeed || 190;
+
+        for (let i = 0; i < count; i++) {
+            const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+            const speed = Phaser.Math.FloatBetween(minSpeed, maxSpeed);
+            const spark = Math.random() < 0.5
+                ? this.add.star(x, y, 4, 1.6, 5.6, i % 2 === 0 ? color : colorAlt, 0.98).setDepth(depth)
+                : this.add.rectangle(x, y, 5, Phaser.Math.Between(10, 22), i % 2 === 0 ? color : colorAlt, 0.95).setDepth(depth);
+
+            spark.angle = Phaser.Math.RadToDeg(angle) + 90;
+            this.fxLayer.add(spark);
+
+            this.tweens.add({
+                targets: spark,
+                x: x + Math.cos(angle) * speed,
+                y: y + Math.sin(angle) * speed,
+                alpha: 0,
+                scaleX: 0.45,
+                scaleY: 0.45,
+                duration: Phaser.Math.Between(320, 520),
+                ease: "Cubic.Out",
+                onComplete: () => spark.destroy()
+            });
+        }
+    },
+
     createPillowValueText(textValue) {
         return this.add.text(0, 34, textValue, {
             fontFamily: "Arial",
@@ -269,14 +301,11 @@ window.EggGameModules.entitiesFx = {
 
         if (eggType.mysteryFx) {
             body.setFillStyle(0x572783, 1).setStrokeStyle(2, 0xf3dcff, 1);
+            const gradBase = this.add.ellipse(0, 0, 29, 41, 0x6d32a1, 0.98);
+            const gradTop = this.add.ellipse(0, -12, 25, 15, 0xff8e52, 0.82);
+            const gradMid = this.add.ellipse(0, -2, 27, 17, 0x64d86a, 0.74);
+            const gradLow = this.add.ellipse(0, 10, 26, 14, 0xffd55c, 0.68);
             const bodyShade = this.add.ellipse(4, 7, 26, 34, 0x2a1238, 0.22);
-            const stripeA = this.add.ellipse(-9, -5, 14, 39, 0xff9341, 0.94).setStrokeStyle(1, 0xffdaae, 0.75);
-            const stripeB = this.add.ellipse(3, 2, 13, 42, 0x69d66a, 0.92).setStrokeStyle(1, 0xd8ffd4, 0.72);
-            const stripeC = this.add.ellipse(13, -2, 12, 36, 0xffb13a, 0.9).setStrokeStyle(1, 0xffecb8, 0.7);
-            stripeA.angle = -18;
-            stripeB.angle = 7;
-            stripeC.angle = 18;
-
             const topGlow = this.add.ellipse(0, -11, 20, 13, 0xffffff, 0.18);
             const shineCore = this.add.ellipse(-8, -12, 8, 15, 0xffffff, 0.48);
             const shineEdge = this.add.ellipse(-3, -2, 5, 10, 0xfff2ff, 0.22);
@@ -290,7 +319,7 @@ window.EggGameModules.entitiesFx = {
             const auraInner = this.add.ellipse(0, 0, 48, 62, 0xffa04c, 0.10);
             container.addAt(auraOuter, withShadow ? 1 : 0);
             container.addAt(auraInner, withShadow ? 2 : 1);
-            container.add([bodyShade, stripeA, stripeB, stripeC, topGlow, shineCore, shineEdge, sigilGlow, sigil, flashA, flashB, flashC, flashD]);
+            container.add([gradBase, gradTop, gradMid, gradLow, bodyShade, topGlow, shineCore, shineEdge, sigilGlow, sigil, flashA, flashB, flashC, flashD]);
 
             if (!disableAmbientFx) {
                 this.tweens.add({
@@ -304,8 +333,9 @@ window.EggGameModules.entitiesFx = {
                     repeat: -1
                 });
                 this.tweens.add({
-                    targets: [stripeA, stripeB, stripeC],
-                    y: "-=2",
+                    targets: [gradTop, gradMid, gradLow],
+                    y: "-=1.5",
+                    alpha: 0.5,
                     duration: 440,
                     ease: "Sine.InOut",
                     yoyo: true,
@@ -751,6 +781,21 @@ window.EggGameModules.entitiesFx = {
         const ox = item.container.x;
         const oy = item.container.y - 28;
 
+        for (let i = 0; i < 3; i++) {
+            const spray = this.add.rectangle(ox + (i - 1) * 10, oy - 38, 6, 54, 0x8de6ff, 0.48).setDepth(5098);
+            spray.angle = Phaser.Math.Between(-10, 10);
+            this.fxLayer.add(spray);
+            this.tweens.add({
+                targets: spray,
+                y: oy - 8,
+                alpha: 0,
+                scaleY: 0.45,
+                duration: 200 + i * 35,
+                ease: "Quad.Out",
+                onComplete: () => spray.destroy()
+            });
+        }
+
         for (let i = 0; i < 14; i++) {
             const drop = this.add.circle(ox, oy, Phaser.Math.Between(3, 6), 0x57c3ff, 1).setDepth(5100);
             this.fxLayer.add(drop);
@@ -817,6 +862,236 @@ window.EggGameModules.entitiesFx = {
             duration: 140,
             onComplete: () => flash.destroy()
         });
+    },
+
+    spawnMachineImpactFx(def, x, y) {
+        if (def && def.type === "water") {
+            const mist = this.add.ellipse(x, y, 70, 34, 0xa7ecff, 0.38).setDepth(5099);
+            this.fxLayer.add(mist);
+            this.tweens.add({
+                targets: mist,
+                scaleX: 1.45,
+                scaleY: 1.1,
+                alpha: 0,
+                duration: 240,
+                onComplete: () => mist.destroy()
+            });
+            this.spawnRadialSparkBurst(x, y, {
+                count: 10,
+                color: 0xd8fbff,
+                colorAlt: 0x59b7ff,
+                minSpeed: 38,
+                maxSpeed: 96
+            });
+            return;
+        }
+
+        if (def && def.type === "fire") {
+            const flash = this.add.ellipse(x, y, 72, 34, 0xff6c34, 0.42).setDepth(5100);
+            const core = this.add.ellipse(x + 8, y, 40, 18, 0xfff0a6, 0.78).setDepth(5101);
+            flash.angle = 8;
+            core.angle = 8;
+            this.fxLayer.add(flash);
+            this.fxLayer.add(core);
+            this.tweens.add({
+                targets: [flash, core],
+                scaleX: 1.55,
+                scaleY: 0.72,
+                alpha: 0,
+                duration: 180,
+                onComplete: () => {
+                    flash.destroy();
+                    core.destroy();
+                }
+            });
+            this.spawnRadialSparkBurst(x + 10, y, {
+                count: 12,
+                color: 0xfff0a6,
+                colorAlt: 0xff7a38,
+                minSpeed: 44,
+                maxSpeed: 118
+            });
+            return;
+        }
+
+        if (def && def.rarity === "gold") {
+            const flash = this.add.circle(x, y, 22, 0xffd85b, 0.34).setDepth(5100);
+            this.fxLayer.add(flash);
+            this.tweens.add({
+                targets: flash,
+                scaleX: 2.6,
+                scaleY: 2.6,
+                alpha: 0,
+                duration: 220,
+                onComplete: () => flash.destroy()
+            });
+            this.spawnRadialSparkBurst(x, y, {
+                count: 16,
+                color: 0xffef9f,
+                colorAlt: 0xd9a321,
+                minSpeed: 56,
+                maxSpeed: 156
+            });
+            return;
+        }
+
+        if (def && def.type === "mul") {
+            const flash = this.add.ellipse(x, y, 58, 24, 0x7dff9c, 0.32).setDepth(5100);
+            this.fxLayer.add(flash);
+            this.tweens.add({
+                targets: flash,
+                scaleX: 2.2,
+                scaleY: 0.72,
+                alpha: 0,
+                duration: 150,
+                onComplete: () => flash.destroy()
+            });
+            this.spawnRadialSparkBurst(x, y, {
+                count: 8,
+                color: 0xb7ff9c,
+                colorAlt: 0x39ff7a,
+                minSpeed: 28,
+                maxSpeed: 88
+            });
+            return;
+        }
+
+        this.spawnImpactFx(x, y, 0xffffff);
+    },
+
+    spawnMachineProjectile(def, startX, startY, endX, endY, travelDuration, onComplete) {
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const angle = Phaser.Math.RadToDeg(Math.atan2(dy, dx)) + 90;
+        const projectile = this.add.container(startX, startY).setDepth(5000);
+        let primary = null;
+
+        if (def.type === "fire") {
+            const glow = this.add.ellipse(0, 0, 30, 86, 0xff5c31, 0.20);
+            const body = this.add.ellipse(0, 0, 18, 66, 0xff7c2d, 0.96).setStrokeStyle(2, 0xfff0a6, 0.72);
+            const core = this.add.ellipse(0, -10, 10, 34, 0xfff0ad, 0.92);
+            const tailA = this.add.ellipse(-6, 14, 12, 30, 0xff4e23, 0.72);
+            const tailB = this.add.ellipse(6, 18, 10, 24, 0xffa43d, 0.64);
+            projectile.add([glow, tailA, tailB, body, core]);
+            primary = body;
+            this.tweens.add({
+                targets: [body, core, tailA, tailB],
+                scaleX: 0.72,
+                scaleY: 1.16,
+                y: "-=8",
+                duration: 110,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        } else if (def.type === "water") {
+            const mist = this.add.ellipse(0, 0, 26, 58, 0x9ce8ff, 0.18);
+            const streamA = this.add.rectangle(-6, 0, 5, 82, 0x8de6ff, 0.84);
+            const streamB = this.add.rectangle(0, 0, 7, 88, 0xbdf6ff, 0.92);
+            const streamC = this.add.rectangle(6, 0, 5, 78, 0x5ec3ff, 0.80);
+            const head = this.add.circle(0, -40, 8, 0xe4fbff, 0.98);
+            projectile.add([mist, streamA, streamB, streamC, head]);
+            primary = streamB;
+            this.tweens.add({
+                targets: [streamA, streamB, streamC],
+                alpha: 0.42,
+                scaleY: 0.76,
+                duration: 90,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        } else if (def.rarity === "gold") {
+            const glow = this.add.ellipse(0, 0, 34, 96, 0xffd75c, 0.18);
+            const beam = this.add.rectangle(0, 0, 18, 96, 0xffd84c, 0.96).setStrokeStyle(3, 0xfff5b8, 0.85);
+            const core = this.add.rectangle(0, 0, 8, 98, 0xfff6be, 0.96);
+            const head = this.add.star(0, -52, 4, 3, 9, 0xfff6be, 0.98);
+            projectile.add([glow, beam, core, head]);
+            primary = beam;
+            this.tweens.add({
+                targets: [glow, beam, core],
+                alpha: 0.58,
+                duration: 100,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        } else {
+            const glow = this.add.ellipse(0, 0, 34, 90, 0x56ff86, 0.16);
+            const beam = this.add.rectangle(0, 0, 20, 92, 0x3aff77, 0.94).setStrokeStyle(3, 0xd8ffd8, 0.78);
+            const core = this.add.rectangle(0, 0, 10, 94, 0xe6fff0, 0.90);
+            projectile.add([glow, beam, core]);
+            primary = beam;
+            this.tweens.add({
+                targets: [glow, beam],
+                alpha: 0.5,
+                duration: 100,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        }
+
+        projectile.angle = angle;
+        this.fxLayer.add(projectile);
+
+        this.tweens.add({
+            targets: projectile,
+            x: endX,
+            y: endY,
+            duration: travelDuration,
+            ease: def.type === "fire" ? "Cubic.In" : "Sine.In",
+            onComplete: () => {
+                if (projectile.scene) projectile.destroy();
+                if (typeof onComplete === "function") onComplete();
+            }
+        });
+
+        if (primary) {
+            this.tweens.add({
+                targets: primary,
+                scaleX: def.type === "water" ? 0.84 : 1.1,
+                duration: 120,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        }
+    },
+
+    pulseFinalCollector(color = 0x63ff8d, strength = 1) {
+        this.finalCollectorGlowUntil = this.time.now + 420;
+        this.finalCollectorGlowColor = color;
+        this.finalCollectorGlowStrength = strength;
+
+        const line = this.lines.line3;
+        const x = line.endX + 76;
+        const y = line.y + line.h * 0.5 - 16;
+        const glow = this.add.ellipse(x, y, 170, 220, color, 0.18 * strength).setDepth(6400);
+        this.fxLayer.add(glow);
+        this.tweens.add({
+            targets: glow,
+            scaleX: 1.35,
+            scaleY: 1.12,
+            alpha: 0,
+            duration: 320,
+            ease: "Cubic.Out",
+            onComplete: () => glow.destroy()
+        });
+
+        for (let i = 0; i < 4; i++) {
+            const ray = this.add.rectangle(x - 26 + i * 16, y - 12, 10, 148, color, 0.18).setDepth(6398);
+            this.fxLayer.add(ray);
+            this.tweens.add({
+                targets: ray,
+                y: y - 92,
+                scaleY: 1.34,
+                alpha: 0,
+                duration: 240 + i * 35,
+                ease: "Cubic.Out",
+                onComplete: () => ray.destroy()
+            });
+        }
     },
 
     spawnEggSplatFx(x, y, targetY = y) {
