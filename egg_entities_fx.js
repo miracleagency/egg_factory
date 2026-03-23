@@ -804,11 +804,21 @@ window.EggGameModules.entitiesFx = {
         }
     },
 
+    getValueTierTextColor(value) {
+        const amount = Math.max(0, value || 0);
+        if (amount <= 10) return "#ffffff";
+        if (amount <= 20) return "#6dff8f";
+        if (amount <= 50) return "#c58cff";
+        if (amount <= 100) return "#f1cb4a";
+        return "#7cecff";
+    },
+
     updatePillowValueText(item, color = "#ffffff") {
         if (!item || !item.container || item.destroyed || item.finished) return;
+        const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
+        const tierColor = this.getValueTierTextColor(displayValue);
         if (this.gameplayPaused) {
-            const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
-            item._queuedValueTextColor = item.permanentTextColor || color || "#ffffff";
+            item._queuedValueTextColor = tierColor || color || "#ffffff";
             this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
             this.pendingValueTextRefresh.add(item);
             const tempText = this.rebuildTransientPillowValueText(item, this.formatMoneyValue(displayValue));
@@ -829,10 +839,9 @@ window.EggGameModules.entitiesFx = {
             if (item.valueText) item.valueText.setAlpha(0);
             return;
         }
-        const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
         const textObj = this.rebuildPillowValueText(item, this.formatMoneyValue(displayValue));
         if (!textObj) return;
-        this.applySafeValueTextColor(textObj, item._queuedValueTextColor || item.permanentTextColor || color || "#ffffff", false);
+        this.applySafeValueTextColor(textObj, item._queuedValueTextColor || tierColor || color || "#ffffff", false);
         item._queuedValueTextColor = null;
         textObj.setAlpha(item.eggMultSum > 0 ? 1 : 0);
     },
@@ -840,7 +849,7 @@ window.EggGameModules.entitiesFx = {
     flashValueText(item, flashColor) {
         if (!item || !item.valueText || item.eggMultSum <= 0) return;
         if (this.gameplayPaused) return;
-        const baseColor = item.permanentTextColor || "#ffffff";
+        const baseColor = this.getValueTierTextColor(item.currentValue || item.spentCost || 0);
         const preferTint = false;
         this.tweens.killTweensOf(item.valueText);
         item.valueText.setAlpha(1);
