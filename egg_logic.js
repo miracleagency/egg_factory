@@ -36,38 +36,18 @@ window.EggGameModules.logic = {
         return Math.ceil((-this.lines.line1.speed * this.speedClock) / this.lines.line1.slotWidth);
     },
 
-    getAutoDropChance() {
-        if (this.autoDropMode === 1) return 1;
-        if (this.autoDropMode === 2) return 0.58;
-        return 0;
-    },
-
     handleAutoDrop() {
-        if (this.autoDropMode === 0) return;
+        if (this.roundPopupShown || this.eggsSpawnedThisRound >= this.roundEggLimit) return;
 
         const slotIndex = this.getLine1FirstVisibleSlotIndex();
         if (slotIndex === this.autoDropCheckSlot) return;
         this.autoDropCheckSlot = slotIndex;
-
-        const selectedKeys = Array.isArray(this.autoDropSelectedKeys) ? this.autoDropSelectedKeys : [];
-        if (selectedKeys.length === 0) return;
-
-        const availableButtons = selectedKeys
-            .map(key => this.pillowButtons && this.pillowButtons[key])
-            .filter(Boolean);
-        if (availableButtons.length === 0) return;
-        if (Math.random() > this.getAutoDropChance()) return;
-
-        const btn = this.autoDropMode === 2
-            ? Phaser.Utils.Array.GetRandom(availableButtons)
-            : availableButtons[0];
-        this.placeLine1Pillow(btn._baseColor, btn._mult);
+        this.placeLine1Pillow(0x46c466, 1);
     },
 
-    placeLine1Pillow(color, multiplier) {
+    placeLine1Pillow(color = 0x46c466, multiplier = 1) {
         const slotIndex = this.getLine1FirstVisibleSlotIndex();
-        const cost = this.bet * multiplier;
-        if (this.balance < cost) return false;
+        const cost = this.bet;
         if (this.line1Pillows.has(slotIndex)) return false;
 
         const pillow = this.createTravelPillow(color, cost, multiplier, this.bet);
@@ -77,7 +57,6 @@ window.EggGameModules.logic = {
         this.line1Pillows.set(slotIndex, pillow);
         this.pillowLayer.add(pillow.container);
 
-        this.balance -= cost;
         this.updatePillowButtonLabels();
         return true;
     },
@@ -101,6 +80,7 @@ window.EggGameModules.logic = {
     },
 
     spawnEgg(dropX, targetClock) {
+        if (this.eggsSpawnedThisRound >= this.roundEggLimit) return;
         const line = this.lines.line1;
         const slotIndex = Math.round(
             (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * targetClock) / line.slotWidth
@@ -117,17 +97,39 @@ window.EggGameModules.logic = {
 
         this.eggLayer.add(visual.container);
         this.fallingEggs.push(visual);
+        this.eggsSpawnedThisRound += 1;
+        this.remainingEggCount = Math.max(0, this.roundEggLimit - this.eggsSpawnedThisRound);
+        this.updatePillowButtonLabels();
     },
 
     handleEggSpawns() {
-        while (this.speedClock >= this.nextEggSpawnA - this.fallDuration()) {
+        while (this.eggsSpawnedThisRound < this.roundEggLimit && this.speedClock >= this.nextEggSpawnA - this.fallDuration()) {
             this.spawnEgg(this.dropperAX, this.nextEggSpawnA);
             this.nextEggSpawnA = this.computeNextEggSpawnClock(() => this.dropperAX, this.nextEggSpawnA);
         }
 
-        while (this.speedClock >= this.nextEggSpawnB - this.fallDuration()) {
+        while (this.eggsSpawnedThisRound < this.roundEggLimit && this.speedClock >= this.nextEggSpawnB - this.fallDuration()) {
             this.spawnEgg(this.dropperBX, this.nextEggSpawnB);
             this.nextEggSpawnB = this.computeNextEggSpawnClock(() => this.dropperBX, this.nextEggSpawnB);
+        }
+    },
+
+    hasActiveRoundEggs() {
+        if ((this.fallingEggs || []).some(egg => egg && egg.state === "falling")) return true;
+        if (Array.from(this.line1Pillows.values()).some(item => item && item.eggs && item.eggs.length > 0 && !item.destroyed && !item.finished)) return true;
+        if ((this.travelItems || []).some(item => item && !item.destroyed && !item.finished && item.eggs && item.eggs.length > 0)) return true;
+        return false;
+    },
+
+    checkRoundComplete() {
+        if (this.roundPopupShown) return;
+        if (this.eggsSpawnedThisRound < this.roundEggLimit) return;
+        if (this.hasActiveRoundEggs()) return;
+
+        this.roundPopupShown = true;
+        this.beginGameplayPause();
+        if (typeof this.showRoundEndPopup === "function") {
+            this.showRoundEndPopup();
         }
     },
 
@@ -1215,11 +1217,7 @@ window.EggGameModules.logic = {
                         this.spawnBombExplosionFx(this.W - 24, item.y - 6);
                     }
 
-                    this.balance += item.currentValue || 0;
                     this.addWin(item.currentValue || 0);
-                    if (!item.settled && (item.currentValue || 0) < (item.spentCost || 0)) {
-                        this.addLose((item.spentCost || 0) - (item.currentValue || 0));
-                    }
                     item.settled = true;
                     this.updatePillowButtonLabels();
                     const hasGoldEgg = (item.eggs || []).some(egg => egg && (egg.goldFx || egg.key === "gold"));
