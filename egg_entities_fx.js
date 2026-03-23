@@ -44,8 +44,8 @@ window.EggGameModules.entitiesFx = {
             fontStyle: "bold"
         }).setOrigin(0.5).setVisible(false);
         const hammer = this.add.container(0, -42).setVisible(false);
-        const hammerHandle = this.add.rectangle(-6, -6, 8, 32, 0x8f6748, 1).setStrokeStyle(2, 0xe2c6aa);
-        const hammerHead = this.add.rectangle(8, -18, 24, 12, 0xc8d0db, 1).setStrokeStyle(2, 0xffffff);
+        const hammerHandle = this.add.rectangle(0, -4, 8, 32, 0x8f6748, 1).setStrokeStyle(2, 0xe2c6aa);
+        const hammerHead = this.add.rectangle(0, -18, 24, 12, 0xc8d0db, 1).setStrokeStyle(2, 0xffffff);
         hammer.add([hammerHandle, hammerHead]);
 
         container.add([body, lip, label, timerText, hammer]);
@@ -239,7 +239,21 @@ window.EggGameModules.entitiesFx = {
                 this.add.circle(11, 11, 2.8, 0xe4eaf1, 1)
             ];
             const shine = this.add.ellipse(-7, -12, 7, 12, 0xffffff, 0.22);
-            container.add([shell, band, ...rivets, shine]);
+            const crack = this.add.graphics();
+            crack.lineStyle(2, 0x25303a, 0.92);
+            crack.beginPath();
+            crack.moveTo(-4, -12);
+            crack.lineTo(0, -4);
+            crack.lineTo(-5, 5);
+            crack.lineTo(2, 12);
+            crack.moveTo(0, -4);
+            crack.lineTo(6, 2);
+            crack.moveTo(-2, 6);
+            crack.lineTo(-9, 12);
+            crack.strokePath();
+            crack.setVisible((eggType.armorDamage || 0) > 0);
+            container.add([shell, band, ...rivets, shine, crack]);
+            container._armorCrack = crack;
             container.setScale(eggScale);
             return { container, body: shell };
         }
@@ -887,16 +901,14 @@ window.EggGameModules.entitiesFx = {
         }
 
         if (def && def.type === "fire") {
-            const flash = this.add.ellipse(x, y, 72, 34, 0xff6c34, 0.42).setDepth(5100);
-            const core = this.add.ellipse(x + 8, y, 40, 18, 0xfff0a6, 0.78).setDepth(5101);
-            flash.angle = 8;
-            core.angle = 8;
+            const flash = this.add.ellipse(x, y, 60, 30, 0xff6c34, 0.42).setDepth(5100);
+            const core = this.add.ellipse(x, y, 26, 16, 0xfff0a6, 0.78).setDepth(5101);
             this.fxLayer.add(flash);
             this.fxLayer.add(core);
             this.tweens.add({
                 targets: [flash, core],
-                scaleX: 1.55,
-                scaleY: 0.72,
+                scaleX: 1.35,
+                scaleY: 0.85,
                 alpha: 0,
                 duration: 180,
                 onComplete: () => {
@@ -967,11 +979,11 @@ window.EggGameModules.entitiesFx = {
         let primary = null;
 
         if (def.type === "fire") {
-            const glow = this.add.ellipse(0, 0, 30, 86, 0xff5c31, 0.20);
-            const body = this.add.ellipse(0, 0, 18, 66, 0xff7c2d, 0.96).setStrokeStyle(2, 0xfff0a6, 0.72);
-            const core = this.add.ellipse(0, -10, 10, 34, 0xfff0ad, 0.92);
-            const tailA = this.add.ellipse(-6, 14, 12, 30, 0xff4e23, 0.72);
-            const tailB = this.add.ellipse(6, 18, 10, 24, 0xffa43d, 0.64);
+            const glow = this.add.ellipse(0, 0, 22, 58, 0xff5c31, 0.20);
+            const body = this.add.ellipse(0, 0, 14, 46, 0xff7c2d, 0.96).setStrokeStyle(2, 0xfff0a6, 0.72);
+            const core = this.add.ellipse(0, -6, 8, 22, 0xfff0ad, 0.92);
+            const tailA = this.add.ellipse(-4, 10, 10, 20, 0xff4e23, 0.72);
+            const tailB = this.add.ellipse(4, 12, 8, 18, 0xffa43d, 0.64);
             projectile.add([glow, tailA, tailB, body, core]);
             primary = body;
             this.tweens.add({
@@ -985,11 +997,11 @@ window.EggGameModules.entitiesFx = {
                 repeat: -1
             });
         } else if (def.type === "water") {
-            const mist = this.add.ellipse(0, 0, 26, 58, 0x9ce8ff, 0.18);
-            const streamA = this.add.rectangle(-6, 0, 5, 82, 0x8de6ff, 0.84);
-            const streamB = this.add.rectangle(0, 0, 7, 88, 0xbdf6ff, 0.92);
-            const streamC = this.add.rectangle(6, 0, 5, 78, 0x5ec3ff, 0.80);
-            const head = this.add.circle(0, -40, 8, 0xe4fbff, 0.98);
+            const mist = this.add.ellipse(0, 0, 20, 40, 0x9ce8ff, 0.18);
+            const streamA = this.add.rectangle(-4, 0, 4, 54, 0x8de6ff, 0.84);
+            const streamB = this.add.rectangle(0, 0, 6, 58, 0xbdf6ff, 0.92);
+            const streamC = this.add.rectangle(4, 0, 4, 50, 0x5ec3ff, 0.80);
+            const head = this.add.circle(0, -28, 6, 0xe4fbff, 0.98);
             projectile.add([mist, streamA, streamB, streamC, head]);
             primary = streamB;
             this.tweens.add({
@@ -1002,10 +1014,10 @@ window.EggGameModules.entitiesFx = {
                 repeat: -1
             });
         } else if (def.rarity === "gold") {
-            const glow = this.add.ellipse(0, 0, 34, 96, 0xffd75c, 0.18);
-            const beam = this.add.rectangle(0, 0, 18, 96, 0xffd84c, 0.96).setStrokeStyle(3, 0xfff5b8, 0.85);
-            const core = this.add.rectangle(0, 0, 8, 98, 0xfff6be, 0.96);
-            const head = this.add.star(0, -52, 4, 3, 9, 0xfff6be, 0.98);
+            const glow = this.add.ellipse(0, 0, 24, 64, 0xffd75c, 0.18);
+            const beam = this.add.rectangle(0, 0, 14, 62, 0xffd84c, 0.96).setStrokeStyle(3, 0xfff5b8, 0.85);
+            const core = this.add.rectangle(0, 0, 6, 64, 0xfff6be, 0.96);
+            const head = this.add.star(0, -34, 4, 2.5, 7, 0xfff6be, 0.98);
             projectile.add([glow, beam, core, head]);
             primary = beam;
             this.tweens.add({
@@ -1017,9 +1029,9 @@ window.EggGameModules.entitiesFx = {
                 repeat: -1
             });
         } else {
-            const glow = this.add.ellipse(0, 0, 34, 90, 0x56ff86, 0.16);
-            const beam = this.add.rectangle(0, 0, 20, 92, 0x3aff77, 0.94).setStrokeStyle(3, 0xd8ffd8, 0.78);
-            const core = this.add.rectangle(0, 0, 10, 94, 0xe6fff0, 0.90);
+            const glow = this.add.ellipse(0, 0, 26, 60, 0x56ff86, 0.16);
+            const beam = this.add.rectangle(0, 0, 16, 60, 0x3aff77, 0.94).setStrokeStyle(3, 0xd8ffd8, 0.78);
+            const core = this.add.rectangle(0, 0, 8, 62, 0xe6fff0, 0.90);
             projectile.add([glow, beam, core]);
             primary = beam;
             this.tweens.add({

@@ -146,6 +146,7 @@ window.EggGameModules.logic = {
                 egg.state = "saved";
                 const eggData = { ...egg.typeData };
                 if (eggData.bomb) eggData.bombLit = true;
+                if (eggData.armored) eggData.armorDamage = eggData.armorDamage || 0;
                 pillow.eggs.push(eggData);
                 pillow.eggMultSum += eggData.mult;
                 pillow.currentValue += pillow.spentCost * eggData.mult;
@@ -501,6 +502,9 @@ window.EggGameModules.logic = {
 
         item.eggs = eggs;
         item.armored = eggs.some(egg => egg.armored);
+        for (const egg of item.eggs) {
+            if (egg.armored) egg.armorDamage = egg.armorDamage || 0;
+        }
 
         const positions = eggs.length <= 1
             ? [0]
@@ -664,7 +668,7 @@ window.EggGameModules.logic = {
         const centerIndex = this.getNearestLineSlotIndex(line, def.container.x, impactClock);
         const targetX = def.container.x;
         const targetY = line.y + line.h * 0.5 - 10;
-        const startY = def.container.y + 38;
+        const startY = def.container.y + 68;
 
         const press = this.add.container(targetX, startY).setDepth(5050);
         const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
@@ -700,7 +704,7 @@ window.EggGameModules.logic = {
 
     spawnVerticalProjectile(def, line, stage, impactClock, flightTime) {
         const startX = def.container.x;
-        const startY = def.container.y + 36;
+        const startY = def.container.y + 64;
         const centerIndex = this.getNearestLineSlotIndex(line, startX, impactClock);
         const endX = this.getLineSlotCenterXAtClock(line, centerIndex, impactClock);
         const endY = line.y + line.h * 0.5 - 6;
@@ -871,6 +875,10 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "crush") {
+            const armoredEggs = (item.eggs || []).filter(egg => egg.armored);
+            const vulnerableEggs = (item.eggs || []).filter(egg => !egg.armored);
+            const freshArmoredEggs = armoredEggs.filter(egg => (egg.armorDamage || 0) === 0);
+
             if (mysteryEggs.length > 0) {
                 if (litBombEggs.length > 0) {
                     this.breakMachine(def);
@@ -916,6 +924,39 @@ window.EggGameModules.logic = {
                     ease: "Quad.In",
                     onComplete: () => item.container.destroy()
                 });
+                return;
+            }
+
+            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && freshArmoredEggs.length > 0) {
+                const nextEggs = armoredEggs.map(egg => ({
+                    ...egg,
+                    armorDamage: Math.min(1, (egg.armorDamage || 0) + 1)
+                }));
+                item.eggs = nextEggs;
+                item.armored = true;
+                item.permanentTextColor = "#d8e3ef";
+                this.setItemEggs(item, nextEggs);
+                this.flashValueText(item, "#d8e3ef");
+                this.spawnCrushFx(item.container.x, item.container.y - 4);
+                this.pulseItem(item);
+                return;
+            }
+
+            if (armoredEggs.length > 0 && vulnerableEggs.length > 0) {
+                const nextEggs = armoredEggs.map(egg => ({
+                    ...egg,
+                    armorDamage: Math.min(1, (egg.armorDamage || 0) + 1)
+                }));
+                item.eggs = nextEggs;
+                item.armored = true;
+                item.eggMultSum *= 0.5;
+                item.currentValue = Math.max(1, item.currentValue * 0.5);
+                item.permanentTextColor = "#d8e3ef";
+                this.setItemEggs(item, nextEggs);
+                this.updatePillowValueText(item);
+                this.flashValueText(item, "#d8e3ef");
+                this.spawnCrushFx(item.container.x, item.container.y - 4);
+                this.pulseItem(item);
                 return;
             }
 
