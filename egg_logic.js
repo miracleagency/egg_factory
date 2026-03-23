@@ -17,6 +17,25 @@ window.EggGameModules.logic = {
         return this.cloneEggTypeData(pool[0] || this.eggTypes[0]);
     },
 
+    getRoundSetupHiddenEggType() {
+        const pool = (this.eggTypes || []).filter(Boolean).map(egg => {
+            let weight = egg.chance || 0;
+            if (egg.key === "white") weight *= 0.26;
+            else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.15;
+            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.9;
+            else if (egg.key === "diamond") weight *= 1.6;
+            return { egg, weight };
+        });
+
+        const total = pool.reduce((sum, entry) => sum + entry.weight, 0);
+        let roll = Math.random() * Math.max(total, 0.0001);
+        for (const entry of pool) {
+            roll -= entry.weight;
+            if (roll <= 0) return this.cloneEggTypeData(entry.egg);
+        }
+        return this.cloneEggTypeData((pool[0] || {}).egg || this.eggTypes[0]);
+    },
+
     buildRoundEggPool() {
         const white = this.getEggTypeByKey("white");
         const armored = this.getEggTypeByKey("armored");
@@ -30,7 +49,7 @@ window.EggGameModules.logic = {
 
         const hidden = [this.cloneEggTypeData(mystery)];
         for (let i = 1; i < 10; i++) {
-            hidden.push(this.getWeightedEggType());
+            hidden.push(this.getRoundSetupHiddenEggType());
         }
 
         this.roundEggPreview = [...pool, ...hidden];

@@ -59,7 +59,7 @@ window.EggGameModules.ui = {
             fontSize: "34px",
             color: "#ffffff",
             fontStyle: "bold"
-        }).setOrigin(0.5);
+        }).setOrigin(0, 0.5);
 
         this.turboBtn = this.add.container(0, 0);
         this.turboCircle = this.add.circle(0, 0, 32, 0x4e5a71, 1).setStrokeStyle(4, 0x9ca9c3);
@@ -76,7 +76,7 @@ window.EggGameModules.ui = {
             fontSize: "38px",
             color: "#ffffff",
             fontStyle: "bold"
-        }).setOrigin(0.5);
+        }).setOrigin(1, 0.5);
 
         this.infoBtn = this.add.container(0, 0);
         const infoEgg = this.add.ellipse(0, 0, 48, 58, 0xeaeef8, 1).setStrokeStyle(3, 0xffffff);
@@ -279,8 +279,8 @@ window.EggGameModules.ui = {
         this.bottomUI.setPosition(0, y);
         this.roundHudLeft.setPosition(0, 0);
         this.roundHudRight.setPosition(this.W / scale - 130, -82);
-        this.balanceText.setPosition(92, 30);
-        this.betText.setPosition(this.W / scale - 120, 30);
+        this.balanceText.setPosition(34, 30);
+        this.betText.setPosition(this.W / scale - 34, 30);
         this.turboBtn.setPosition(-56, 0).setScale(1.2);
         this.infoBtn.setPosition(46, 0).setScale(1.2);
 
@@ -288,7 +288,7 @@ window.EggGameModules.ui = {
             ? this.lines.line1.y + this.lines.line1.h + 80
             : this.H * 0.56;
         const hudBottom = y - 120;
-        const midY = Math.round((hudTop + hudBottom) * 0.5) - 26;
+        const midY = Math.round((hudTop + hudBottom) * 0.5) - 42;
         this.midHud.setPosition(this.W * 0.5, midY);
         this.eggsHud.setPosition(-150, 0);
         this.winHud.setPosition(150, 0);
@@ -743,17 +743,24 @@ window.EggGameModules.ui = {
     },
 
     createRoundSetupPopup() {
+        this.roundSetupOverlay = this.add.rectangle(0, 0, this.W, this.H, 0x000000, 0.52)
+            .setOrigin(0, 0)
+            .setDepth(9340)
+            .setVisible(false)
+            .setInteractive();
+        this.popupLayer.add(this.roundSetupOverlay);
+
         this.roundSetupPopup = this.add.container(0, 0).setDepth(9350).setVisible(false);
         this.popupLayer.add(this.roundSetupPopup);
 
-        this.roundSetupBg = this.add.rectangle(0, 0, 850, 1080, 0x141f38, 0.97).setStrokeStyle(5, 0xffe395);
-        this.roundSetupGlow = this.add.ellipse(0, 0, 860, 1120, 0xffd45c, 0.10);
+        this.roundSetupBg = this.add.rectangle(0, 0, 900, 1180, 0x141f38, 0.97).setStrokeStyle(5, 0xffe395);
+        this.roundSetupGlow = this.add.ellipse(0, 0, 920, 1220, 0xffd45c, 0.10);
         this.roundSetupTitle = this.add.container(0, 0);
         this.roundSetupTitleLetters = [];
-        for (const char of "What the shell?") {
+        for (const char of "WHAT THE SHELL?") {
             const letter = this.add.text(0, 0, char, {
                 fontFamily: "Arial",
-                fontSize: "56px",
+                fontSize: "64px",
                 color: Phaser.Utils.Array.GetRandom(["#ff6b6b", "#ffb347", "#ffe66d", "#67e8a5", "#62d6ff", "#b98cff"]),
                 fontStyle: "bold",
                 stroke: "#142035",
@@ -803,7 +810,7 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
 
         this.roundSetupPlayBtn = this.createPopupActionButton("PLAY", () => this.handleRoundSetupPlay(), {
-            width: 260
+            width: 360
         });
         this.roundSetupErrorText = this.add.text(0, 0, "", {
             fontFamily: "Arial",
@@ -830,11 +837,12 @@ window.EggGameModules.ui = {
 
     layoutRoundSetupTitle(cx, y) {
         if (!this.roundSetupTitleLetters) return;
-        const spacing = 35;
+        const spacing = 42;
         const totalW = (this.roundSetupTitleLetters.length - 1) * spacing;
         this.roundSetupTitle.setPosition(cx, y);
         this.roundSetupTitleLetters.forEach((letter, index) => {
             letter.x = -totalW * 0.5 + index * spacing;
+            if (letter.text === " ") letter.alpha = 0;
         });
     },
 
@@ -842,11 +850,15 @@ window.EggGameModules.ui = {
         if (!this.roundSetupPopup) return;
         const cx = this.W * 0.5;
         const cy = this.H * 0.5;
+        if (this.roundSetupOverlay) {
+            this.roundSetupOverlay.width = this.W;
+            this.roundSetupOverlay.height = this.H;
+        }
         this.roundSetupGlow.setPosition(cx, cy);
         this.roundSetupBg.setPosition(cx, cy);
-        this.layoutRoundSetupTitle(cx, cy - 420);
-        this.roundSetupHint.setPosition(cx, cy - 344);
-        this.roundSetupGrid.setPosition(cx, cy - 68);
+        this.layoutRoundSetupTitle(cx, cy - 452);
+        this.roundSetupHint.setPosition(cx, cy - 360);
+        this.roundSetupGrid.setPosition(cx, cy - 42);
 
         const startX = -280;
         const startY = -210;
@@ -858,13 +870,13 @@ window.EggGameModules.ui = {
             cell.setPosition(startX + col * colGap, startY + row * rowGap);
         });
 
-        this.roundSetupMinusBtn.setPosition(cx - 180, cy + 320);
-        this.roundSetupBetText.setPosition(cx, cy + 320);
-        this.roundSetupPlusBtn.setPosition(cx + 180, cy + 320);
-        this.roundSetupCostText.setPosition(cx, cy + 392);
-        this.roundSetupBalanceText.setPosition(cx, cy + 436);
-        this.roundSetupPlayBtn.setPosition(cx, cy + 518);
-        this.roundSetupErrorText.setPosition(cx, cy + 472);
+        this.roundSetupMinusBtn.setPosition(cx - 180, cy + 276);
+        this.roundSetupBetText.setPosition(cx, cy + 276);
+        this.roundSetupPlusBtn.setPosition(cx + 180, cy + 276);
+        this.roundSetupCostText.setPosition(cx, cy + 344);
+        this.roundSetupBalanceText.setPosition(cx, cy + 388);
+        this.roundSetupPlayBtn.setPosition(cx, cy + 496);
+        this.roundSetupErrorText.setPosition(cx, cy + 438);
     },
 
     populateRoundSetupPopup() {
@@ -881,14 +893,14 @@ window.EggGameModules.ui = {
 
             if (index < 10) {
                 const visual = this.createEggVisual(egg, false).container;
-                visual.setScale(1.12);
+                visual.setScale(1.68);
                 cell.add(visual);
                 cell._revealed = true;
                 return;
             }
 
             const hiddenEgg = this.createQuestionEggVisual();
-            hiddenEgg.setScale(1.05);
+            hiddenEgg.setScale(1.58);
             cell.add(hiddenEgg);
             cell._hiddenEgg = hiddenEgg;
             cell._revealed = false;
@@ -937,16 +949,16 @@ window.EggGameModules.ui = {
                 cell._hiddenEgg = null;
             }
             const visual = this.createEggVisual(cell._eggData, false).container;
-            visual.setScale(1.12);
+            visual.setScale(1.68);
             visual.alpha = 0;
-            visual.scaleX = 0.76;
-            visual.scaleY = 0.76;
+            visual.scaleX = 1.18;
+            visual.scaleY = 1.18;
             cell.add(visual);
             this.tweens.add({
                 targets: visual,
                 alpha: 1,
-                scaleX: 1.12,
-                scaleY: 1.12,
+                scaleX: 1.68,
+                scaleY: 1.68,
                 duration: 180,
                 ease: "Back.Out"
             });
@@ -977,6 +989,7 @@ window.EggGameModules.ui = {
         this.populateRoundSetupPopup();
         this.layoutRoundSetupPopup();
         this.updateRoundSetupPopupLabels();
+        if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(true);
         this.roundSetupPopup.setVisible(true);
         this.roundSetupPopup.setAlpha(0);
         this.roundSetupPopup.setScale(0.9);
@@ -1003,8 +1016,9 @@ window.EggGameModules.ui = {
 
         if (hiddenIndexes.length === 0) {
             this.balance -= cost;
+            if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
             this.roundSetupPopup.setVisible(false);
-            this.endGameplayPause();
+            this.roundSetupActive = false;
             this.updatePillowButtonLabels();
             return;
         }
@@ -1014,8 +1028,9 @@ window.EggGameModules.ui = {
                 this.roundSetupErrorText.setText("GET READY...");
                 this.time.delayedCall(2000, () => {
                     this.balance -= cost;
+                    if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
                     this.roundSetupPopup.setVisible(false);
-                    this.endGameplayPause();
+                    this.roundSetupActive = false;
                     this.updatePillowButtonLabels();
                 });
                 return;
