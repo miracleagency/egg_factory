@@ -72,6 +72,9 @@ window.EggGameModules.logic = {
         while (dt < minLead) dt += slotTravel;
 
         dt += Phaser.Math.Between(3, 4) * slotTravel;
+        if (first) {
+            dt += Phaser.Math.FloatBetween(0.06, 0.32);
+        }
         return fromClock + dt;
     },
 

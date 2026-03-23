@@ -54,8 +54,6 @@ window.EggGameModules.ui = {
         this.winHud = this.add.container(0, 0);
         this.winHud.add([this.winPanel, this.winLabel, this.winAmountText]);
 
-        this.balanceBg = this.add.rectangle(0, -44, 220, 68, 0x12203b, 0.98)
-            .setStrokeStyle(4, 0x304a72);
         this.balanceText = this.add.text(0, -44, "BALANCE: $1000", {
             fontFamily: "Arial",
             fontSize: "34px",
@@ -73,8 +71,6 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
         this.turboBtn.add([this.turboCircle, this.turboIcon]);
 
-        this.betBg = this.add.rectangle(0, 44, 220, 68, 0x12203b, 0.98)
-            .setStrokeStyle(4, 0x304a72);
         this.betText = this.add.text(0, 44, "BET: 1$", {
             fontFamily: "Arial",
             fontSize: "38px",
@@ -97,8 +93,9 @@ window.EggGameModules.ui = {
             socketColor: 0x4f2b88,
             strokeColor: 0xe0d1ff,
             textStroke: "#23153d",
-            width: 250,
-            fontSize: 36
+            width: 310,
+            fontSize: 36,
+            pulse: false
         });
 
         infoEgg.setInteractive({ useHandCursor: true })
@@ -110,10 +107,7 @@ window.EggGameModules.ui = {
                 this.updateTurboVisual();
             });
 
-        this.roundHudLeft.add([
-            this.balanceBg, this.balanceText,
-            this.betBg, this.betText
-        ]);
+        this.roundHudLeft.add([this.balanceText, this.betText]);
         this.roundHudRight.add([this.turboBtn, this.infoBtn]);
         this.bottomUI.add([this.roundHudLeft, this.roundHudRight]);
         this.midHud.add([this.eggsHud, this.winHud, this.pauseBtn]);
@@ -278,18 +272,16 @@ window.EggGameModules.ui = {
     },
 
     layoutBottomUI() {
-        const y = this.H - 198;
+        const y = this.H - 168;
         const scale = Phaser.Math.Clamp(this.W / 1080, 0.82, 1.02);
         this.bottomUI.setScale(scale);
         this.bottomUI.setPosition(0, y);
-        this.roundHudLeft.setPosition(150, 0);
-        this.roundHudRight.setPosition(this.W / scale - 120, 0);
-        this.balanceBg.setPosition(0, 0);
-        this.balanceText.setPosition(0, 0);
-        this.betBg.setPosition(250, 0);
-        this.betText.setPosition(250, 0);
-        this.turboBtn.setPosition(-44, -44);
-        this.infoBtn.setPosition(42, -44);
+        this.roundHudLeft.setPosition(120, 0);
+        this.roundHudRight.setPosition(this.W / scale - 130, -82);
+        this.betText.setPosition(0, 30);
+        this.balanceText.setPosition(this.W / scale - 240, 30);
+        this.turboBtn.setPosition(-56, 0).setScale(1.2);
+        this.infoBtn.setPosition(46, 0).setScale(1.2);
 
         const hudTop = (this.lines && this.lines.line1)
             ? this.lines.line1.y + this.lines.line1.h + 80
@@ -300,6 +292,10 @@ window.EggGameModules.ui = {
         this.eggsHud.setPosition(-150, 0);
         this.winHud.setPosition(150, 0);
         this.pauseBtn.setPosition(0, 168);
+        this.eggsLeftLabel.setPosition(0, -52);
+        this.eggsLeftText.setPosition(0, 12);
+        this.winLabel.setPosition(0, -52);
+        this.winAmountText.setPosition(0, 12);
 
         if (this.roundEndPopup) {
             const cx = this.W * 0.5;
@@ -705,15 +701,17 @@ window.EggGameModules.ui = {
             })
             .on("pointerout", () => setPressed(false));
 
-        this.tweens.add({
-            targets: btn,
-            scaleX: 1.05,
-            scaleY: 1.05,
-            duration: 760,
-            ease: "Sine.InOut",
-            yoyo: true,
-            repeat: -1
-        });
+        if (options.pulse !== false) {
+            this.tweens.add({
+                targets: btn,
+                scaleX: 1.05,
+                scaleY: 1.05,
+                duration: 760,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        }
 
         btn._label = txt;
         return btn;
