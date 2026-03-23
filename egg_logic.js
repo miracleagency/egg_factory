@@ -402,16 +402,20 @@ window.EggGameModules.logic = {
         });
     },
 
-    beginGameplayPause(focusContainers = []) {
+    beginGameplayPause(focusContainers = [], withOverlay = true) {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
         this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
 
-        this.gameplayFocusOverlay = this.add.rectangle(0, 0, this.W, this.H, 0x000000, 0.4)
-            .setOrigin(0, 0)
-            .setDepth(9050);
-        this.popupLayer.add(this.gameplayFocusOverlay);
+        if (withOverlay) {
+            this.gameplayFocusOverlay = this.add.rectangle(0, 0, this.W, this.H, 0x000000, 0.4)
+                .setOrigin(0, 0)
+                .setDepth(9050);
+            this.popupLayer.add(this.gameplayFocusOverlay);
+        } else {
+            this.gameplayFocusOverlay = null;
+        }
 
         this.gameplayFocusTargets = focusContainers.filter(Boolean);
     },

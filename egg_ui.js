@@ -14,40 +14,26 @@ window.EggGameModules.ui = {
         this.bottomUI = this.add.container(0, 0).setDepth(7000);
         this.uiLayer.add(this.bottomUI);
 
+        this.midHud = this.add.container(0, 0).setDepth(7000);
+        this.uiLayer.add(this.midHud);
         this.roundHudLeft = this.add.container(0, 0);
-        this.roundHudCenter = this.add.container(0, 0);
         this.roundHudRight = this.add.container(0, 0);
-
-        this.basketPanel = this.add.rectangle(0, 0, 286, 186, 0x12203b, 0.98)
-            .setStrokeStyle(4, 0x304a72);
-        this.basketCountText = this.add.text(0, -92, "20", {
+        this.eggsPanel = this.add.rectangle(0, 0, 250, 186, 0x16243f, 0.98)
+            .setStrokeStyle(4, 0x35517d);
+        this.eggsLeftLabel = this.add.text(0, -42, "EGGS LEFT:", {
             fontFamily: "Arial",
-            fontSize: "52px",
-            color: "#ffffff",
-            fontStyle: "bold"
-        }).setOrigin(0.5);
-        this.basketCountLabel = this.add.text(0, -124, "EGGS LEFT", {
-            fontFamily: "Arial",
-            fontSize: "24px",
+            fontSize: "28px",
             color: "#9cb6d8",
             fontStyle: "bold"
         }).setOrigin(0.5);
-        this.basketVisual = this.add.container(0, 10);
-        this.basketWire = this.add.graphics();
-        this.basketVisual.add(this.basketWire);
-        this.basketEggs = [];
-        const basketEggPositions = [
-            [-48, -26], [-24, -26], [0, -26], [24, -26], [48, -26],
-            [-60, -4], [-30, -4], [0, -4], [30, -4], [60, -4],
-            [-52, 18], [-26, 18], [0, 18], [26, 18], [52, 18],
-            [-42, 40], [-14, 40], [14, 40], [42, 40], [0, 60]
-        ];
-        for (const [x, y] of basketEggPositions) {
-            const egg = this.add.ellipse(x, y, 18, 24, 0xf1f3f7, 1).setStrokeStyle(2, 0xffffff, 0.9);
-            this.basketVisual.add(egg);
-            this.basketEggs.push(egg);
-        }
-        this.roundHudLeft.add([this.basketPanel, this.basketCountLabel, this.basketCountText, this.basketVisual]);
+        this.eggsLeftText = this.add.text(0, 24, "20", {
+            fontFamily: "Arial",
+            fontSize: "72px",
+            color: "#ffffff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        this.eggsHud = this.add.container(0, 0);
+        this.eggsHud.add([this.eggsPanel, this.eggsLeftLabel, this.eggsLeftText]);
 
         this.winPanel = this.add.rectangle(0, 0, 250, 186, 0x16243f, 0.98)
             .setStrokeStyle(4, 0x35517d);
@@ -65,13 +51,14 @@ window.EggGameModules.ui = {
             stroke: "#101010",
             strokeThickness: 6
         }).setOrigin(0.5);
-        this.roundHudCenter.add([this.winPanel, this.winLabel, this.winAmountText]);
+        this.winHud = this.add.container(0, 0);
+        this.winHud.add([this.winPanel, this.winLabel, this.winAmountText]);
 
         this.balanceBg = this.add.rectangle(0, -44, 220, 68, 0x12203b, 0.98)
             .setStrokeStyle(4, 0x304a72);
-        this.balanceText = this.add.text(0, -44, "$1000", {
+        this.balanceText = this.add.text(0, -44, "BALANCE: $1000", {
             fontFamily: "Arial",
-            fontSize: "52px",
+            fontSize: "34px",
             color: "#ffffff",
             fontStyle: "bold"
         }).setOrigin(0.5);
@@ -105,6 +92,14 @@ window.EggGameModules.ui = {
             fontStyle: "bold"
         }).setOrigin(0.5);
         this.infoBtn.add([infoEgg, infoBadge, infoTxt]);
+        this.pauseBtn = this.createPopupActionButton("PAUSE", () => this.toggleManualPause(), {
+            bodyColor: 0x9159ff,
+            socketColor: 0x4f2b88,
+            strokeColor: 0xe0d1ff,
+            textStroke: "#23153d",
+            width: 250,
+            fontSize: 36
+        });
 
         infoEgg.setInteractive({ useHandCursor: true })
             .on("pointerdown", () => this.toggleEggInfo(true));
@@ -115,13 +110,13 @@ window.EggGameModules.ui = {
                 this.updateTurboVisual();
             });
 
-        this.roundHudRight.add([
+        this.roundHudLeft.add([
             this.balanceBg, this.balanceText,
-            this.turboBtn,
-            this.betBg, this.betText,
-            this.infoBtn
+            this.betBg, this.betText
         ]);
-        this.bottomUI.add([this.roundHudLeft, this.roundHudCenter, this.roundHudRight]);
+        this.roundHudRight.add([this.turboBtn, this.infoBtn]);
+        this.bottomUI.add([this.roundHudLeft, this.roundHudRight]);
+        this.midHud.add([this.eggsHud, this.winHud, this.pauseBtn]);
 
         this.updateTurboVisual();
         this.createRoundEndPopup();
@@ -284,24 +279,35 @@ window.EggGameModules.ui = {
 
     layoutBottomUI() {
         const y = this.H - 198;
-        const scale = Phaser.Math.Clamp(this.W / 1080, 0.82, 1.06);
+        const scale = Phaser.Math.Clamp(this.W / 1080, 0.82, 1.02);
         this.bottomUI.setScale(scale);
-        this.bottomUI.setPosition(this.W * 0.5, y);
+        this.bottomUI.setPosition(0, y);
+        this.roundHudLeft.setPosition(150, 0);
+        this.roundHudRight.setPosition(this.W / scale - 120, 0);
+        this.balanceBg.setPosition(0, 0);
+        this.balanceText.setPosition(0, 0);
+        this.betBg.setPosition(250, 0);
+        this.betText.setPosition(250, 0);
+        this.turboBtn.setPosition(-44, -44);
+        this.infoBtn.setPosition(42, -44);
 
-        this.roundHudLeft.setPosition(-302, 0);
-        this.roundHudCenter.setPosition(0, 0);
-        this.roundHudRight.setPosition(286, 0);
-
-        this.turboBtn.setPosition(0, -46);
-        this.infoBtn.setPosition(76, -46);
+        const hudTop = (this.lines && this.lines.line1)
+            ? this.lines.line1.y + this.lines.line1.h + 80
+            : this.H * 0.56;
+        const hudBottom = y - 120;
+        const midY = Math.round((hudTop + hudBottom) * 0.5);
+        this.midHud.setPosition(this.W * 0.5, midY);
+        this.eggsHud.setPosition(-150, 0);
+        this.winHud.setPosition(150, 0);
+        this.pauseBtn.setPosition(0, 168);
 
         if (this.roundEndPopup) {
             const cx = this.W * 0.5;
             const cy = this.H * 0.5;
             this.roundEndPopupBg.setPosition(cx, cy);
             this.roundEndPopupGlow.setPosition(cx, cy);
-            this.roundEndPopupSubtitle.setPosition(cx, cy - 34);
-            this.roundEndPopupValue.setPosition(cx, cy + 56);
+            this.roundEndPopupSubtitle.setPosition(cx, cy - 104);
+            this.roundEndPopupValue.setPosition(cx, cy - 14);
             this.roundEndPopupButton.setPosition(cx, cy + 198);
             this.roundEndPopupSparkles.forEach((spark, index) => {
                 const positions = [
@@ -310,10 +316,8 @@ window.EggGameModules.ui = {
                 const [sx, sy] = positions[index] || [0, 0];
                 spark.setPosition(cx + sx, cy + sy);
             });
-            this.layoutRoundEndTitle(cx, cy - 152);
+            this.layoutRoundEndTitle(cx, cy - 222);
         }
-
-        this.redrawBasketWire();
     },
 
     createMiniButton(label, onClick) {
@@ -516,11 +520,13 @@ window.EggGameModules.ui = {
     },
 
     updatePillowButtonLabels() {
-        this.balanceText.setText(`$${Math.round(this.balance)}`);
+        this.balanceText.setText(`BALANCE: $${Math.round(this.balance)}`);
         this.betText.setText(`BET: ${this.bet}$`);
         if (this.winAmountText) this.winAmountText.setText(this.formatMoneyValue(this.winTotal || 0));
-        if (this.basketCountText) this.basketCountText.setText(`${Math.max(0, this.remainingEggCount || 0)}`);
-        this.updateEggBasketVisual();
+        if (this.eggsLeftText) this.eggsLeftText.setText(`${Math.max(0, this.remainingEggCount || 0)}`);
+        if (this.pauseBtn && this.pauseBtn._label) {
+            this.pauseBtn._label.setText(this.manualPauseActive ? "RESUME" : "PAUSE");
+        }
     },
 
     updateSinglePillowButtonVisual(btn) {
@@ -665,52 +671,20 @@ window.EggGameModules.ui = {
         return this.turboValues[this.turboIndex] || 1;
     },
 
-    redrawBasketWire() {
-        if (!this.basketWire) return;
-        this.basketWire.clear();
-        this.basketWire.lineStyle(4, 0xdce7f4, 0.95);
-        this.basketWire.strokeRoundedRect(-74, -42, 148, 112, 18);
-        this.basketWire.beginPath();
-        this.basketWire.moveTo(-88, -54);
-        this.basketWire.lineTo(-56, -72);
-        this.basketWire.lineTo(56, -72);
-        this.basketWire.lineTo(88, -54);
-        this.basketWire.strokePath();
-        for (let i = -48; i <= 48; i += 24) {
-            this.basketWire.beginPath();
-            this.basketWire.moveTo(i, -40);
-            this.basketWire.lineTo(i, 68);
-            this.basketWire.strokePath();
-        }
-        for (let y = -16; y <= 48; y += 22) {
-            this.basketWire.beginPath();
-            this.basketWire.moveTo(-72, y);
-            this.basketWire.lineTo(72, y);
-            this.basketWire.strokePath();
-        }
-    },
-
-    updateEggBasketVisual() {
-        if (!Array.isArray(this.basketEggs)) return;
-        const left = Math.max(0, Math.min(this.basketEggs.length, this.remainingEggCount || 0));
-        for (let i = 0; i < this.basketEggs.length; i++) {
-            this.basketEggs[i].setVisible(i < left);
-        }
-    },
-
-    createPopupActionButton(label, onClick) {
+    createPopupActionButton(label, onClick, options = {}) {
         const btn = this.add.container(0, 0);
-        const shadow = this.add.ellipse(0, 48, 260, 30, 0x09111f, 0.28);
-        const socket = this.add.rectangle(0, 20, 320, 100, 0x1f662f, 0.98).setStrokeStyle(4, 0x9ff0ae);
+        const width = options.width || 320;
+        const shadow = this.add.ellipse(0, 48, Math.max(220, width - 40), 30, 0x09111f, 0.28);
+        const socket = this.add.rectangle(0, 20, width - 4, 100, options.socketColor || 0x1f662f, 0.98).setStrokeStyle(4, options.strokeColor || 0x9ff0ae);
         const face = this.add.container(0, -8);
-        const body = this.add.rectangle(0, 0, 324, 88, 0x46c466, 1).setStrokeStyle(4, 0xffffff);
-        const gloss = this.add.rectangle(0, -16, 212, 18, 0xffffff, 0.14);
+        const body = this.add.rectangle(0, 0, width, 88, options.bodyColor || 0x46c466, 1).setStrokeStyle(4, 0xffffff);
+        const gloss = this.add.rectangle(0, -16, Math.max(180, width - 108), 18, 0xffffff, 0.14);
         const txt = this.add.text(0, 0, label, {
             fontFamily: "Arial",
-            fontSize: "38px",
+            fontSize: `${options.fontSize || 38}px`,
             color: "#ffffff",
             fontStyle: "bold",
-            stroke: "#163021",
+            stroke: options.textStroke || "#163021",
             strokeThickness: 4
         }).setOrigin(0.5);
 
@@ -720,7 +694,7 @@ window.EggGameModules.ui = {
         const setPressed = pressed => {
             face.y = pressed ? 6 : -8;
             shadow.alpha = pressed ? 0.1 : 0.28;
-            body.setFillStyle(pressed ? 0x5bd67a : 0x46c466, 1);
+            body.setFillStyle(pressed ? this.mixColor(options.bodyColor || 0x46c466, 0xffffff, 18) : (options.bodyColor || 0x46c466), 1);
         };
 
         body.setInteractive({ useHandCursor: true })
@@ -741,6 +715,7 @@ window.EggGameModules.ui = {
             repeat: -1
         });
 
+        btn._label = txt;
         return btn;
     },
 
@@ -773,13 +748,16 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
         this.roundEndPopupValue = this.add.text(0, 0, "0$", {
             fontFamily: "Arial",
-            fontSize: "118px",
+            fontSize: "154px",
             color: "#ffffff",
             fontStyle: "bold",
             stroke: "#101010",
             strokeThickness: 8
         }).setOrigin(0.5);
-        this.roundEndPopupButton = this.createPopupActionButton("PLAY AGAIN", () => this.scene.restart());
+        this.roundEndPopupButton = this.createPopupActionButton("PLAY AGAIN", () => this.scene.restart({
+            persistedBalance: this.balance,
+            persistedTurboIndex: this.turboIndex
+        }));
 
         this.roundEndPopupSparkles = [];
         for (let i = 0; i < 6; i++) {
@@ -797,7 +775,7 @@ window.EggGameModules.ui = {
             ...this.roundEndPopupSparkles
         ]);
 
-        this.layoutRoundEndTitle(this.W * 0.5, this.H * 0.5 - 152);
+        this.layoutRoundEndTitle(this.W * 0.5, this.H * 0.5 - 222);
 
         this.roundEndPopupTitleLetters.forEach((letter, index) => {
             this.tweens.add({
@@ -838,6 +816,12 @@ window.EggGameModules.ui = {
 
     showRoundEndPopup() {
         if (!this.roundEndPopup) return;
+        if (!this.roundPayoutApplied) {
+            this.balance += this.winTotal || 0;
+            this.roundPayoutApplied = true;
+            this.updatePillowButtonLabels();
+        }
+        if (this.popupLayer && this.roundEndPopup) this.popupLayer.bringToTop(this.roundEndPopup);
         this.roundEndPopup.setVisible(true);
         this.roundEndPopup.setAlpha(0);
         this.roundEndPopup.setScale(0.86);
@@ -862,6 +846,20 @@ window.EggGameModules.ui = {
                 this.roundEndPopupValue.setText(this.formatMoneyValue(counter.value));
             }
         });
+    },
+
+    toggleManualPause() {
+        if (this.roundPopupShown) return;
+        if (this.manualPauseActive) {
+            this.manualPauseActive = false;
+            this.endGameplayPause();
+            this.updatePillowButtonLabels();
+            return;
+        }
+
+        this.manualPauseActive = true;
+        this.beginGameplayPause([], false);
+        this.updatePillowButtonLabels();
     },
 
     createEggInfoPopup() {
