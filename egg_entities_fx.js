@@ -110,6 +110,79 @@ window.EggGameModules.entitiesFx = {
         };
     },
 
+    createTravelEggBox() {
+        const container = this.add.container(0, 0);
+        const shadow = this.add.ellipse(0, 18, 116, 20, 0x000000, 0.30);
+        const body = this.add.rectangle(0, 0, 88, 62, 0x6d7988, 1).setStrokeStyle(4, 0xd9e2ed);
+        const rim = this.add.rectangle(0, -18, 76, 12, 0x9aa8b8, 1).setStrokeStyle(2, 0xf4f7fb);
+        const slot = this.add.rectangle(0, -6, 46, 8, 0x2a313a, 1).setStrokeStyle(2, 0xb9c8d7, 0.5);
+        const labelA = this.add.text(0, 8, "EGGS", {
+            fontFamily: "Arial",
+            fontSize: "20px",
+            color: "#eef4ff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        const labelB = this.add.text(0, 26, "BOX", {
+            fontFamily: "Arial",
+            fontSize: "18px",
+            color: "#eef4ff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        const crackA = this.add.graphics().setVisible(false);
+        crackA.lineStyle(2, 0x1f262f, 0.95);
+        crackA.beginPath();
+        crackA.moveTo(-16, -10);
+        crackA.lineTo(-8, -2);
+        crackA.lineTo(-14, 8);
+        crackA.lineTo(-4, 18);
+        crackA.strokePath();
+        const crackB = this.add.graphics().setVisible(false);
+        crackB.lineStyle(2, 0x1a2028, 0.95);
+        crackB.beginPath();
+        crackB.moveTo(14, -16);
+        crackB.lineTo(8, -4);
+        crackB.lineTo(16, 4);
+        crackB.lineTo(6, 16);
+        crackB.moveTo(8, -4);
+        crackB.lineTo(-2, 2);
+        crackB.strokePath();
+        const crackC = this.add.graphics().setVisible(false);
+        crackC.lineStyle(2, 0x141a21, 1);
+        crackC.beginPath();
+        crackC.moveTo(-4, -18);
+        crackC.lineTo(0, -6);
+        crackC.lineTo(-8, 6);
+        crackC.lineTo(2, 20);
+        crackC.moveTo(0, -6);
+        crackC.lineTo(12, 2);
+        crackC.strokePath();
+
+        container.add([shadow, body, rim, slot, labelA, labelB, crackA, crackB, crackC]);
+        container._eggBoxCracks = [crackA, crackB, crackC];
+
+        return {
+            container,
+            body,
+            eggs: [],
+            eggMultSum: 0,
+            spentCost: 0,
+            currentValue: 0,
+            wet: false,
+            destroyed: false,
+            finished: false,
+            settled: true,
+            permanentTextColor: null,
+            eggsBox: true,
+            boxDamage: 0
+        };
+    },
+
+    setEggBoxDamageVisual(item, damage) {
+        if (!item || !item.container || !Array.isArray(item.container._eggBoxCracks)) return;
+        item.boxDamage = damage || 0;
+        item.container._eggBoxCracks.forEach((crack, index) => crack.setVisible(index < item.boxDamage));
+    },
+
     spawnRadialSparkBurst(x, y, config = {}) {
         const count = config.count || 10;
         const color = config.color || 0xffffff;
