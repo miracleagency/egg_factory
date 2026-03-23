@@ -20,10 +20,10 @@ window.EggGameModules.logic = {
     getRoundSetupHiddenEggType() {
         const pool = (this.eggTypes || []).filter(Boolean).map(egg => {
             let weight = egg.chance || 0;
-            if (egg.key === "white") weight *= 0.26;
-            else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.15;
-            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.9;
-            else if (egg.key === "diamond") weight *= 1.6;
+            if (egg.key === "white") weight *= 0.34;
+            else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.08;
+            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.55;
+            else if (egg.key === "diamond") weight *= 1.35;
             return { egg, weight };
         });
 

@@ -769,6 +769,17 @@ window.EggGameModules.ui = {
             this.roundSetupTitle.add(letter);
             this.roundSetupTitleLetters.push(letter);
         }
+        this.roundSetupTitleLetters.forEach((letter, index) => {
+            this.tweens.add({
+                targets: letter,
+                y: "+=16",
+                duration: 360,
+                delay: index * 55,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        });
 
         this.roundSetupHint = this.add.text(0, 0, "Reveal the hidden eggs before the round starts", {
             fontFamily: "Arial",

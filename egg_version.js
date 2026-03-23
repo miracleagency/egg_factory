@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-shell-popup-polish-v60"
+    version: "2026-03-23-shell-popup-live-bg-fix-v61"
 };
