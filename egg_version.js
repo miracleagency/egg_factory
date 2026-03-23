@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-round-start-arm-fix-v62"
+    version: "2026-03-23-pillow-guarantee-balance-fix-v63"
 };

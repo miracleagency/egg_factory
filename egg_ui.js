@@ -1015,11 +1015,14 @@ window.EggGameModules.ui = {
     },
 
     handleRoundSetupPlay() {
+        if (this.roundSetupLaunching) return;
         const cost = 250 * (this.bet || 1);
         if ((this.balance || 0) < cost) {
             this.updateRoundSetupPopupLabels();
             return;
         }
+        this.roundSetupLaunching = true;
+        this.roundSetupPlayBtn.setAlpha(0.6);
 
         const hiddenIndexes = this.roundSetupCells
             .map((cell, index) => (!cell._revealed ? index : -1))

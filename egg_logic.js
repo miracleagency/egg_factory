@@ -20,10 +20,10 @@ window.EggGameModules.logic = {
     getRoundSetupHiddenEggType() {
         const pool = (this.eggTypes || []).filter(Boolean).map(egg => {
             let weight = egg.chance || 0;
-            if (egg.key === "white") weight *= 0.34;
-            else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.08;
-            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.55;
-            else if (egg.key === "diamond") weight *= 1.35;
+            if (egg.key === "white") weight *= 0.42;
+            else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.02;
+            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.34;
+            else if (egg.key === "diamond") weight *= 1.18;
             return { egg, weight };
         });
 
@@ -40,15 +40,14 @@ window.EggGameModules.logic = {
         const white = this.getEggTypeByKey("white");
         const armored = this.getEggTypeByKey("armored");
         const bomb = this.getEggTypeByKey("bomb");
-        const mystery = this.getEggTypeByKey("mystery");
         const pool = [];
 
         for (let i = 0; i < 5; i++) pool.push(this.cloneEggTypeData(white));
         for (let i = 0; i < 3; i++) pool.push(this.cloneEggTypeData(armored));
         for (let i = 0; i < 2; i++) pool.push(this.cloneEggTypeData(bomb));
 
-        const hidden = [this.cloneEggTypeData(mystery)];
-        for (let i = 1; i < 10; i++) {
+        const hidden = [];
+        for (let i = 0; i < 10; i++) {
             hidden.push(this.getRoundSetupHiddenEggType());
         }
 
@@ -108,6 +107,10 @@ window.EggGameModules.logic = {
 
     placeLine1Pillow(color = 0x46c466, multiplier = 1) {
         const slotIndex = this.getLine1FirstVisibleSlotIndex();
+        return this.ensureLine1PillowAtSlot(slotIndex, color, multiplier);
+    },
+
+    ensureLine1PillowAtSlot(slotIndex, color = 0x46c466, multiplier = 1) {
         const cost = this.bet;
         if (this.line1Pillows.has(slotIndex)) return false;
 
@@ -146,6 +149,7 @@ window.EggGameModules.logic = {
         const slotIndex = Math.round(
             (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * targetClock) / line.slotWidth
         );
+        this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
         const eggType = this.chooseEggType();
         const visual = this.createEggVisual(eggType, true);
 
@@ -973,6 +977,7 @@ window.EggGameModules.logic = {
                 }
 
                 this.spawnCrushFx(item.container.x, item.container.y - 4);
+                this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
                 this.tweens.add({
                     targets: item.container,
                     scaleY: 0.18,
@@ -994,6 +999,7 @@ window.EggGameModules.logic = {
                     item.settled = true;
                 }
                 this.spawnBombExplosionFx(item.container.x, item.container.y - 8);
+                this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
                 this.tweens.add({
                     targets: item.container,
                     scaleY: 0.18,
@@ -1028,6 +1034,7 @@ window.EggGameModules.logic = {
                 item.settled = true;
             }
 
+            this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
             this.tweens.add({
                 targets: item.container,
                 scaleY: 0.18,
