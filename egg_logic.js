@@ -182,7 +182,7 @@ window.EggGameModules.logic = {
             const item = this.line1Pillows.get(candidate);
             if (!item || !item.eggsBox) return candidate;
         }
-        return slotIndex;
+        return null;
     },
 
     computeNextEggSpawnClock(dropXGetter, fromClock, first = false) {
@@ -210,6 +210,7 @@ window.EggGameModules.logic = {
             (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * targetClock) / line.slotWidth
         );
         const slotIndex = this.resolveEggLandingSlot(rawSlotIndex);
+        if (!Number.isFinite(slotIndex)) return;
         this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
         const eggType = this.chooseEggType();
         const visual = this.createEggVisual(eggType, true);
@@ -278,7 +279,7 @@ window.EggGameModules.logic = {
             if (p < 1) continue;
             const pillow = this.line1Pillows.get(egg.slotIndexAtLanding);
 
-            if (pillow) {
+            if (pillow && !pillow.eggsBox) {
                 egg.state = "saved";
                 const eggData = { ...egg.typeData };
                 if (eggData.bomb) eggData.bombLit = true;
@@ -690,11 +691,13 @@ window.EggGameModules.logic = {
     },
 
     runEggBoxBonus(item) {
-        if (!item || item.destroyed || item.finished) return;
+        if (!item || item.finished || item.boxBonusRunning) return;
         const prevDepth = item.container.depth || 0;
         const bonusCount = Phaser.Math.Between(3, 5);
         const eggs = [];
         for (let i = 0; i < bonusCount; i++) eggs.push(this.getRoundSetupHiddenEggType());
+        item.boxBonusRunning = true;
+        item.destroyed = true;
 
         this.beginGameplayPause([item.container]);
         item.container.setDepth(9205);
@@ -720,6 +723,7 @@ window.EggGameModules.logic = {
             onComplete: () => {
                 this.spawnBombExplosionFx(item.container.x, item.container.y - 8);
                 item.container.destroy();
+                item.finished = true;
 
                 const centerY = this.H * 0.48;
                 const startX = this.W * 0.5 - ((bonusCount - 1) * 70) * 0.5;
@@ -748,7 +752,10 @@ window.EggGameModules.logic = {
                                 this.roundEggLimit += 1;
                                 this.remainingEggCount += 1;
                                 this.updatePillowButtonLabels();
-                                if (index === eggs.length - 1) this.endGameplayPause();
+                                if (index === eggs.length - 1) {
+                                    item.boxBonusRunning = false;
+                                    this.endGameplayPause();
+                                }
                             }
                         });
                     });
@@ -999,14 +1006,12 @@ window.EggGameModules.logic = {
                 this.setEggBoxDamageVisual(item, item.boxDamage);
                 if (def.type === "crush") {
                     this.spawnCrushFx(item.container.x, item.container.y - 4);
-                    this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
                 } else {
                     this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 4);
                 }
                 this.pulseItem(item);
 
                 if (item.boxDamage >= 4) {
-                    item.destroyed = true;
                     this.runEggBoxBonus(item);
                 }
                 return;
@@ -1515,13 +1520,15 @@ window.EggGameModules.logic = {
                         this.spawnBombExplosionFx(this.W - 24, item.y - 6);
                     }
 
-                    this.addWin(item.currentValue || 0);
                     item.settled = true;
-                    this.updatePillowButtonLabels();
-                    const hasGoldEgg = (item.eggs || []).some(egg => egg && (egg.goldFx || egg.key === "gold"));
-                    this.pulseFinalCollector(0x63ff8d, hasGoldEgg ? 1.35 : 1);
-                    this.spawnImpactFx(this.W - 16, item.y, 0x63ff8d);
-                    this.showCenterWin(item.currentValue || 0);
+                    if (!item.eggsBox) {
+                        this.addWin(item.currentValue || 0);
+                        this.updatePillowButtonLabels();
+                        const hasGoldEgg = (item.eggs || []).some(egg => egg && (egg.goldFx || egg.key === "gold"));
+                        this.pulseFinalCollector(0x63ff8d, hasGoldEgg ? 1.35 : 1);
+                        this.spawnImpactFx(this.W - 16, item.y, 0x63ff8d);
+                        this.showCenterWin(item.currentValue || 0);
+                    }
                     item.container.destroy();
                     continue;
                 }
