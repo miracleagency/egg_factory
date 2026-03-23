@@ -214,14 +214,22 @@ window.EggGameModules.logic = {
     },
 
     computeEggDropperNextSpawnClock(dropperKey, fromClock, first = false) {
-        const baseClock = this.computeNextEggSpawnClock(
-            () => dropperKey === "A" ? this.dropperAX : this.dropperBX,
-            fromClock,
-            first
-        );
-        if (dropperKey !== "A") return baseClock;
-        const delta = Math.max(0.18, baseClock - fromClock);
-        return fromClock + Math.max(0.16, delta * 0.625);
+        const line = this.lines.line1;
+        const slotTravel = line.slotWidth / line.speed;
+        const dropX = dropperKey === "A" ? this.dropperAX : this.dropperBX;
+        const a = (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * fromClock) / line.slotWidth;
+        let dt = (a - Math.floor(a)) * slotTravel;
+
+        const minLead = first ? 0.08 : 0.18;
+        while (dt < minLead) dt += slotTravel;
+
+        if (dropperKey !== "A") {
+            dt += (first ? Phaser.Math.Between(0, 1) : Phaser.Math.Between(3, 4)) * slotTravel;
+            return fromClock + dt;
+        }
+
+        dt += (first ? Phaser.Math.Between(0, 1) : Phaser.Math.Between(1, 2)) * slotTravel;
+        return fromClock + dt;
     },
 
     fallDuration() {
@@ -1295,7 +1303,6 @@ window.EggGameModules.logic = {
                 }
 
                 this.spawnCrushFx(item.container.x, item.container.y - 4);
-                this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
                 this.tweens.add({
                     targets: item.container,
                     scaleY: 0.18,
@@ -1317,7 +1324,6 @@ window.EggGameModules.logic = {
                     item.settled = true;
                 }
                 this.spawnBombExplosionFx(item.container.x, item.container.y - 8);
-                this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
                 this.tweens.add({
                     targets: item.container,
                     scaleY: 0.18,
@@ -1331,17 +1337,19 @@ window.EggGameModules.logic = {
             }
 
             if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 2) {
-                damageArmoredEggs(false);
-                this.spawnCrushFx(item.container.x, item.container.y - 4);
-                this.pulseItem(item);
-                return;
+                if (damageArmoredEggs(false)) {
+                    this.spawnCrushFx(item.container.x, item.container.y - 4);
+                    this.pulseItem(item);
+                    return;
+                }
             }
 
             if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 2) {
-                damageArmoredEggs(true);
-                this.spawnCrushFx(item.container.x, item.container.y - 4);
-                this.pulseItem(item);
-                return;
+                if (damageArmoredEggs(true)) {
+                    this.spawnCrushFx(item.container.x, item.container.y - 4);
+                    this.pulseItem(item);
+                    return;
+                }
             }
 
             item.destroyed = true;

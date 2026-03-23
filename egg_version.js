@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-vertical-fall-popup-pause-v75"
+    version: "2026-03-23-armored-two-hit-fix-v77"
 };
