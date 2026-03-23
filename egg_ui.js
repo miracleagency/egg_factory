@@ -1039,7 +1039,7 @@ window.EggGameModules.ui = {
 
         const revealNext = (queue) => {
             if (queue.length === 0) {
-                this.roundSetupErrorText.setText("GET READY...");
+                this.roundSetupErrorText.setText("");
                 this.time.delayedCall(2000, () => {
                     this.balance -= cost;
                     if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
@@ -1231,7 +1231,11 @@ window.EggGameModules.ui = {
         this.infoOverlay.on("pointerdown", () => this.toggleEggInfo(false));
 
         this.infoRows = [];
-        for (const egg of this.eggTypes) {
+        const infoOrder = ["white", "armored", "bomb", "mystery", "gold", "diamond"];
+        const orderedEggs = infoOrder
+            .map(key => (this.eggTypes || []).find(egg => egg && egg.key === key))
+            .filter(Boolean);
+        for (const egg of orderedEggs) {
             const row = this.add.container(0, 0);
             const iconWrap = this.add.container(0, 0);
             const icon = this.createEggVisual(egg, false).container;

@@ -58,22 +58,22 @@ window.EggGameModules.logic = {
         this.line1EntryCheckCount = 0;
 
         const boxRoll = Math.random();
-        this.eggBoxTargetCount = boxRoll < 0.03 ? 3 : (boxRoll < 0.18 ? 2 : 1);
+        this.eggBoxTargetCount = boxRoll < 0.02 ? 3 : (boxRoll < 0.14 ? 2 : 1);
         const totalChecksEstimate = Math.max(14, (this.roundEggLimit || 20) + 10);
         const forcedChecks = [];
         if (this.eggBoxTargetCount === 1) {
-            forcedChecks.push(Phaser.Math.Between(3, totalChecksEstimate - 2));
+            forcedChecks.push(Phaser.Math.Between(5, totalChecksEstimate - 2));
         } else if (this.eggBoxTargetCount === 2) {
-            const first = Phaser.Math.Between(3, Math.max(5, Math.floor(totalChecksEstimate * 0.55)));
-            const secondMin = Math.max(first + 4, Math.floor(totalChecksEstimate * 0.45));
+            const first = Phaser.Math.Between(5, Math.max(7, Math.floor(totalChecksEstimate * 0.62)));
+            const secondMin = Math.max(first + 5, Math.floor(totalChecksEstimate * 0.58));
             const second = Phaser.Math.Between(secondMin, totalChecksEstimate - 1);
             forcedChecks.push(first, second);
         } else {
-            const first = Phaser.Math.Between(3, Math.max(5, Math.floor(totalChecksEstimate * 0.33)));
-            const secondMin = Math.max(first + 4, Math.floor(totalChecksEstimate * 0.42));
-            const secondMax = Math.max(secondMin, Math.floor(totalChecksEstimate * 0.7));
+            const first = Phaser.Math.Between(5, Math.max(7, Math.floor(totalChecksEstimate * 0.38)));
+            const secondMin = Math.max(first + 5, Math.floor(totalChecksEstimate * 0.5));
+            const secondMax = Math.max(secondMin, Math.floor(totalChecksEstimate * 0.76));
             const second = Phaser.Math.Between(secondMin, secondMax);
-            const thirdMin = Math.max(second + 4, Math.floor(totalChecksEstimate * 0.72));
+            const thirdMin = Math.max(second + 5, Math.floor(totalChecksEstimate * 0.8));
             const third = Phaser.Math.Between(thirdMin, totalChecksEstimate);
             forcedChecks.push(first, second, third);
         }
@@ -121,7 +121,7 @@ window.EggGameModules.logic = {
     },
 
     getLine1EntrySlotIndex() {
-        return this.getLine1FirstVisibleSlotIndex() - 1;
+        return this.getLine1FirstVisibleSlotIndex() - 2;
     },
 
     getLine1SlotEntryType(slotIndex) {
@@ -136,7 +136,9 @@ window.EggGameModules.logic = {
         const forcedAt = (this.eggBoxForcedEntryChecks || [])[spawnedCount] || 999;
         if (this.line1EntryCheckCount >= forcedAt) return "box";
 
-        const chanceByIndex = [0.09, 0.04, 0.016];
+        if (this.line1EntryCheckCount < 5) return "pillow";
+
+        const chanceByIndex = [0.035, 0.018, 0.008];
         const roll = Math.random();
         return roll < (chanceByIndex[spawnedCount] || 0.01) ? "box" : "pillow";
     },
@@ -211,18 +213,30 @@ window.EggGameModules.logic = {
         return fromClock + dt;
     },
 
+    computeEggDropperNextSpawnClock(dropperKey, fromClock, first = false) {
+        const baseClock = this.computeNextEggSpawnClock(
+            () => dropperKey === "A" ? this.dropperAX : this.dropperBX,
+            fromClock,
+            first
+        );
+        if (dropperKey !== "A") return baseClock;
+        const slotTravel = this.lines.line1.slotWidth / this.lines.line1.speed;
+        return Math.max(fromClock + 0.18, baseClock - slotTravel * 0.28);
+    },
+
     fallDuration() {
         return (this.eggLandingY - this.eggStartY) / 1050;
     },
 
     spawnEgg(dropX, targetClock) {
         if (this.eggsSpawnedThisRound >= this.roundEggLimit) return;
+        if (this.isEggBoxUnderDropper(dropX, targetClock)) return false;
         const line = this.lines.line1;
         const rawSlotIndex = Math.round(
             (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * targetClock) / line.slotWidth
         );
         const slotIndex = this.resolveEggLandingSlot(rawSlotIndex);
-        if (!Number.isFinite(slotIndex)) return;
+        if (!Number.isFinite(slotIndex)) return false;
         this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
         const eggType = this.chooseEggType();
         const visual = this.createEggVisual(eggType, true);
@@ -239,24 +253,20 @@ window.EggGameModules.logic = {
         this.eggsSpawnedThisRound += 1;
         this.remainingEggCount = Math.max(0, this.roundEggLimit - this.eggsSpawnedThisRound);
         this.updatePillowButtonLabels();
+        return true;
     },
 
     handleEggSpawns() {
         if (!this.gameplayEggSpawnsArmed) {
             if (!this.isFirstDropperLaneReady()) return;
             this.gameplayEggSpawnsArmed = true;
-            this.nextEggSpawnA = this.computeNextEggSpawnClock(() => this.dropperAX, this.speedClock, true);
-            this.nextEggSpawnB = this.computeNextEggSpawnClock(() => this.dropperBX, this.speedClock, true);
+            this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.speedClock, false);
+            this.nextEggSpawnB = Infinity;
         }
 
         while (this.eggsSpawnedThisRound < this.roundEggLimit && this.speedClock >= this.nextEggSpawnA - this.fallDuration()) {
             this.spawnEgg(this.dropperAX, this.nextEggSpawnA);
-            this.nextEggSpawnA = this.computeNextEggSpawnClock(() => this.dropperAX, this.nextEggSpawnA);
-        }
-
-        while (this.eggsSpawnedThisRound < this.roundEggLimit && this.speedClock >= this.nextEggSpawnB - this.fallDuration()) {
-            this.spawnEgg(this.dropperBX, this.nextEggSpawnB);
-            this.nextEggSpawnB = this.computeNextEggSpawnClock(() => this.dropperBX, this.nextEggSpawnB);
+            this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.nextEggSpawnA);
         }
     },
 
@@ -279,6 +289,15 @@ window.EggGameModules.logic = {
             if (x >= activationX) return true;
         }
         return false;
+    },
+
+    isEggBoxUnderDropper(dropX, targetClock = this.speedClock) {
+        const line = this.lines.line1;
+        const slotIndex = Math.round(
+            (dropX - (line.startX + line.slotWidth * 0.5) - line.speed * targetClock) / line.slotWidth
+        );
+        const item = this.line1Pillows.get(slotIndex);
+        return !!(item && item.eggsBox && !item.destroyed && !item.finished);
     },
 
     hasActiveRoundEggs() {
@@ -1096,7 +1115,7 @@ window.EggGameModules.logic = {
                 }
                 this.pulseItem(item);
 
-                if (item.boxDamage >= 4) {
+                if (item.boxDamage >= 3) {
                     this.runEggBoxBonus(item);
                 }
                 return;
@@ -1113,7 +1132,7 @@ window.EggGameModules.logic = {
             if (armoredEggsLocal.length === 0) return false;
 
             const nextDamage = Math.max(...armoredEggsLocal.map(egg => egg.armorDamage || 0)) + 1;
-            if (nextDamage >= 3) return false;
+            if (nextDamage >= 2) return false;
 
             const nextEggs = armoredEggsLocal.map(egg => ({
                 ...egg,
@@ -1414,12 +1433,12 @@ window.EggGameModules.logic = {
         }
     },
 
-    breakMachinesByTypes(types) {
+    breakMachinesByTypes(types, repairDurationMs = 20000) {
         const match = new Set(types);
         const allDefs = [...this.line1Machines, ...this.line2Machines, ...this.line3Machines];
         for (const def of allDefs) {
             if (match.has(def.type)) {
-                this.breakMachine(def);
+                this.breakMachine(def, repairDurationMs);
             }
         }
     },
@@ -1601,7 +1620,7 @@ window.EggGameModules.logic = {
                     this.clearWetFx(item);
 
                     if (litBombEggs.length > 0) {
-                        this.breakMachinesByTypes(["fire", "crush"]);
+                        this.breakMachinesByTypes(["fire", "crush"], 10000);
                         this.spawnBombExplosionFx(this.W - 24, item.y - 6);
                     }
 

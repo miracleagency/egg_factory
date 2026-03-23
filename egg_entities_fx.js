@@ -84,9 +84,9 @@ window.EggGameModules.entitiesFx = {
 
     createTravelPillow(color, cost, pillowMult, betAtPlacement) {
         const container = this.add.container(0, 0);
-        const shadow = this.add.ellipse(0, 16, 112, 18, 0x000000, 0.28);
-        const body = this.add.rectangle(0, 0, 108, 40, color, 1).setStrokeStyle(4, 0xffffff);
-        const gloss = this.add.rectangle(0, -8, 72, 14, 0xffffff, 0.12);
+        const shadow = this.add.ellipse(0, 16, 112, 18, 0x000000, 0).setVisible(false);
+        const body = this.add.rectangle(0, 0, 108, 40, color, 0).setStrokeStyle(0, 0xffffff, 0).setVisible(false);
+        const gloss = this.add.rectangle(0, -8, 72, 14, 0xffffff, 0).setVisible(false);
         const valueText = this.createPillowValueText(`${cost}$`);
 
         container.add([shadow, body, gloss, valueText]);
