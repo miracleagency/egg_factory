@@ -271,9 +271,10 @@ window.EggGameModules.logic = {
 
     isFirstDropperLaneReady() {
         const line = this.lines.line1;
-        const activationX = Math.min(this.dropperAX, this.dropperBX) - line.slotWidth * 0.28;
+        const activationX = this.dropperAX - line.slotWidth * 0.12;
         for (const [slotIndex, item] of this.line1Pillows.entries()) {
             if (!item || item.destroyed || item.finished) continue;
+            if (item.eggsBox) continue;
             const x = line.startX + line.slotWidth * 0.5 + slotIndex * line.slotWidth + line.speed * this.speedClock;
             if (x >= activationX) return true;
         }
@@ -440,8 +441,8 @@ window.EggGameModules.logic = {
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
-            minSkip = 0;
-            maxSkip = 1;
+            minSkip = 1;
+            maxSkip = 2;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
