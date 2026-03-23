@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-opening-drop-fix-hud-swap-v57"
+    version: "2026-03-23-pregame-shell-popup-v58"
 };

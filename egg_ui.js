@@ -113,6 +113,7 @@ window.EggGameModules.ui = {
         this.midHud.add([this.eggsHud, this.winHud, this.pauseBtn]);
 
         this.updateTurboVisual();
+        this.createRoundSetupPopup();
         this.createRoundEndPopup();
         this.updatePillowButtonLabels();
     },
@@ -314,6 +315,8 @@ window.EggGameModules.ui = {
             });
             this.layoutRoundEndTitle(cx, cy - 222);
         }
+
+        this.layoutRoundSetupPopup();
     },
 
     createMiniButton(label, onClick) {
@@ -523,6 +526,7 @@ window.EggGameModules.ui = {
         if (this.pauseBtn && this.pauseBtn._label) {
             this.pauseBtn._label.setText(this.manualPauseActive ? "RESUME" : "PAUSE");
         }
+        this.updateRoundSetupPopupLabels();
     },
 
     updateSinglePillowButtonVisual(btn) {
@@ -651,7 +655,12 @@ window.EggGameModules.ui = {
 
     addLose() {},
 
-    changeBet() {},
+    changeBet(dir = 0) {
+        this.betIndex = Phaser.Math.Clamp((this.betIndex || 0) + dir, 0, (this.betSteps || [1]).length - 1);
+        this.bet = (this.betSteps && this.betSteps[this.betIndex]) || 1;
+        this.updatePillowButtonLabels();
+        this.updateRoundSetupPopupLabels();
+    },
 
     updateTurboVisual() {
         if (this.turboIndex === 0) {
@@ -717,6 +726,309 @@ window.EggGameModules.ui = {
         return btn;
     },
 
+    createQuestionEggVisual() {
+        const c = this.add.container(0, 0);
+        const body = this.add.ellipse(0, 0, 44, 58, 0x778190, 1).setStrokeStyle(3, 0xd5dce6);
+        const shine = this.add.ellipse(-8, -12, 8, 14, 0xffffff, 0.22);
+        const q = this.add.text(0, 2, "?", {
+            fontFamily: "Arial",
+            fontSize: "40px",
+            color: "#ffffff",
+            fontStyle: "bold",
+            stroke: "#38424e",
+            strokeThickness: 5
+        }).setOrigin(0.5);
+        c.add([body, shine, q]);
+        return c;
+    },
+
+    createRoundSetupPopup() {
+        this.roundSetupPopup = this.add.container(0, 0).setDepth(9350).setVisible(false);
+        this.popupLayer.add(this.roundSetupPopup);
+
+        this.roundSetupBg = this.add.rectangle(0, 0, 850, 1080, 0x141f38, 0.97).setStrokeStyle(5, 0xffe395);
+        this.roundSetupGlow = this.add.ellipse(0, 0, 860, 1120, 0xffd45c, 0.10);
+        this.roundSetupTitle = this.add.container(0, 0);
+        this.roundSetupTitleLetters = [];
+        for (const char of "What the shell?") {
+            const letter = this.add.text(0, 0, char, {
+                fontFamily: "Arial",
+                fontSize: "56px",
+                color: Phaser.Utils.Array.GetRandom(["#ff6b6b", "#ffb347", "#ffe66d", "#67e8a5", "#62d6ff", "#b98cff"]),
+                fontStyle: "bold",
+                stroke: "#142035",
+                strokeThickness: 8
+            }).setOrigin(0.5);
+            this.roundSetupTitle.add(letter);
+            this.roundSetupTitleLetters.push(letter);
+        }
+
+        this.roundSetupHint = this.add.text(0, 0, "Reveal the hidden eggs before the round starts", {
+            fontFamily: "Arial",
+            fontSize: "28px",
+            color: "#d9e7ff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        this.roundSetupGrid = this.add.container(0, 0);
+        this.roundSetupCells = [];
+        for (let i = 0; i < 20; i++) {
+            const cell = this.add.container(0, 0);
+            const plate = this.add.rectangle(0, 0, 126, 118, 0x203052, 0.94).setStrokeStyle(3, 0x47689b);
+            cell.add(plate);
+            cell._plate = plate;
+            this.roundSetupCells.push(cell);
+            this.roundSetupGrid.add(cell);
+        }
+
+        this.roundSetupMinusBtn = this.createMiniButton("-", () => this.changeBet(-1));
+        this.roundSetupPlusBtn = this.createMiniButton("+", () => this.changeBet(1));
+        this.roundSetupBetText = this.add.text(0, 0, "BET: 1$", {
+            fontFamily: "Arial",
+            fontSize: "38px",
+            color: "#ffffff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        this.roundSetupCostText = this.add.text(0, 0, "COST: 250$", {
+            fontFamily: "Arial",
+            fontSize: "34px",
+            color: "#ffe49a",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        this.roundSetupBalanceText = this.add.text(0, 0, "BALANCE: 1000$", {
+            fontFamily: "Arial",
+            fontSize: "28px",
+            color: "#d7e4ff",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        this.roundSetupPlayBtn = this.createPopupActionButton("PLAY", () => this.handleRoundSetupPlay(), {
+            width: 260
+        });
+        this.roundSetupErrorText = this.add.text(0, 0, "", {
+            fontFamily: "Arial",
+            fontSize: "24px",
+            color: "#ff9fa7",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        this.roundSetupPopup.add([
+            this.roundSetupGlow,
+            this.roundSetupBg,
+            this.roundSetupTitle,
+            this.roundSetupHint,
+            this.roundSetupGrid,
+            this.roundSetupMinusBtn,
+            this.roundSetupBetText,
+            this.roundSetupPlusBtn,
+            this.roundSetupCostText,
+            this.roundSetupBalanceText,
+            this.roundSetupPlayBtn,
+            this.roundSetupErrorText
+        ]);
+    },
+
+    layoutRoundSetupTitle(cx, y) {
+        if (!this.roundSetupTitleLetters) return;
+        const spacing = 35;
+        const totalW = (this.roundSetupTitleLetters.length - 1) * spacing;
+        this.roundSetupTitle.setPosition(cx, y);
+        this.roundSetupTitleLetters.forEach((letter, index) => {
+            letter.x = -totalW * 0.5 + index * spacing;
+        });
+    },
+
+    layoutRoundSetupPopup() {
+        if (!this.roundSetupPopup) return;
+        const cx = this.W * 0.5;
+        const cy = this.H * 0.5;
+        this.roundSetupGlow.setPosition(cx, cy);
+        this.roundSetupBg.setPosition(cx, cy);
+        this.layoutRoundSetupTitle(cx, cy - 420);
+        this.roundSetupHint.setPosition(cx, cy - 344);
+        this.roundSetupGrid.setPosition(cx, cy - 68);
+
+        const startX = -280;
+        const startY = -210;
+        const colGap = 140;
+        const rowGap = 132;
+        this.roundSetupCells.forEach((cell, index) => {
+            const col = index % 5;
+            const row = Math.floor(index / 5);
+            cell.setPosition(startX + col * colGap, startY + row * rowGap);
+        });
+
+        this.roundSetupMinusBtn.setPosition(cx - 180, cy + 320);
+        this.roundSetupBetText.setPosition(cx, cy + 320);
+        this.roundSetupPlusBtn.setPosition(cx + 180, cy + 320);
+        this.roundSetupCostText.setPosition(cx, cy + 392);
+        this.roundSetupBalanceText.setPosition(cx, cy + 436);
+        this.roundSetupPlayBtn.setPosition(cx, cy + 518);
+        this.roundSetupErrorText.setPosition(cx, cy + 472);
+    },
+
+    populateRoundSetupPopup() {
+        const eggs = Array.isArray(this.roundEggPreview) ? this.roundEggPreview : [];
+        this.roundSetupHiddenState = eggs.map((_, index) => index < 10);
+
+        this.roundSetupCells.forEach((cell, index) => {
+            for (const child of cell.list.slice()) {
+                if (child !== cell._plate) cell.remove(child, true);
+            }
+
+            const egg = eggs[index];
+            if (!egg) return;
+
+            if (index < 10) {
+                const visual = this.createEggVisual(egg, false).container;
+                visual.setScale(1.12);
+                cell.add(visual);
+                cell._revealed = true;
+                continue;
+            }
+
+            const hiddenEgg = this.createQuestionEggVisual();
+            hiddenEgg.setScale(1.05);
+            cell.add(hiddenEgg);
+            cell._hiddenEgg = hiddenEgg;
+            cell._revealed = false;
+            cell._eggData = egg;
+            cell._plate.setInteractive({ useHandCursor: true })
+                .removeAllListeners()
+                .on("pointerdown", () => this.revealRoundSetupEgg(index));
+        });
+    },
+
+    revealRoundSetupEgg(index, immediate = false) {
+        const cell = this.roundSetupCells && this.roundSetupCells[index];
+        if (!cell || cell._revealed) return;
+        cell._revealed = true;
+        this.roundSetupHiddenState[index] = true;
+        cell._plate.disableInteractive();
+
+        const burst = () => {
+            for (let i = 0; i < 6; i++) {
+                const puff = this.add.circle(cell.x + this.roundSetupGrid.x, cell.y + this.roundSetupGrid.y, Phaser.Math.Between(10, 18), 0xffffff, 0.32).setDepth(9365);
+                this.roundSetupPopup.add(puff);
+                this.tweens.add({
+                    targets: puff,
+                    x: puff.x + Phaser.Math.Between(-26, 26),
+                    y: puff.y - Phaser.Math.Between(12, 34),
+                    alpha: 0,
+                    scaleX: 1.4,
+                    scaleY: 1.4,
+                    duration: 260,
+                    onComplete: () => puff.destroy()
+                });
+            }
+            this.spawnRadialSparkBurst(cell.x + this.roundSetupGrid.x, cell.y + this.roundSetupGrid.y, {
+                count: 8,
+                color: 0xffef9f,
+                colorAlt: 0x7cecff,
+                minSpeed: 22,
+                maxSpeed: 66,
+                depth: 9366
+            });
+        };
+
+        const finish = () => {
+            if (cell._hiddenEgg) {
+                cell.remove(cell._hiddenEgg, true);
+                cell._hiddenEgg = null;
+            }
+            const visual = this.createEggVisual(cell._eggData, false).container;
+            visual.setScale(1.12);
+            visual.alpha = 0;
+            visual.scaleX = 0.76;
+            visual.scaleY = 0.76;
+            cell.add(visual);
+            this.tweens.add({
+                targets: visual,
+                alpha: 1,
+                scaleX: 1.12,
+                scaleY: 1.12,
+                duration: 180,
+                ease: "Back.Out"
+            });
+        };
+
+        if (immediate) {
+            finish();
+            return;
+        }
+
+        burst();
+        this.time.delayedCall(120, finish);
+    },
+
+    updateRoundSetupPopupLabels() {
+        if (!this.roundSetupPopup) return;
+        const cost = 250 * (this.bet || 1);
+        const canAfford = (this.balance || 0) >= cost;
+        this.roundSetupBetText.setText(`BET: ${this.bet}$`);
+        this.roundSetupCostText.setText(`COST: ${cost}$`);
+        this.roundSetupBalanceText.setText(`BALANCE: ${Math.round(this.balance || 0)}$`);
+        this.roundSetupErrorText.setText(canAfford ? "" : "NOT ENOUGH BALANCE");
+        this.roundSetupPlayBtn.setAlpha(canAfford ? 1 : 0.55);
+    },
+
+    showRoundSetupPopup() {
+        if (!this.roundSetupPopup) return;
+        this.populateRoundSetupPopup();
+        this.layoutRoundSetupPopup();
+        this.updateRoundSetupPopupLabels();
+        this.roundSetupPopup.setVisible(true);
+        this.roundSetupPopup.setAlpha(0);
+        this.roundSetupPopup.setScale(0.9);
+        this.tweens.add({
+            targets: this.roundSetupPopup,
+            alpha: 1,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 260,
+            ease: "Back.Out"
+        });
+    },
+
+    handleRoundSetupPlay() {
+        const cost = 250 * (this.bet || 1);
+        if ((this.balance || 0) < cost) {
+            this.updateRoundSetupPopupLabels();
+            return;
+        }
+
+        const hiddenIndexes = this.roundSetupCells
+            .map((cell, index) => (!cell._revealed ? index : -1))
+            .filter(index => index >= 0);
+
+        if (hiddenIndexes.length === 0) {
+            this.balance -= cost;
+            this.roundSetupPopup.setVisible(false);
+            this.endGameplayPause();
+            this.updatePillowButtonLabels();
+            return;
+        }
+
+        const revealNext = (queue) => {
+            if (queue.length === 0) {
+                this.roundSetupErrorText.setText("GET READY...");
+                this.time.delayedCall(2000, () => {
+                    this.balance -= cost;
+                    this.roundSetupPopup.setVisible(false);
+                    this.endGameplayPause();
+                    this.updatePillowButtonLabels();
+                });
+                return;
+            }
+
+            const nextIndex = queue.shift();
+            this.revealRoundSetupEgg(nextIndex);
+            this.time.delayedCall(140, () => revealNext(queue));
+        };
+
+        revealNext(hiddenIndexes.slice());
+    },
+
     createRoundEndPopup() {
         this.roundEndPopup = this.add.container(0, 0).setDepth(9300).setVisible(false);
         this.popupLayer.add(this.roundEndPopup);
@@ -754,7 +1066,8 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
         this.roundEndPopupButton = this.createPopupActionButton("PLAY AGAIN", () => this.scene.restart({
             persistedBalance: this.balance,
-            persistedTurboIndex: this.turboIndex
+            persistedTurboIndex: this.turboIndex,
+            persistedBetIndex: this.betIndex
         }));
 
         this.roundEndPopupSparkles = [];

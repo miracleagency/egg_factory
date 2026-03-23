@@ -1,14 +1,56 @@
 window.EggGameModules = window.EggGameModules || {};
 
 window.EggGameModules.logic = {
+    cloneEggTypeData(egg) {
+        return egg ? { ...egg } : null;
+    },
+
+    getWeightedEggType(excludeKeys = []) {
+        const exclude = new Set(excludeKeys);
+        const pool = (this.eggTypes || []).filter(egg => egg && !exclude.has(egg.key));
+        const total = pool.reduce((sum, egg) => sum + (egg.chance || 0), 0);
+        let roll = Math.random() * Math.max(total, 0.0001);
+        for (const egg of pool) {
+            roll -= egg.chance || 0;
+            if (roll <= 0) return this.cloneEggTypeData(egg);
+        }
+        return this.cloneEggTypeData(pool[0] || this.eggTypes[0]);
+    },
+
+    buildRoundEggPool() {
+        const white = this.getEggTypeByKey("white");
+        const armored = this.getEggTypeByKey("armored");
+        const bomb = this.getEggTypeByKey("bomb");
+        const mystery = this.getEggTypeByKey("mystery");
+        const pool = [];
+
+        for (let i = 0; i < 5; i++) pool.push(this.cloneEggTypeData(white));
+        for (let i = 0; i < 3; i++) pool.push(this.cloneEggTypeData(armored));
+        for (let i = 0; i < 2; i++) pool.push(this.cloneEggTypeData(bomb));
+
+        const hidden = [this.cloneEggTypeData(mystery)];
+        for (let i = 1; i < 10; i++) {
+            hidden.push(this.getWeightedEggType());
+        }
+
+        this.roundEggPreview = [...pool, ...hidden];
+        this.roundEggPool = this.roundEggPreview.map(egg => this.cloneEggTypeData(egg));
+        this.roundEggHiddenStartIndex = 10;
+    },
+
     chooseEggType() {
+        if (Array.isArray(this.roundEggPool) && this.roundEggPool.length > 0) {
+            const index = Phaser.Math.Between(0, this.roundEggPool.length - 1);
+            const [egg] = this.roundEggPool.splice(index, 1);
+            return this.cloneEggTypeData(egg);
+        }
         const r = Math.random();
         let sum = 0;
         for (const egg of this.eggTypes) {
             sum += egg.chance;
-            if (r <= sum) return egg;
+            if (r <= sum) return this.cloneEggTypeData(egg);
         }
-        return this.eggTypes[0];
+        return this.cloneEggTypeData(this.eggTypes[0]);
     },
 
     getLineCenterBaseX(line) {
