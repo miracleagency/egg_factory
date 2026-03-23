@@ -270,11 +270,20 @@ window.EggGameModules.logic = {
 
     updateFallingEggs() {
         const duration = this.fallDuration();
+        const line = this.lines.line1;
 
         for (const egg of this.fallingEggs) {
             if (egg.state !== "falling") continue;
             const p = Phaser.Math.Clamp((this.speedClock - egg.spawnClock) / duration, 0, 1);
             egg.container.y = Phaser.Math.Linear(this.eggStartY, this.eggLandingY, p);
+
+            const safeSlotIndex = this.resolveEggLandingSlot(egg.slotIndexAtLanding);
+            if (Number.isFinite(safeSlotIndex)) {
+                egg.slotIndexAtLanding = safeSlotIndex;
+                const targetX = this.getLineSlotCenterXAtClock(line, safeSlotIndex, egg.spawnClock + duration);
+                const steer = p < 0.55 ? 0.08 : 0.24;
+                egg.container.x = Phaser.Math.Linear(egg.container.x, targetX, steer);
+            }
 
             if (p < 1) continue;
             const pillow = this.line1Pillows.get(egg.slotIndexAtLanding);
@@ -692,7 +701,6 @@ window.EggGameModules.logic = {
 
     runEggBoxBonus(item) {
         if (!item || item.finished || item.boxBonusRunning) return;
-        const prevDepth = item.container.depth || 0;
         const bonusCount = Phaser.Math.Between(3, 5);
         const eggs = [];
         for (let i = 0; i < bonusCount; i++) eggs.push(this.getRoundSetupHiddenEggType());
@@ -726,40 +734,76 @@ window.EggGameModules.logic = {
                 item.finished = true;
 
                 const centerY = this.H * 0.48;
-                const startX = this.W * 0.5 - ((bonusCount - 1) * 70) * 0.5;
-                let delay = 0;
-                eggs.forEach((eggData, index) => {
+                const rowGap = 122;
+                const startX = this.W * 0.5 - ((bonusCount - 1) * rowGap) * 0.5;
+                const targetX = this.eggsHud ? this.eggsHud.x + this.midHud.x : this.W * 0.5;
+                const targetY = this.midHud ? this.midHud.y + 12 : this.H * 0.5;
+                const visuals = eggs.map((eggData, index) => {
                     const visual = this.createEggVisual(eggData, false).container;
-                    visual.setPosition(startX + index * 70, centerY);
-                    visual.setScale(1.55);
+                    visual.setPosition(startX + index * rowGap, centerY);
+                    visual.setScale(3.6);
+                    visual.setAlpha(0);
                     visual.setDepth(9212);
                     this.popupLayer.add(visual);
-                    const targetX = this.eggsHud ? this.eggsHud.x + this.midHud.x : this.W * 0.5;
-                    const targetY = this.midHud ? this.midHud.y + 12 : this.H * 0.5;
-                    this.time.delayedCall(delay, () => {
+                    this.tweens.add({
+                        targets: visual,
+                        alpha: 1,
+                        scaleX: 3.85,
+                        scaleY: 3.85,
+                        duration: 180,
+                        delay: index * 90,
+                        ease: "Back.Out"
+                    });
+                    return { visual, eggData, index };
+                });
+
+                this.time.delayedCall(1400, () => {
+                    let delay = 0;
+                    visuals.forEach(({ visual, eggData, index }) => {
                         this.tweens.add({
                             targets: visual,
-                            x: targetX,
-                            y: targetY,
-                            scaleX: 0.42,
-                            scaleY: 0.42,
-                            alpha: 0,
-                            duration: 260,
-                            ease: "Cubic.In",
-                            onComplete: () => {
-                                visual.destroy();
-                                this.roundEggPool.push(this.cloneEggTypeData(eggData));
-                                this.roundEggLimit += 1;
-                                this.remainingEggCount += 1;
-                                this.updatePillowButtonLabels();
-                                if (index === eggs.length - 1) {
-                                    item.boxBonusRunning = false;
-                                    this.endGameplayPause();
-                                }
-                            }
+                            scaleX: 3.95,
+                            scaleY: 3.95,
+                            duration: 120,
+                            delay,
+                            yoyo: true,
+                            ease: "Sine.InOut"
                         });
+                        this.time.delayedCall(delay, () => {
+                            this.spawnRadialSparkBurst(visual.x, visual.y, {
+                                count: 5,
+                                color: 0xffef9f,
+                                colorAlt: 0x9cd7ff,
+                                minSpeed: 16,
+                                maxSpeed: 42,
+                                depth: 9213
+                            });
+                        });
+                        this.time.delayedCall(delay + 1000, () => {
+                            this.tweens.add({
+                                targets: visual,
+                                x: targetX,
+                                y: targetY,
+                                scaleX: 0.42,
+                                scaleY: 0.42,
+                                alpha: 0,
+                                duration: 280,
+                                ease: "Cubic.In",
+                                onComplete: () => {
+                                    visual.destroy();
+                                    this.roundEggPool.push(this.cloneEggTypeData(eggData));
+                                    this.roundEggLimit += 1;
+                                    this.remainingEggCount += 1;
+                                    this.updatePillowButtonLabels();
+                                    if (index === visuals.length - 1) {
+                                        item.boxBonusRunning = false;
+                                        this.time.delayedCall(250, () => this.endGameplayPause());
+                                    }
+                                }
+                            });
+                        });
+                        delay += 170;
                     });
-                    delay += 160;
                 });
             }
         });
@@ -997,11 +1041,20 @@ window.EggGameModules.logic = {
         if (item.destroyed || item.finished) return;
         if (item.eggsBox) {
             if (def.type === "water") {
+                item.wet = true;
                 this.spawnWaterEggSplash(item);
+                this.pulseItem(item);
                 return;
             }
 
             if (def.type === "fire" || def.type === "crush") {
+                if (def.type === "fire" && item.wet) {
+                    item.wet = false;
+                    this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
+                    this.spawnDryFx(item);
+                    this.pulseItem(item);
+                    return;
+                }
                 item.boxDamage = (item.boxDamage || 0) + 1;
                 this.setEggBoxDamageVisual(item, item.boxDamage);
                 if (def.type === "crush") {

@@ -112,32 +112,29 @@ window.EggGameModules.entitiesFx = {
 
     createTravelEggBox() {
         const container = this.add.container(0, 0);
-        const shadow = this.add.ellipse(0, 28, 156, 28, 0x000000, 0.32);
-        const rearShadow = this.add.ellipse(0, 10, 128, 18, 0x000000, 0.12);
-        const backPlate = this.add.roundRectangle ? this.add.roundRectangle(0, -8, 118, 86, 16, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc) : this.add.rectangle(0, -8, 118, 86, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc);
-        const body = this.add.roundRectangle ? this.add.roundRectangle(0, 0, 132, 94, 18, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef) : this.add.rectangle(0, 0, 132, 94, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef);
-        const topLid = this.add.roundRectangle ? this.add.roundRectangle(0, -28, 118, 24, 10, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff) : this.add.rectangle(0, -28, 118, 24, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff);
-        const midBand = this.add.rectangle(0, -2, 120, 12, 0x394552, 1).setStrokeStyle(2, 0x7f8d9b, 0.8);
-        const hatch = this.add.roundRectangle ? this.add.roundRectangle(0, -14, 60, 16, 8, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55) : this.add.rectangle(0, -14, 60, 16, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55);
-        const stripeLeft = this.add.rectangle(-34, 18, 18, 44, 0xe0a73b, 1).setAngle(-18);
-        const stripeCenter = this.add.rectangle(0, 18, 18, 48, 0xf0bf4e, 1).setAngle(-18);
-        const stripeRight = this.add.rectangle(34, 18, 18, 44, 0xe0a73b, 1).setAngle(-18);
-        const labelPlate = this.add.rectangle(0, 24, 88, 28, 0x2e3946, 0.92).setStrokeStyle(2, 0xb5c3d3, 0.75);
-        const labelA = this.add.text(0, 10, "EGGS", {
+        const shadow = this.add.ellipse(0, 34, 170, 32, 0x000000, 0.32);
+        const rearShadow = this.add.ellipse(0, 14, 140, 20, 0x000000, 0.12);
+        const backPlate = this.add.roundRectangle ? this.add.roundRectangle(0, -10, 124, 100, 18, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc) : this.add.rectangle(0, -10, 124, 100, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc);
+        const body = this.add.roundRectangle ? this.add.roundRectangle(0, 0, 140, 110, 20, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef) : this.add.rectangle(0, 0, 140, 110, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef);
+        const topLid = this.add.roundRectangle ? this.add.roundRectangle(0, -34, 124, 26, 10, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff) : this.add.rectangle(0, -34, 124, 26, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff);
+        const midBand = this.add.rectangle(0, -4, 126, 14, 0x394552, 1).setStrokeStyle(2, 0x7f8d9b, 0.8);
+        const hatch = this.add.roundRectangle ? this.add.roundRectangle(0, -18, 62, 16, 8, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55) : this.add.rectangle(0, -18, 62, 16, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55);
+        const labelPlate = this.add.rectangle(0, 30, 92, 34, 0x2e3946, 0.92).setStrokeStyle(2, 0xb5c3d3, 0.75);
+        const labelA = this.add.text(0, 14, "EGGS", {
             fontFamily: "Arial",
             fontSize: "24px",
             color: "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
-        const labelB = this.add.text(0, 34, "BOX", {
+        const labelB = this.add.text(0, 40, "BOX", {
             fontFamily: "Arial",
             fontSize: "22px",
             color: "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
         const rivets = [
-            [-48, -30], [48, -30], [-56, -4], [56, -4],
-            [-56, 30], [56, 30], [-30, 40], [30, 40]
+            [-50, -38], [50, -38], [-60, -8], [60, -8],
+            [-60, 28], [60, 28], [-34, 46], [34, 46]
         ].map(([x, y]) => {
             const rivet = this.add.circle(x, y, 4.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280);
             const shine = this.add.circle(x - 1.2, y - 1.2, 1.4, 0xffffff, 0.55);
@@ -180,9 +177,6 @@ window.EggGameModules.entitiesFx = {
             topLid,
             midBand,
             hatch,
-            stripeLeft,
-            stripeCenter,
-            stripeRight,
             labelPlate,
             labelA,
             labelB,
