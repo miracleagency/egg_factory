@@ -220,8 +220,8 @@ window.EggGameModules.logic = {
             first
         );
         if (dropperKey !== "A") return baseClock;
-        const slotTravel = this.lines.line1.slotWidth / this.lines.line1.speed;
-        return Math.max(fromClock + 0.18, baseClock - slotTravel * 0.28);
+        const delta = Math.max(0.18, baseClock - fromClock);
+        return fromClock + Math.max(0.16, delta * 0.625);
     },
 
     fallDuration() {
@@ -321,20 +321,11 @@ window.EggGameModules.logic = {
 
     updateFallingEggs() {
         const duration = this.fallDuration();
-        const line = this.lines.line1;
 
         for (const egg of this.fallingEggs) {
             if (egg.state !== "falling") continue;
             const p = Phaser.Math.Clamp((this.speedClock - egg.spawnClock) / duration, 0, 1);
             egg.container.y = Phaser.Math.Linear(this.eggStartY, this.eggLandingY, p);
-
-            const safeSlotIndex = this.resolveEggLandingSlot(egg.slotIndexAtLanding);
-            if (Number.isFinite(safeSlotIndex)) {
-                egg.slotIndexAtLanding = safeSlotIndex;
-                const targetX = this.getLineSlotCenterXAtClock(line, safeSlotIndex, egg.spawnClock + duration);
-                const steer = p < 0.55 ? 0.08 : 0.24;
-                egg.container.x = Phaser.Math.Linear(egg.container.x, targetX, steer);
-            }
 
             if (p < 1) continue;
             const pillow = this.line1Pillows.get(egg.slotIndexAtLanding);
