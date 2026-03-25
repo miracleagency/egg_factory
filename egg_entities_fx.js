@@ -1139,15 +1139,15 @@ window.EggGameModules.entitiesFx = {
         item.wetFx = [];
         const wetParent = item.container._wetOverlay || item.container;
 
-        const sheenEdge = this.add.ellipse(0, 6, 132, 96, 0xdff6ff, 0.16);
-        const sheen = this.add.ellipse(0, 8, 120, 86, 0x66c9ff, 0.24);
+        const sheenEdge = this.add.ellipse(0, -10, 110, 56, 0xdff6ff, 0.10);
+        const sheen = this.add.ellipse(0, -8, 96, 48, 0x66c9ff, 0.16);
         const drips = [
-            { x: -34, y: -10, r: 14, h: 28 },
-            { x: -10, y: -2, r: 12, h: 24 },
-            { x: 18, y: 2, r: 13, h: 26 },
-            { x: 42, y: -8, r: 12, h: 22 },
-            { x: -20, y: 24, r: 15, h: 24 },
-            { x: 14, y: 26, r: 13, h: 22 }
+            { x: -34, y: -26, r: 8, h: 14 },
+            { x: -10, y: -22, r: 7, h: 12 },
+            { x: 16, y: -20, r: 8, h: 13 },
+            { x: 38, y: -24, r: 7, h: 12 },
+            { x: -22, y: -4, r: 8, h: 13 },
+            { x: 10, y: -2, r: 7, h: 12 }
         ];
 
         wetParent.add([sheenEdge, sheen]);
@@ -1157,9 +1157,9 @@ window.EggGameModules.entitiesFx = {
         }
         this.tweens.add({
             targets: [sheenEdge, sheen],
-            alpha: 0.12,
-            scaleX: 1.04,
-            scaleY: 1.06,
+            alpha: 0.08,
+            scaleX: 1.03,
+            scaleY: 1.05,
             duration: 360,
             yoyo: true,
             repeat: -1
@@ -1180,11 +1180,11 @@ window.EggGameModules.entitiesFx = {
             }
             this.tweens.add({
                 targets: [tail, tailShine, drop, shine],
-                y: p.y - 4,
+                y: p.y - 2,
                 x: p.x + Phaser.Math.Between(-2, 2),
-                alpha: 0.92,
-                scaleX: 0.92,
-                scaleY: 1.18,
+                alpha: 0.82,
+                scaleX: 0.94,
+                scaleY: 1.12,
                 yoyo: true,
                 repeat: -1,
                 duration: 300 + Phaser.Math.Between(0, 140)

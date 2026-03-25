@@ -657,9 +657,12 @@ window.EggGameModules.logic = {
             if (def.value === 50) {
                 minSkip = 7;
                 maxSkip = 11;
-            } else if (def.value === 5 || def.value === 10) {
+            } else if (def.value === 10) {
+                minSkip = 1;
+                maxSkip = 2;
+            } else if (def.value === 5) {
                 minSkip = 2;
-                maxSkip = def.value === 5 ? 4 : 5;
+                maxSkip = 4;
             } else {
                 minSkip = def.fastGold ? 4 : 5;
                 maxSkip = def.fastGold ? 8 : 10;
@@ -1659,6 +1662,7 @@ window.EggGameModules.logic = {
             if (def.type === "fire" || def.type === "crush" || def.type === "shield") {
                 if (def.type === "fire" && item.wet) {
                     item.wet = false;
+                    this.clearWetFx(item);
                     this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
                     this.spawnDryFx(item);
                     this.pulseItem(item);
