@@ -907,11 +907,15 @@ window.EggGameModules.logic = {
         const prevItemDepth = item.container.depth || 0;
         const startValue = item.currentValue || 0;
         const nextValue = startValue * (def.value || 1);
+        const prevItemX = item.container.x;
+        const prevItemY = item.container.y;
 
         this.beginGameplayPause([def.container, item.container]);
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
+        item.container.x = shotConfig.endX;
+        item.container.y = shotConfig.endY + 4;
         this.updatePillowValueText(item);
         const pauseText = item.pauseValueText || item.valueText;
         if (pauseText && pauseText.scene) {
@@ -933,10 +937,12 @@ window.EggGameModules.logic = {
         });
 
         const badge = this.spawnMysteryBonusText(`GOLD LASER x${def.value}`, "#fff2a3", 0xf0cb4e);
-        this.time.delayedCall(700, () => {
+        this.time.delayedCall(950, () => {
             if (item.destroyed || item.finished) {
                 def.container.setDepth(prevMachineDepth);
                 item.container.setDepth(prevItemDepth);
+                item.container.x = prevItemX;
+                item.container.y = prevItemY;
                 machineGlow.destroy();
                 itemGlow.destroy();
                 this.restoreLiftedContainers(lifted);
@@ -962,13 +968,15 @@ window.EggGameModules.logic = {
                             this.applySafeValueTextColor(pauseText, "#fff2a3", false);
                         },
                         onComplete: () => {
-                            this.time.delayedCall(700, () => {
+                            this.time.delayedCall(950, () => {
                                 this.updatePillowValueText(item);
                                 this.flashValueText(item, "#fff2a3");
                                 this.pulseItem(item);
                                 item.focusApplied = false;
                                 if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                                 if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                                item.container.x = prevItemX;
+                                item.container.y = prevItemY;
                                 machineGlow.destroy();
                                 itemGlow.destroy();
                                 this.restoreLiftedContainers(lifted);
@@ -977,13 +985,15 @@ window.EggGameModules.logic = {
                         }
                     });
                 } else {
-                    this.time.delayedCall(700, () => {
+                    this.time.delayedCall(950, () => {
                         this.updatePillowValueText(item);
                         this.flashValueText(item, "#fff2a3");
                         this.pulseItem(item);
                         item.focusApplied = false;
                         if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                         if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                        item.container.x = prevItemX;
+                        item.container.y = prevItemY;
                         machineGlow.destroy();
                         itemGlow.destroy();
                         this.restoreLiftedContainers(lifted);
@@ -999,10 +1009,14 @@ window.EggGameModules.logic = {
         if (!def || !item || item.destroyed || item.finished || this.gameplayPaused) return false;
         const prevMachineDepth = def.container.depth || 0;
         const prevItemDepth = item.container.depth || 0;
+        const prevItemX = item.container.x;
+        const prevItemY = item.container.y;
         this.beginGameplayPause([def.container, item.container]);
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
+        item.container.x = def.container.x;
+        item.container.y = item.container.y;
         const machineGlow = this.add.ellipse(def.container.x, def.container.y + 10, 240, 156, 0xffc6a3, 0.18).setDepth(9204);
         const itemGlow = this.add.ellipse(item.container.x, item.container.y - 8, 196, 128, 0xd78cff, 0.22).setDepth(9204);
         this.popupLayer.add([machineGlow, itemGlow]);
@@ -1016,12 +1030,13 @@ window.EggGameModules.logic = {
             yoyo: true,
             repeat: -1
         });
-        this.spawnMysteryBonusText("MYSTERY CRACK", "#ffd6ff", 0xc379ff);
-        this.time.delayedCall(700, () => {
+        this.time.delayedCall(950, () => {
             if (typeof action === "function") action(() => {
-                this.time.delayedCall(700, () => {
+                this.time.delayedCall(950, () => {
                     if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                     if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                    item.container.x = prevItemX;
+                    item.container.y = prevItemY;
                     machineGlow.destroy();
                     itemGlow.destroy();
                     this.restoreLiftedContainers(lifted);
@@ -1060,9 +1075,9 @@ window.EggGameModules.logic = {
         this.popupLayer.add([vaultGlow, vaultCore, itemGlow]);
         this.spawnMysteryBonusText("VAULT MELTDOWN", "#ffe1b0", 0xff8c54);
 
-        this.time.delayedCall(700, () => {
+        this.time.delayedCall(950, () => {
             if (typeof onComplete === "function") onComplete();
-            this.time.delayedCall(700, () => {
+            this.time.delayedCall(950, () => {
                 vaultGlow.destroy();
                 vaultCore.destroy();
                 itemGlow.destroy();
@@ -1307,9 +1322,9 @@ window.EggGameModules.logic = {
                 accent: 0xbecddd,
                 focusItems: activeItems,
                 steps,
-                startDelay: 700,
+                startDelay: 950,
                 stepDelay: 180,
-                finishDelay: 700
+                finishDelay: 950
             });
             return;
         }
@@ -1343,9 +1358,9 @@ window.EggGameModules.logic = {
                 accent: 0xf0cb4e,
                 focusItems: activeItems,
                 steps,
-                startDelay: 700,
+                startDelay: 950,
                 stepDelay: 180,
-                finishDelay: 700
+                finishDelay: 950
             });
             return;
         }
@@ -1371,9 +1386,9 @@ window.EggGameModules.logic = {
             accent: 0xff7d5d,
             focusMachines: dangerMachines,
             steps,
-            startDelay: 700,
+            startDelay: 950,
             stepDelay: 180,
-            finishDelay: 700
+            finishDelay: 950
         });
     },
 
@@ -1430,7 +1445,6 @@ window.EggGameModules.logic = {
                 ease: "Quad.In",
                 onComplete: () => {
                     if (item && !item.destroyed && !item.finished) {
-                        item.x = targetX;
                         item.container.x = targetX;
                     }
                     if (item) this.applyMachineEffect(def, item);
@@ -1489,7 +1503,6 @@ window.EggGameModules.logic = {
 
         this.spawnMachineProjectile(def, startX, startY, endX, endY, travelDuration, () => {
             if (item && !item.destroyed && !item.finished) {
-                item.x = endX;
                 item.container.x = endX;
             }
             if (item) this.applyMachineEffect(def, item);
@@ -1499,6 +1512,12 @@ window.EggGameModules.logic = {
 
     applyMachineEffect(def, item) {
         if (item.destroyed || item.finished) return;
+        if (def && def.id) {
+            item._machineHitCooldowns = item._machineHitCooldowns || {};
+            const lastHitAt = item._machineHitCooldowns[def.id] || 0;
+            if (this.time.now - lastHitAt < 260) return;
+            item._machineHitCooldowns[def.id] = this.time.now;
+        }
         if (item.eggsBox) {
             if (def.type === "water") {
                 item.wet = true;
