@@ -1014,6 +1014,43 @@ window.EggGameModules.ui = {
         });
     },
 
+    hideRoundSetupPopup(onComplete) {
+        if (!this.roundSetupPopup) {
+            if (typeof onComplete === "function") onComplete();
+            return;
+        }
+
+        this.tweens.killTweensOf(this.roundSetupPopup);
+        if (this.roundSetupOverlay) this.tweens.killTweensOf(this.roundSetupOverlay);
+
+        this.tweens.add({
+            targets: this.roundSetupPopup,
+            alpha: 0,
+            scaleX: 0.86,
+            scaleY: 0.86,
+            duration: 280,
+            ease: "Back.In",
+            onComplete: () => {
+                this.roundSetupPopup.setVisible(false);
+                this.roundSetupPopup.setScale(1);
+                if (typeof onComplete === "function") onComplete();
+            }
+        });
+
+        if (this.roundSetupOverlay) {
+            this.tweens.add({
+                targets: this.roundSetupOverlay,
+                alpha: 0,
+                duration: 360,
+                ease: "Quad.Out",
+                onComplete: () => {
+                    this.roundSetupOverlay.setVisible(false);
+                    this.roundSetupOverlay.setAlpha(0.52);
+                }
+            });
+        }
+    },
+
     handleRoundSetupPlay() {
         if (this.roundSetupLaunching) return;
         const cost = 250 * (this.bet || 1);
@@ -1030,22 +1067,22 @@ window.EggGameModules.ui = {
 
         if (hiddenIndexes.length === 0) {
             this.balance -= cost;
-            if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
-            this.roundSetupPopup.setVisible(false);
-            if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
-            this.updatePillowButtonLabels();
+            this.hideRoundSetupPopup(() => {
+                if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
+                this.updatePillowButtonLabels();
+            });
             return;
         }
 
         const revealNext = (queue) => {
             if (queue.length === 0) {
                 this.roundSetupErrorText.setText("");
-                this.time.delayedCall(1000, () => {
+                this.time.delayedCall(520, () => {
                     this.balance -= cost;
-                    if (this.roundSetupOverlay) this.roundSetupOverlay.setVisible(false);
-                    this.roundSetupPopup.setVisible(false);
-                    if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
-                    this.updatePillowButtonLabels();
+                    this.hideRoundSetupPopup(() => {
+                        if (typeof this.armRoundGameplayStart === "function") this.armRoundGameplayStart();
+                        this.updatePillowButtonLabels();
+                    });
                 });
                 return;
             }

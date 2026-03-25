@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-line1-left-entry-autodrop-fix-v81"
+    version: "2026-03-25-gold-focus-fast-start-iron-guard-popup-out-v82"
 };

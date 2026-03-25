@@ -407,6 +407,20 @@ window.EggGameModules.logic = {
         return;
     },
 
+    populateInitialLine1Slots() {
+        const entrySlot = this.getLine1EntrySlotIndex();
+        const visibleSlot = this.getLine1FirstVisibleSlotIndex() + 1;
+        const step = entrySlot <= visibleSlot ? 1 : -1;
+        for (let currentSlot = entrySlot; step > 0 ? currentSlot <= visibleSlot : currentSlot >= visibleSlot; currentSlot += step) {
+            if (this.getLine1SlotEntryType(currentSlot) === "box") {
+                this.spawnLine1EggBox(currentSlot);
+            } else if (this.shouldSpawnEggAtEntrySlot(currentSlot)) {
+                this.spawnEggAtEntrySlot(currentSlot);
+            }
+        }
+        this.autoDropCheckSlot = entrySlot;
+    },
+
     armRoundGameplayStart() {
         this.roundSetupActive = false;
         this.autoDropCheckSlot = null;
@@ -415,6 +429,7 @@ window.EggGameModules.logic = {
         this.nextEggSpawnB = Infinity;
         this.line1EggGapRemaining = 0;
         this.line1EggRunRemaining = 0;
+        this.populateInitialLine1Slots();
         this.lastTime = this.time.now;
     },
 
@@ -1072,10 +1087,13 @@ window.EggGameModules.logic = {
                 .slice()
                 .sort((a, b) => a.y - b.y)
                 .map(item => () => {
-                    this.animateMysteryTransformItem(item, egg => ({
-                        ...this.createArmoredEggData(egg),
-                        mult: egg.mult
-                    }), "#d8e3ef");
+                    this.animateMysteryTransformItem(item, egg => {
+                        if (egg.armored) return { ...egg };
+                        return {
+                            ...this.createArmoredEggData(egg),
+                            mult: egg.mult
+                        };
+                    }, "#d8e3ef");
                     item.armored = true;
                     item.permanentTextColor = "#d8e3ef";
                     this.updatePillowValueText(item);
@@ -1243,7 +1261,7 @@ window.EggGameModules.logic = {
 
     applyMachineEffect(def, item) {
         if (item.destroyed || item.finished) return;
-        if (!item.focusApplied && !this.gameplayPaused) {
+        if (!item.focusApplied && !this.gameplayPaused && def && def.rarity === "gold" && def.type === "mul") {
             if (def.type === "mul" && item.eggMultSum > 0) {
                 if (def.value === 50) {
                     this.runX50FocusBonus(def, item, item.currentValue * def.value);
@@ -1261,18 +1279,6 @@ window.EggGameModules.logic = {
                 }
                 return;
             }
-
-            this.runFocusedMachineAction(def, item, {
-                label: def.label,
-                accent: def.type === "water" ? "#9fe5ff" : (def.type === "fire" ? "#ffb38a" : "#ffd9bf"),
-                totalDelay: 540,
-                onApply: () => {
-                    item.focusApplied = true;
-                    this.applyMachineEffect(def, item);
-                    item.focusApplied = false;
-                }
-            });
-            return;
         }
 
         if (item.eggsBox) {
