@@ -11,14 +11,12 @@ window.EggGameModules.logic = {
         this.pendingBonusSeq = (this.pendingBonusSeq || 0) + 1;
         this.pendingBonusQueue.push({
             priority: job.priority || 99,
+            readyClock: typeof job.readyClock === "number" ? job.readyClock : this.speedClock,
             seq: this.pendingBonusSeq,
             isValid: typeof job.isValid === "function" ? job.isValid : () => true,
             execute: job.execute
         });
-        this.pendingBonusQueue.sort((a, b) => (a.priority - b.priority) || (a.seq - b.seq));
-        if (!this.gameplayPaused) {
-            this.processPendingBonusQueue();
-        }
+        this.pendingBonusQueue.sort((a, b) => (a.priority - b.priority) || (a.readyClock - b.readyClock) || (a.seq - b.seq));
     },
 
     processPendingBonusQueue() {
@@ -27,6 +25,10 @@ window.EggGameModules.logic = {
         while (this.pendingBonusQueue.length > 0) {
             const nextJob = this.pendingBonusQueue.shift();
             if (!nextJob || !nextJob.isValid()) continue;
+            if (this.speedClock + 0.0001 < nextJob.readyClock) {
+                this.pendingBonusQueue.unshift(nextJob);
+                return;
+            }
             nextJob.execute();
             return;
         }
@@ -1534,6 +1536,7 @@ window.EggGameModules.logic = {
         if (def.type === "crush" && item && (item.eggs || []).some(egg => egg.key === "mystery") && !item.focusApplied && !this.gameplayPaused) {
             this.enqueueBonusPause({
                 priority: stage,
+                readyClock: impactClock,
                 isValid: () => !!item && !item.destroyed && !item.finished && (item.eggs || []).some(egg => egg.key === "mystery"),
                 execute: () => {
                     item.focusApplied = true;
@@ -1564,6 +1567,7 @@ window.EggGameModules.logic = {
         if (def && def.rarity === "gold" && def.type === "mul" && item && !item.eggsBox && !item.focusApplied && !this.gameplayPaused) {
             this.enqueueBonusPause({
                 priority: stage,
+                readyClock: impactClock,
                 isValid: () => !!item && !item.destroyed && !item.finished && !item.eggsBox && item.eggMultSum > 0,
                 execute: () => {
                     item.focusApplied = true;
