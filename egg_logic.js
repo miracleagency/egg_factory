@@ -409,7 +409,7 @@ window.EggGameModules.logic = {
 
     populateInitialLine1EntrySlot() {
         const entrySlot = this.getLine1EntrySlotIndex();
-        for (const slot of [entrySlot, entrySlot + 1]) {
+        for (const slot of [entrySlot + 1, entrySlot + 2]) {
             if (this.line1Pillows.has(slot)) continue;
             if (this.getLine1SlotEntryType(slot) === "box") {
                 this.spawnLine1EggBox(slot);
@@ -907,9 +907,9 @@ window.EggGameModules.logic = {
         const prevItemDepth = item.container.depth || 0;
         const startValue = item.currentValue || 0;
         const nextValue = startValue * (def.value || 1);
-        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
 
         this.beginGameplayPause([def.container, item.container]);
+        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
         this.updatePillowValueText(item);
@@ -918,12 +918,27 @@ window.EggGameModules.logic = {
             pauseText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
             pauseText.setScale(1, 1);
         }
+        const machineGlow = this.add.ellipse(def.container.x, def.container.y + 8, 230, 150, 0xffd45c, 0.20).setDepth(9204);
+        const itemGlow = this.add.ellipse(item.container.x, item.container.y - 6, 210, 134, 0xffef9f, 0.22).setDepth(9204);
+        this.popupLayer.add([machineGlow, itemGlow]);
+        this.tweens.add({
+            targets: [machineGlow, itemGlow],
+            alpha: 0.34,
+            scaleX: 1.08,
+            scaleY: 1.06,
+            duration: 240,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: -1
+        });
 
         const badge = this.spawnMysteryBonusText(`GOLD LASER x${def.value}`, "#fff2a3", 0xf0cb4e);
-        this.time.delayedCall(400, () => {
+        this.time.delayedCall(700, () => {
             if (item.destroyed || item.finished) {
                 def.container.setDepth(prevMachineDepth);
                 item.container.setDepth(prevItemDepth);
+                machineGlow.destroy();
+                itemGlow.destroy();
                 this.restoreLiftedContainers(lifted);
                 this.endGameplayPause();
                 return;
@@ -947,26 +962,30 @@ window.EggGameModules.logic = {
                             this.applySafeValueTextColor(pauseText, "#fff2a3", false);
                         },
                         onComplete: () => {
-                            this.time.delayedCall(400, () => {
+                            this.time.delayedCall(700, () => {
                                 this.updatePillowValueText(item);
                                 this.flashValueText(item, "#fff2a3");
                                 this.pulseItem(item);
                                 item.focusApplied = false;
                                 if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                                 if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                                machineGlow.destroy();
+                                itemGlow.destroy();
                                 this.restoreLiftedContainers(lifted);
                                 this.endGameplayPause();
                             });
                         }
                     });
                 } else {
-                    this.time.delayedCall(400, () => {
+                    this.time.delayedCall(700, () => {
                         this.updatePillowValueText(item);
                         this.flashValueText(item, "#fff2a3");
                         this.pulseItem(item);
                         item.focusApplied = false;
                         if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                         if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                        machineGlow.destroy();
+                        itemGlow.destroy();
                         this.restoreLiftedContainers(lifted);
                         this.endGameplayPause();
                     });
@@ -980,16 +999,31 @@ window.EggGameModules.logic = {
         if (!def || !item || item.destroyed || item.finished || this.gameplayPaused) return false;
         const prevMachineDepth = def.container.depth || 0;
         const prevItemDepth = item.container.depth || 0;
-        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         this.beginGameplayPause([def.container, item.container]);
+        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
+        const machineGlow = this.add.ellipse(def.container.x, def.container.y + 10, 240, 156, 0xffc6a3, 0.18).setDepth(9204);
+        const itemGlow = this.add.ellipse(item.container.x, item.container.y - 8, 196, 128, 0xd78cff, 0.22).setDepth(9204);
+        this.popupLayer.add([machineGlow, itemGlow]);
+        this.tweens.add({
+            targets: [machineGlow, itemGlow],
+            alpha: 0.32,
+            scaleX: 1.08,
+            scaleY: 1.06,
+            duration: 240,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: -1
+        });
         this.spawnMysteryBonusText("MYSTERY CRACK", "#ffd6ff", 0xc379ff);
-        this.time.delayedCall(400, () => {
+        this.time.delayedCall(700, () => {
             if (typeof action === "function") action(() => {
-                this.time.delayedCall(400, () => {
+                this.time.delayedCall(700, () => {
                     if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                     if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                    machineGlow.destroy();
+                    itemGlow.destroy();
                     this.restoreLiftedContainers(lifted);
                     this.endGameplayPause();
                 });
@@ -1004,22 +1038,34 @@ window.EggGameModules.logic = {
         const collectorX = this.lines.line3.endX + 74;
         const collectorY = this.lines.line3.y + this.lines.line3.h * 0.5 - 18;
         const itemPrevDepth = item.container.depth || 0;
-        const lifted = this.liftContainersToPopupLayer([item.container]);
         this.beginGameplayPause([item.container]);
+        const lifted = this.liftContainersToPopupLayer([item.container]);
         item.container.setDepth(9205);
 
         const vaultGlow = this.add.ellipse(collectorX, collectorY, 240, 220, 0xffd45c, 0.18).setDepth(9206);
         const vaultCore = this.add.roundRectangle
             ? this.add.roundRectangle(collectorX, collectorY, 132, 148, 20, 0xb88925, 0.92).setStrokeStyle(4, 0xffefad, 0.9)
             : this.add.rectangle(collectorX, collectorY, 132, 148, 0xb88925, 0.92).setStrokeStyle(4, 0xffefad, 0.9);
-        this.popupLayer.add([vaultGlow, vaultCore]);
+        const itemGlow = this.add.ellipse(item.container.x, item.container.y - 8, 210, 138, 0xff9c6b, 0.24).setDepth(9207);
+        this.tweens.add({
+            targets: [vaultGlow, itemGlow],
+            alpha: 0.34,
+            scaleX: 1.08,
+            scaleY: 1.08,
+            duration: 240,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: -1
+        });
+        this.popupLayer.add([vaultGlow, vaultCore, itemGlow]);
         this.spawnMysteryBonusText("VAULT MELTDOWN", "#ffe1b0", 0xff8c54);
 
-        this.time.delayedCall(400, () => {
+        this.time.delayedCall(700, () => {
             if (typeof onComplete === "function") onComplete();
-            this.time.delayedCall(400, () => {
+            this.time.delayedCall(700, () => {
                 vaultGlow.destroy();
                 vaultCore.destroy();
+                itemGlow.destroy();
                 if (item.container && item.container.scene) item.container.setDepth(itemPrevDepth);
                 this.restoreLiftedContainers(lifted);
                 item.collectorBombRunning = false;
@@ -1261,9 +1307,9 @@ window.EggGameModules.logic = {
                 accent: 0xbecddd,
                 focusItems: activeItems,
                 steps,
-                startDelay: 0,
+                startDelay: 700,
                 stepDelay: 180,
-                finishDelay: 400
+                finishDelay: 700
             });
             return;
         }
@@ -1297,9 +1343,9 @@ window.EggGameModules.logic = {
                 accent: 0xf0cb4e,
                 focusItems: activeItems,
                 steps,
-                startDelay: 400,
+                startDelay: 700,
                 stepDelay: 180,
-                finishDelay: 400
+                finishDelay: 700
             });
             return;
         }
@@ -1325,9 +1371,9 @@ window.EggGameModules.logic = {
             accent: 0xff7d5d,
             focusMachines: dangerMachines,
             steps,
-            startDelay: 400,
+            startDelay: 700,
             stepDelay: 180,
-            finishDelay: 400
+            finishDelay: 700
         });
     },
 
@@ -1383,6 +1429,10 @@ window.EggGameModules.logic = {
                 duration: 180,
                 ease: "Quad.In",
                 onComplete: () => {
+                    if (item && !item.destroyed && !item.finished) {
+                        item.x = targetX;
+                        item.container.x = targetX;
+                    }
                     if (item) this.applyMachineEffect(def, item);
                     this.spawnCrushFx(targetX, targetY);
 
@@ -1438,6 +1488,10 @@ window.EggGameModules.logic = {
         }
 
         this.spawnMachineProjectile(def, startX, startY, endX, endY, travelDuration, () => {
+            if (item && !item.destroyed && !item.finished) {
+                item.x = endX;
+                item.container.x = endX;
+            }
             if (item) this.applyMachineEffect(def, item);
             this.spawnMachineImpactFx(def, endX, endY);
         });
