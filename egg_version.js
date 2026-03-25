@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-mystery-frontlift-soft-align-v88"
+    version: "2026-03-25-shield-mega-armor-fast-machines-v89"
 };

@@ -21,6 +21,9 @@ window.EggGameModules.entitiesFx = {
         } else if (def.type === "crush") {
             fill = 0x8a7363;
             stroke = 0xd0b8a2;
+        } else if (def.type === "shield") {
+            fill = 0x6f7b88;
+            stroke = 0xdce4ed;
         } else if (def.type === "fire") {
             fill = 0xd3412c;
             stroke = 0xff9f8f;
@@ -28,12 +31,20 @@ window.EggGameModules.entitiesFx = {
             fill = 0xe1c83b;
             stroke = 0xffef8e;
         }
-
-        const body = this.add.rectangle(0, 0, 126, 72, fill, 1).setStrokeStyle(4, stroke);
-        const lip = this.add.rectangle(0, 44, 84, 12, 0x3a4554, 1).setStrokeStyle(2, 0x7c8998);
+        let body;
+        let lip;
+        if (def.type === "shield") {
+            body = this.add.roundRectangle
+                ? this.add.roundRectangle(0, 0, 132, 82, 16, fill, 1).setStrokeStyle(4, stroke)
+                : this.add.rectangle(0, 0, 132, 82, fill, 1).setStrokeStyle(4, stroke);
+            lip = this.add.rectangle(0, 48, 86, 12, 0x394552, 1).setStrokeStyle(2, 0x9aa9b6);
+        } else {
+            body = this.add.rectangle(0, 0, 126, 72, fill, 1).setStrokeStyle(4, stroke);
+            lip = this.add.rectangle(0, 44, 84, 12, 0x3a4554, 1).setStrokeStyle(2, 0x7c8998);
+        }
         const label = this.add.text(0, -2, def.label, {
             fontFamily: "Arial",
-            fontSize: "36px",
+            fontSize: def.type === "shield" ? "28px" : "36px",
             color: def.rarity === "gold" ? "#4a2a00" : "#ffffff",
             fontStyle: "bold"
         }).setOrigin(0.5);
@@ -48,7 +59,18 @@ window.EggGameModules.entitiesFx = {
         const hammerHead = this.add.rectangle(0, -18, 24, 12, 0xc8d0db, 1).setStrokeStyle(2, 0xffffff);
         hammer.add([hammerHandle, hammerHead]);
 
-        container.add([body, lip, label, timerText, hammer]);
+        const parts = [body, lip, label, timerText, hammer];
+        if (def.type === "shield") {
+            const panel = this.add.rectangle(0, -8, 92, 26, 0x495563, 0.95).setStrokeStyle(2, 0xbec9d5, 0.7);
+            const rivets = [
+                this.add.circle(-44, -20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(44, -20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-44, 20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(44, 20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280)
+            ];
+            parts.unshift(panel, ...rivets);
+        }
+        container.add(parts);
         container.setScale(1.12);
         this.machineLayer.add(container);
 
@@ -339,14 +361,13 @@ window.EggGameModules.entitiesFx = {
         }
 
         if (eggType.armored) {
-            const shell = this.add.ellipse(0, 0, 34, 46, 0x8d969f, 1).setStrokeStyle(3, 0xdfe6ef);
-            const band = this.add.rectangle(0, 0, 26, 34, 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
-            const rivets = [
-                this.add.circle(-11, -11, 2.8, 0xe4eaf1, 1),
-                this.add.circle(11, -11, 2.8, 0xe4eaf1, 1),
-                this.add.circle(-11, 11, 2.8, 0xe4eaf1, 1),
-                this.add.circle(11, 11, 2.8, 0xe4eaf1, 1)
-            ];
+            const mega = !!eggType.megaArmored;
+            const shell = this.add.ellipse(0, 0, mega ? 40 : 34, mega ? 54 : 46, mega ? 0x79838e : 0x8d969f, 1).setStrokeStyle(3, mega ? 0xf0f6fd : 0xdfe6ef);
+            const band = this.add.rectangle(0, 0, mega ? 30 : 26, mega ? 40 : 34, mega ? 0x5d6671 : 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
+            const rivetPoints = mega
+                ? [[-13, -17], [0, -19], [13, -17], [-15, 0], [15, 0], [-13, 17], [0, 19], [13, 17]]
+                : [[-11, -11], [11, -11], [-11, 11], [11, 11]];
+            const rivets = rivetPoints.map(([x, y]) => this.add.circle(x, y, mega ? 3.2 : 2.8, 0xe4eaf1, 1));
             const shine = this.add.ellipse(-7, -12, 7, 12, 0xffffff, 0.22);
             const crackA = this.add.graphics();
             crackA.lineStyle(2, 0x25303a, 0.92);
@@ -376,7 +397,7 @@ window.EggGameModules.entitiesFx = {
 
             const armorDamage = eggType.armorDamage || 0;
             crackA.setVisible(armorDamage >= 1);
-            crackB.setVisible(armorDamage >= 2);
+            crackB.setVisible(armorDamage >= (mega ? 999 : 2));
             container.add([shell, band, ...rivets, shine, crackA, crackB]);
             container._armorCrackA = crackA;
             container._armorCrackB = crackB;

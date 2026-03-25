@@ -25,12 +25,13 @@ window.EggGameModules.logic = {
 
     unwrapArmoredEggData(egg) {
         if (!egg || !egg.armored) return this.cloneEggTypeData(egg);
+        if (egg.megaArmored) return this.createArmoredEggData(egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : null);
         const payload = egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : this.getArmoredPayloadEgg();
         if (payload) {
             payload.armored = false;
             payload.armorDamage = 0;
             payload.innerEgg = null;
-            if (payload.bomb) payload.bombLit = false;
+            if (payload.bomb) payload.bombLit = true;
         }
         return payload;
     },
@@ -53,6 +54,15 @@ window.EggGameModules.logic = {
             goldFx: false,
             diamondFx: false,
             mysteryFx: false
+        };
+    },
+
+    createMegaArmoredEggData(innerEgg = null) {
+        const armored = this.createArmoredEggData(innerEgg);
+        return {
+            ...armored,
+            megaArmored: true,
+            armorDamage: 0
         };
     },
 
@@ -603,9 +613,9 @@ window.EggGameModules.logic = {
             maxSkip = 2;
         } else if (def.type === "half") {
             maxSkip = 2;
-        } else if (def.type === "crush") {
+        } else if (def.type === "crush" || def.type === "shield") {
             minSkip = def.slowCrush ? 2 : 1;
-            maxSkip = def.slowCrush ? 3 : 2;
+            maxSkip = def.slowCrush ? 2 : 1;
         } else if (def.type === "water") {
             maxSkip = 4;
         } else if (def.type === "fire") {
@@ -613,11 +623,11 @@ window.EggGameModules.logic = {
             maxSkip = 1;
         } else if (def.rarity === "gold") {
             if (def.value === 50) {
-                minSkip = 10;
-                maxSkip = 16;
+                minSkip = 7;
+                maxSkip = 11;
             } else {
-                minSkip = def.fastGold ? 6 : 7;
-                maxSkip = def.fastGold ? 12 : 15;
+                minSkip = def.fastGold ? 4 : 5;
+                maxSkip = def.fastGold ? 8 : 10;
             }
         }
 
@@ -1276,6 +1286,21 @@ window.EggGameModules.logic = {
         });
     },
 
+    applyShieldToItem(item) {
+        if (!item || item.destroyed || item.finished || !item.eggs || item.eggs.length === 0) return;
+        const nextEggs = item.eggs.map(egg => {
+            if (egg.megaArmored) return { ...egg };
+            if (egg.armored) return this.createMegaArmoredEggData(egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : egg);
+            return this.createArmoredEggData(egg);
+        });
+        this.setItemEggs(item, nextEggs);
+        item.armored = true;
+        item.permanentTextColor = "#d8e3ef";
+        this.updatePillowValueText(item);
+        this.flashValueText(item, "#d8e3ef");
+        this.pulseItem(item);
+    },
+
     setItemEggs(item, eggs) {
         if (!item || !item.container) return;
 
@@ -1435,7 +1460,7 @@ window.EggGameModules.logic = {
             return;
         }
 
-        if (def.type === "crush") {
+        if (def.type === "crush" || def.type === "shield") {
             this.spawnCrusherAttack(def, line, stage, def.nextImpact);
         } else {
             this.spawnVerticalProjectile(def, line, stage, def.nextImpact, def.flightTime);
@@ -1456,7 +1481,12 @@ window.EggGameModules.logic = {
             const press = this.add.container(targetX, startY).setDepth(5050);
             const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
             const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
-            const head = this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
+            const head = def.type === "shield"
+                ? this.add.rectangle(0, 28, 104, 32, 0x7a8692, 1).setStrokeStyle(4, 0xe5ecf4)
+                : this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
+            if (def.type === "shield") {
+                head.setFillStyle(0x7a8692, 1).setStrokeStyle(4, 0xe5ecf4);
+            }
             press.add([shaft, top, head]);
             this.fxLayer.add(press);
 
@@ -1470,7 +1500,11 @@ window.EggGameModules.logic = {
                         item.container.x = targetX;
                     }
                     if (item) this.applyMachineEffect(def, item);
-                    this.spawnCrushFx(targetX, targetY);
+                    if (def.type === "shield") {
+                        this.spawnMachineImpactFx({ type: "water" }, targetX, targetY - 4);
+                    } else {
+                        this.spawnCrushFx(targetX, targetY);
+                    }
 
                     this.tweens.add({
                         targets: press,
@@ -1651,6 +1685,11 @@ window.EggGameModules.logic = {
             this.updatePillowValueText(item);
             this.flashValueText(item, def.rarity === "gold" ? "#fff2a3" : "#7dff9c");
             this.pulseItem(item);
+            return;
+        }
+
+        if (def.type === "shield") {
+            this.applyShieldToItem(item);
             return;
         }
 
