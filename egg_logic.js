@@ -409,10 +409,13 @@ window.EggGameModules.logic = {
 
     populateInitialLine1EntrySlot() {
         const entrySlot = this.getLine1EntrySlotIndex();
-        if (this.getLine1SlotEntryType(entrySlot) === "box") {
-            this.spawnLine1EggBox(entrySlot);
-        } else if (this.shouldSpawnEggAtEntrySlot(entrySlot)) {
-            this.spawnEggAtEntrySlot(entrySlot);
+        for (const slot of [entrySlot, entrySlot + 1]) {
+            if (this.line1Pillows.has(slot)) continue;
+            if (this.getLine1SlotEntryType(slot) === "box") {
+                this.spawnLine1EggBox(slot);
+            } else if (this.shouldSpawnEggAtEntrySlot(slot)) {
+                this.spawnEggAtEntrySlot(slot);
+            }
         }
         this.autoDropCheckSlot = entrySlot;
     },
@@ -761,6 +764,37 @@ window.EggGameModules.logic = {
         }
     },
 
+    liftContainersToPopupLayer(containers = []) {
+        const lifted = [];
+        for (const container of containers.filter(Boolean)) {
+            if (!container.scene || !container.parentContainer || container._focusLiftState) continue;
+            const parent = container.parentContainer;
+            const index = Array.isArray(parent.list) ? parent.list.indexOf(container) : -1;
+            if (index < 0) continue;
+            parent.remove(container);
+            this.popupLayer.add(container);
+            container._focusLiftState = { parent, index };
+            lifted.push(container);
+        }
+        return lifted;
+    },
+
+    restoreLiftedContainers(containers = []) {
+        for (const container of containers.filter(Boolean)) {
+            const state = container && container._focusLiftState;
+            if (!state || !state.parent || !container.scene) continue;
+            if (container.parentContainer === this.popupLayer) {
+                this.popupLayer.remove(container);
+            }
+            if (typeof state.parent.addAt === "function" && state.index >= 0) {
+                state.parent.addAt(container, Math.min(state.index, state.parent.length));
+            } else {
+                state.parent.add(container);
+            }
+            container._focusLiftState = null;
+        }
+    },
+
     endGameplayPause() {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
@@ -873,6 +907,7 @@ window.EggGameModules.logic = {
         const prevItemDepth = item.container.depth || 0;
         const startValue = item.currentValue || 0;
         const nextValue = startValue * (def.value || 1);
+        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
 
         this.beginGameplayPause([def.container, item.container]);
         def.container.setDepth(9205);
@@ -889,6 +924,7 @@ window.EggGameModules.logic = {
             if (item.destroyed || item.finished) {
                 def.container.setDepth(prevMachineDepth);
                 item.container.setDepth(prevItemDepth);
+                this.restoreLiftedContainers(lifted);
                 this.endGameplayPause();
                 return;
             }
@@ -918,6 +954,7 @@ window.EggGameModules.logic = {
                                 item.focusApplied = false;
                                 if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                                 if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                                this.restoreLiftedContainers(lifted);
                                 this.endGameplayPause();
                             });
                         }
@@ -930,6 +967,7 @@ window.EggGameModules.logic = {
                         item.focusApplied = false;
                         if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                         if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                        this.restoreLiftedContainers(lifted);
                         this.endGameplayPause();
                     });
                 }
@@ -942,6 +980,7 @@ window.EggGameModules.logic = {
         if (!def || !item || item.destroyed || item.finished || this.gameplayPaused) return false;
         const prevMachineDepth = def.container.depth || 0;
         const prevItemDepth = item.container.depth || 0;
+        const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         this.beginGameplayPause([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
@@ -951,6 +990,7 @@ window.EggGameModules.logic = {
                 this.time.delayedCall(400, () => {
                     if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                     if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+                    this.restoreLiftedContainers(lifted);
                     this.endGameplayPause();
                 });
             });
@@ -964,6 +1004,7 @@ window.EggGameModules.logic = {
         const collectorX = this.lines.line3.endX + 74;
         const collectorY = this.lines.line3.y + this.lines.line3.h * 0.5 - 18;
         const itemPrevDepth = item.container.depth || 0;
+        const lifted = this.liftContainersToPopupLayer([item.container]);
         this.beginGameplayPause([item.container]);
         item.container.setDepth(9205);
 
@@ -980,6 +1021,7 @@ window.EggGameModules.logic = {
                 vaultGlow.destroy();
                 vaultCore.destroy();
                 if (item.container && item.container.scene) item.container.setDepth(itemPrevDepth);
+                this.restoreLiftedContainers(lifted);
                 item.collectorBombRunning = false;
                 this.endGameplayPause();
             });
@@ -1383,7 +1425,7 @@ window.EggGameModules.logic = {
         const item = items.find(entry => entry.slotIndexLine === centerIndex)
             || items.find(entry => Math.abs(entry.x - endX) <= line.slotWidth * 0.28);
 
-        if (def && def.rarity === "gold" && def.type === "mul" && item && !item.focusApplied && !this.gameplayPaused) {
+        if (def && def.rarity === "gold" && def.type === "mul" && item && !item.eggsBox && !item.focusApplied && !this.gameplayPaused) {
             item.focusApplied = true;
             this.runGoldMachineLaserFocus(def, item, {
                 startX,
@@ -1445,11 +1487,15 @@ window.EggGameModules.logic = {
             if (armoredEggsLocal.length === 0) return false;
 
             const nextDamage = Math.max(...armoredEggsLocal.map(egg => egg.armorDamage || 0)) + 1;
-            if (nextDamage >= 3) {
+            if (nextDamage >= 1) {
                 const nextEggs = armoredEggsLocal.map(egg => this.unwrapArmoredEggData(egg)).filter(Boolean);
                 item.eggs = nextEggs;
-                item.armored = false;
+                item.armored = nextEggs.some(egg => egg.armored);
                 item.permanentTextColor = null;
+                if (keepOnlyArmored) {
+                    item.eggMultSum *= 0.5;
+                    item.currentValue = Math.max(1, item.currentValue * 0.5);
+                }
                 this.setItemEggs(item, nextEggs);
                 this.flashValueText(item, "#fff0e0");
                 this.updatePillowValueText(item);
@@ -1653,7 +1699,7 @@ window.EggGameModules.logic = {
                 return;
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 3) {
+            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 1) {
                 if (damageArmoredEggs(false)) {
                     this.spawnCrushFx(item.container.x, item.container.y - 4);
                     this.pulseItem(item);
@@ -1661,7 +1707,7 @@ window.EggGameModules.logic = {
                 }
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 3) {
+            if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 1) {
                 if (damageArmoredEggs(true)) {
                     this.spawnCrushFx(item.container.x, item.container.y - 4);
                     this.pulseItem(item);
