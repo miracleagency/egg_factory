@@ -304,8 +304,7 @@ window.EggGameModules.logic = {
     },
 
     spawnEggAtEntrySlot(slotIndex) {
-        const pillow = this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
-        if (!pillow || pillow === true) return false;
+        this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
         const item = this.line1Pillows.get(slotIndex);
         if (!item || item.eggsBox) return false;
         const eggType = this.chooseEggType();
