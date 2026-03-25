@@ -10,6 +10,14 @@ window.EggGameModules.entitiesFx = {
         return `${roundedTenth.toFixed(1)}$`;
     },
 
+    createSvgMachineIcon(key, tint, size) {
+        if (!this.textures || !this.textures.exists || !this.textures.exists(key)) return null;
+        const icon = this.add.image(0, 0, key);
+        icon.setTint(tint);
+        icon.setDisplaySize(size, size);
+        return icon;
+    },
+
     createMachineBlock(def) {
         const container = this.add.container(0, 0).setDepth(200);
         let fill = 0x8694a8;
@@ -76,20 +84,26 @@ window.EggGameModules.entitiesFx = {
             const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
             const iconDisk = this.add.circle(0, -2, 24, 0x0a2240, 1).setStrokeStyle(3, 0x6edcff, 0.95);
-            const drop = this.add.graphics();
-            const dropPoints = [
-                { x: 0, y: -20 },
-                { x: 11, y: -6 },
-                { x: 9, y: 10 },
-                { x: 0, y: 18 },
-                { x: -9, y: 10 },
-                { x: -11, y: -6 }
-            ];
-            drop.fillStyle(0x7fe9ff, 1);
-            drop.lineStyle(2.5, 0xeaffff, 0.95);
-            drop.fillPoints(dropPoints, true, true);
-            drop.strokePoints(dropPoints, true, true);
-            faceParts.push(iconDisk, drop);
+            const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 28);
+            if (dropSvg) {
+                dropSvg.y = -2;
+                faceParts.push(iconDisk, dropSvg);
+            } else {
+                const drop = this.add.graphics();
+                const dropPoints = [
+                    { x: 0, y: -20 },
+                    { x: 11, y: -6 },
+                    { x: 9, y: 10 },
+                    { x: 0, y: 18 },
+                    { x: -9, y: 10 },
+                    { x: -11, y: -6 }
+                ];
+                drop.fillStyle(0x7fe9ff, 1);
+                drop.lineStyle(2.5, 0xeaffff, 0.95);
+                drop.fillPoints(dropPoints, true, true);
+                drop.strokePoints(dropPoints, true, true);
+                faceParts.push(iconDisk, drop);
+            }
             parts.splice(1, 0, tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
         } else if (def.type === "crush") {
             const hood = this.add.rectangle(0, -18, 102, 14, 0x4d4037, 1).setStrokeStyle(2, 0xe0c6ad, 0.72);
@@ -114,33 +128,41 @@ window.EggGameModules.entitiesFx = {
             const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
             const iconDisk = this.add.circle(0, -2, 24, 0x0f0908, 1).setStrokeStyle(3, 0xff7b52, 0.9);
-            const flameOuter = this.add.graphics();
-            const flameOuterPts = [
-                { x: 0, y: -20 },
-                { x: 10, y: -8 },
-                { x: 8, y: 2 },
-                { x: 12, y: 14 },
-                { x: 0, y: 18 },
-                { x: -12, y: 14 },
-                { x: -8, y: 2 },
-                { x: -10, y: -8 }
-            ];
-            flameOuter.fillStyle(0xff5d2f, 1);
-            flameOuter.lineStyle(2.5, 0xffd5a8, 0.8);
-            flameOuter.fillPoints(flameOuterPts, true, true);
-            flameOuter.strokePoints(flameOuterPts, true, true);
-            const flameInner = this.add.graphics();
-            const flameInnerPts = [
-                { x: 0, y: -11 },
-                { x: 5, y: -3 },
-                { x: 4, y: 6 },
-                { x: 0, y: 11 },
-                { x: -4, y: 6 },
-                { x: -5, y: -3 }
-            ];
-            flameInner.fillStyle(0xffef9f, 1);
-            flameInner.fillPoints(flameInnerPts, true, true);
-            faceParts.push(iconDisk, flameOuter, flameInner);
+            const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 30);
+            if (flameSvg) {
+                flameSvg.y = -2;
+                const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 15);
+                if (flameInner) flameInner.y = 2;
+                faceParts.push(iconDisk, flameSvg, ...(flameInner ? [flameInner] : []));
+            } else {
+                const flameOuter = this.add.graphics();
+                const flameOuterPts = [
+                    { x: 0, y: -20 },
+                    { x: 10, y: -8 },
+                    { x: 8, y: 2 },
+                    { x: 12, y: 14 },
+                    { x: 0, y: 18 },
+                    { x: -12, y: 14 },
+                    { x: -8, y: 2 },
+                    { x: -10, y: -8 }
+                ];
+                flameOuter.fillStyle(0xff5d2f, 1);
+                flameOuter.lineStyle(2.5, 0xffd5a8, 0.8);
+                flameOuter.fillPoints(flameOuterPts, true, true);
+                flameOuter.strokePoints(flameOuterPts, true, true);
+                const flameInner = this.add.graphics();
+                const flameInnerPts = [
+                    { x: 0, y: -11 },
+                    { x: 5, y: -3 },
+                    { x: 4, y: 6 },
+                    { x: 0, y: 11 },
+                    { x: -4, y: 6 },
+                    { x: -5, y: -3 }
+                ];
+                flameInner.fillStyle(0xffef9f, 1);
+                flameInner.fillPoints(flameInnerPts, true, true);
+                faceParts.push(iconDisk, flameOuter, flameInner);
+            }
             parts.splice(1, 0, emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
@@ -225,30 +247,8 @@ window.EggGameModules.entitiesFx = {
             const shieldPlate = this.add.roundRectangle
                 ? this.add.roundRectangle(0, 2, 60, 64, 16, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95)
                 : this.add.rectangle(0, 2, 60, 64, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95);
-            const shieldCore = this.add.graphics();
-            const shieldPts = [
-                { x: 0, y: -22 },
-                { x: 18, y: -12 },
-                { x: 16, y: 10 },
-                { x: 0, y: 24 },
-                { x: -16, y: 10 },
-                { x: -18, y: -12 }
-            ];
-            shieldCore.fillStyle(0x54f3ea, 1);
-            shieldCore.lineStyle(2.5, 0xe8ffff, 0.92);
-            shieldCore.fillPoints(shieldPts, true, true);
-            shieldCore.strokePoints(shieldPts, true, true);
-            const shieldInner = this.add.graphics();
-            const shieldInnerPts = [
-                { x: 0, y: -11 },
-                { x: 8, y: -5 },
-                { x: 7, y: 6 },
-                { x: 0, y: 14 },
-                { x: -7, y: 6 },
-                { x: -8, y: -5 }
-            ];
-            shieldInner.fillStyle(0xb7fff9, 0.92);
-            shieldInner.fillPoints(shieldInnerPts, true, true);
+            const shieldCoreSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0x54f3ea, 40);
+            const shieldInnerSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0xb7fff9, 21);
             const shieldGlow = this.add.ellipse(0, 4, 54, 58, 0x4cece3, 0.22);
             const shieldStuds = [
                 this.add.circle(-20, -12, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
@@ -256,7 +256,37 @@ window.EggGameModules.entitiesFx = {
                 this.add.circle(-20, 16, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
                 this.add.circle(20, 16, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a)
             ];
-            faceParts.push(shieldGlow, shieldPlate, shieldCore, shieldInner, ...shieldStuds);
+            if (shieldCoreSvg) shieldCoreSvg.y = 2;
+            if (shieldInnerSvg) shieldInnerSvg.y = 4;
+            if (shieldCoreSvg) {
+                faceParts.push(shieldGlow, shieldPlate, shieldCoreSvg, ...(shieldInnerSvg ? [shieldInnerSvg] : []), ...shieldStuds);
+            } else {
+                const shieldCore = this.add.graphics();
+                const shieldPts = [
+                    { x: 0, y: -22 },
+                    { x: 18, y: -12 },
+                    { x: 16, y: 10 },
+                    { x: 0, y: 24 },
+                    { x: -16, y: 10 },
+                    { x: -18, y: -12 }
+                ];
+                shieldCore.fillStyle(0x54f3ea, 1);
+                shieldCore.lineStyle(2.5, 0xe8ffff, 0.92);
+                shieldCore.fillPoints(shieldPts, true, true);
+                shieldCore.strokePoints(shieldPts, true, true);
+                const shieldInner = this.add.graphics();
+                const shieldInnerPts = [
+                    { x: 0, y: -11 },
+                    { x: 8, y: -5 },
+                    { x: 7, y: 6 },
+                    { x: 0, y: 14 },
+                    { x: -7, y: 6 },
+                    { x: -8, y: -5 }
+                ];
+                shieldInner.fillStyle(0xb7fff9, 0.92);
+                shieldInner.fillPoints(shieldInnerPts, true, true);
+                faceParts.push(shieldGlow, shieldPlate, shieldCore, shieldInner, ...shieldStuds);
+            }
             parts.unshift(glow);
             parts.splice(1, 0,
                 topCap,
