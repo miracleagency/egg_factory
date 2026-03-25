@@ -5,6 +5,33 @@ window.EggGameModules.logic = {
         return egg ? { ...egg } : null;
     },
 
+    enqueueBonusPause(job) {
+        if (!job || typeof job.execute !== "function") return;
+        this.pendingBonusQueue = this.pendingBonusQueue || [];
+        this.pendingBonusSeq = (this.pendingBonusSeq || 0) + 1;
+        this.pendingBonusQueue.push({
+            priority: job.priority || 99,
+            seq: this.pendingBonusSeq,
+            isValid: typeof job.isValid === "function" ? job.isValid : () => true,
+            execute: job.execute
+        });
+        this.pendingBonusQueue.sort((a, b) => (a.priority - b.priority) || (a.seq - b.seq));
+        if (!this.gameplayPaused) {
+            this.processPendingBonusQueue();
+        }
+    },
+
+    processPendingBonusQueue() {
+        if (this.gameplayPaused) return;
+        this.pendingBonusQueue = this.pendingBonusQueue || [];
+        while (this.pendingBonusQueue.length > 0) {
+            const nextJob = this.pendingBonusQueue.shift();
+            if (!nextJob || !nextJob.isValid()) continue;
+            nextJob.execute();
+            return;
+        }
+    },
+
     getArmoredPayloadEgg() {
         const white = this.getEggTypeByKey("white");
         const bomb = this.getEggTypeByKey("bomb");
@@ -841,6 +868,10 @@ window.EggGameModules.logic = {
                 this.updatePillowValueText(item);
             }
         }
+
+        if (this.pendingBonusQueue && this.pendingBonusQueue.length > 0) {
+            this.time.delayedCall(0, () => this.processPendingBonusQueue());
+        }
     },
 
     runFocusedMachineAction(def, item, config = {}) {
@@ -920,8 +951,6 @@ window.EggGameModules.logic = {
         const prevItemDepth = item.container.depth || 0;
         const startValue = item.currentValue || 0;
         const nextValue = startValue * (def.value || 1);
-        const prevItemX = item.container.x;
-        const prevItemY = item.container.y;
 
         this.beginGameplayPause([def.container, item.container]);
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
@@ -946,26 +975,12 @@ window.EggGameModules.logic = {
             yoyo: true,
             repeat: -1
         });
-        this.tweens.add({
-            targets: [item.container, itemGlow],
-            x: shotConfig.endX,
-            duration: 260,
-            ease: "Cubic.Out"
-        });
-        this.tweens.add({
-            targets: item.container,
-            y: shotConfig.endY + 4,
-            duration: 260,
-            ease: "Cubic.Out"
-        });
 
         const badge = this.spawnMysteryBonusText(`GOLD LASER x${def.value}`, "#fff2a3", 0xf0cb4e);
         this.time.delayedCall(950, () => {
             if (item.destroyed || item.finished) {
                 def.container.setDepth(prevMachineDepth);
                 item.container.setDepth(prevItemDepth);
-                item.container.x = prevItemX;
-                item.container.y = prevItemY;
                 machineGlow.destroy();
                 itemGlow.destroy();
                 this.restoreLiftedContainers(lifted);
@@ -998,8 +1013,6 @@ window.EggGameModules.logic = {
                                 item.focusApplied = false;
                                 if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                                 if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
-                                item.container.x = prevItemX;
-                                item.container.y = prevItemY;
                                 machineGlow.destroy();
                                 itemGlow.destroy();
                                 this.restoreLiftedContainers(lifted);
@@ -1015,8 +1028,6 @@ window.EggGameModules.logic = {
                         item.focusApplied = false;
                         if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                         if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
-                        item.container.x = prevItemX;
-                        item.container.y = prevItemY;
                         machineGlow.destroy();
                         itemGlow.destroy();
                         this.restoreLiftedContainers(lifted);
@@ -1032,8 +1043,6 @@ window.EggGameModules.logic = {
         if (!def || !item || item.destroyed || item.finished || this.gameplayPaused) return false;
         const prevMachineDepth = def.container.depth || 0;
         const prevItemDepth = item.container.depth || 0;
-        const prevItemX = item.container.x;
-        const prevItemY = item.container.y;
         this.beginGameplayPause([def.container, item.container]);
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
@@ -1051,19 +1060,11 @@ window.EggGameModules.logic = {
             yoyo: true,
             repeat: -1
         });
-        this.tweens.add({
-            targets: [item.container, itemGlow],
-            x: def.container.x,
-            duration: 260,
-            ease: "Cubic.Out"
-        });
         this.time.delayedCall(950, () => {
             if (typeof action === "function") action(() => {
                 this.time.delayedCall(950, () => {
                     if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
                     if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
-                    item.container.x = prevItemX;
-                    item.container.y = prevItemY;
                     machineGlow.destroy();
                     itemGlow.destroy();
                     this.restoreLiftedContainers(lifted);
@@ -1531,11 +1532,17 @@ window.EggGameModules.logic = {
         };
 
         if (def.type === "crush" && item && (item.eggs || []).some(egg => egg.key === "mystery") && !item.focusApplied && !this.gameplayPaused) {
-            item.focusApplied = true;
-            this.runMysteryCrusherFocus(def, item, done => performCrush(() => {
-                item.focusApplied = false;
-                if (typeof done === "function") done();
-            }));
+            this.enqueueBonusPause({
+                priority: stage,
+                isValid: () => !!item && !item.destroyed && !item.finished && (item.eggs || []).some(egg => egg.key === "mystery"),
+                execute: () => {
+                    item.focusApplied = true;
+                    this.runMysteryCrusherFocus(def, item, done => performCrush(() => {
+                        item.focusApplied = false;
+                        if (typeof done === "function") done();
+                    }));
+                }
+            });
             return;
         }
 
@@ -1555,13 +1562,19 @@ window.EggGameModules.logic = {
             || items.find(entry => Math.abs(entry.x - endX) <= line.slotWidth * 0.28);
 
         if (def && def.rarity === "gold" && def.type === "mul" && item && !item.eggsBox && !item.focusApplied && !this.gameplayPaused) {
-            item.focusApplied = true;
-            this.runGoldMachineLaserFocus(def, item, {
-                startX,
-                startY,
-                endX,
-                endY,
-                travelDuration
+            this.enqueueBonusPause({
+                priority: stage,
+                isValid: () => !!item && !item.destroyed && !item.finished && !item.eggsBox && item.eggMultSum > 0,
+                execute: () => {
+                    item.focusApplied = true;
+                    this.runGoldMachineLaserFocus(def, item, {
+                        startX,
+                        startY,
+                        endX,
+                        endY,
+                        travelDuration
+                    });
+                }
             });
             return;
         }

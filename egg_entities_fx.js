@@ -928,11 +928,12 @@ window.EggGameModules.entitiesFx = {
 
         const points = item.eggsBox
             ? [
-                { x: -40, y: -4, r: 6 },
-                { x: -18, y: 6, r: 5 },
-                { x: 4, y: 10, r: 5 },
-                { x: 28, y: 6, r: 6 },
-                { x: 42, y: -2, r: 5 }
+                { x: -42, y: 14, r: 8 },
+                { x: -18, y: 20, r: 7 },
+                { x: 4, y: 24, r: 7 },
+                { x: 28, y: 18, r: 8 },
+                { x: 46, y: 12, r: 6 },
+                { x: 0, y: 6, r: 6 }
             ]
             : [
                 { x: -24, y: -34, r: 6 },
@@ -944,10 +945,13 @@ window.EggGameModules.entitiesFx = {
 
         for (const p of points) {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
+            const shine = this.add.circle(p.x - 1.6, p.y - 1.8, Math.max(1.6, p.r * 0.32), 0xffffff, 0.55);
             item.container.add(d);
+            item.container.add(shine);
             if (typeof item.container.bringToTop === "function") item.container.bringToTop(d);
+            if (typeof item.container.bringToTop === "function") item.container.bringToTop(shine);
             this.tweens.add({
-                targets: d,
+                targets: [d, shine],
                 y: p.y - (item.eggsBox ? 2 : 5),
                 x: p.x + Phaser.Math.Between(-3, 3),
                 alpha: 0.62,
@@ -958,6 +962,7 @@ window.EggGameModules.entitiesFx = {
                 duration: 360 + Phaser.Math.Between(0, 170)
             });
             item.wetFx.push(d);
+            item.wetFx.push(shine);
         }
     },
 
