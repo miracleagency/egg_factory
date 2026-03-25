@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-gold-focus-fast-start-iron-guard-popup-out-v82"
+    version: "2026-03-25-start-timing-gap-tuning-v84"
 };
