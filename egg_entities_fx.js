@@ -75,18 +75,18 @@ window.EggGameModules.entitiesFx = {
             const bubbleB = this.add.circle(26, -4, 3.5, 0xbff7ff, 0.56);
             const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
-            const iconDisk = this.add.circle(0, -4, 18, 0x0c2844, 0.98).setStrokeStyle(3, 0x6edcff, 0.95);
+            const iconDisk = this.add.circle(0, -2, 24, 0x0a2240, 1).setStrokeStyle(3, 0x6edcff, 0.95);
             const drop = this.add.graphics();
             const dropPoints = [
-                { x: 0, y: -16 },
-                { x: 9, y: -4 },
-                { x: 7, y: 8 },
-                { x: 0, y: 15 },
-                { x: -7, y: 8 },
-                { x: -9, y: -4 }
+                { x: 0, y: -20 },
+                { x: 11, y: -6 },
+                { x: 9, y: 10 },
+                { x: 0, y: 18 },
+                { x: -9, y: 10 },
+                { x: -11, y: -6 }
             ];
             drop.fillStyle(0x7fe9ff, 1);
-            drop.lineStyle(2, 0xeaffff, 0.95);
+            drop.lineStyle(2.5, 0xeaffff, 0.95);
             drop.fillPoints(dropPoints, true, true);
             drop.strokePoints(dropPoints, true, true);
             faceParts.push(iconDisk, drop);
@@ -113,41 +113,65 @@ window.EggGameModules.entitiesFx = {
             const chimneyL = this.add.rectangle(-34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
-            const iconDisk = this.add.circle(0, -4, 18, 0x23110f, 0.98).setStrokeStyle(3, 0xff7b52, 0.9);
-            const flameOuter = this.add.ellipse(0, -2, 16, 22, 0xff5d2f, 0.96).setStrokeStyle(2, 0xffd5a8, 0.8);
-            const flameInner = this.add.ellipse(0, -4, 8, 12, 0xffef9f, 0.92);
+            const iconDisk = this.add.circle(0, -2, 24, 0x0f0908, 1).setStrokeStyle(3, 0xff7b52, 0.9);
+            const flameOuter = this.add.graphics();
+            const flameOuterPts = [
+                { x: 0, y: -20 },
+                { x: 10, y: -8 },
+                { x: 8, y: 2 },
+                { x: 12, y: 14 },
+                { x: 0, y: 18 },
+                { x: -12, y: 14 },
+                { x: -8, y: 2 },
+                { x: -10, y: -8 }
+            ];
+            flameOuter.fillStyle(0xff5d2f, 1);
+            flameOuter.lineStyle(2.5, 0xffd5a8, 0.8);
+            flameOuter.fillPoints(flameOuterPts, true, true);
+            flameOuter.strokePoints(flameOuterPts, true, true);
+            const flameInner = this.add.graphics();
+            const flameInnerPts = [
+                { x: 0, y: -11 },
+                { x: 5, y: -3 },
+                { x: 4, y: 6 },
+                { x: 0, y: 11 },
+                { x: -4, y: 6 },
+                { x: -5, y: -3 }
+            ];
+            flameInner.fillStyle(0xffef9f, 1);
+            flameInner.fillPoints(flameInnerPts, true, true);
             faceParts.push(iconDisk, flameOuter, flameInner);
             parts.splice(1, 0, emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
-                ? this.add.roundRectangle(0, -4, 100, 36, 12, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
-                : this.add.rectangle(0, -4, 100, 36, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9);
-            const beamGate = this.add.rectangle(0, 18, 78, 10, 0x6b4c0f, 1).setStrokeStyle(2, 0xffda6d, 0.7);
+                ? this.add.roundRectangle(0, -2, 112, 44, 14, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
+                : this.add.rectangle(0, -2, 112, 44, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9);
+            const beamGate = this.add.rectangle(0, 21, 88, 10, 0x6b4c0f, 1).setStrokeStyle(2, 0xffda6d, 0.7);
             const gem = this.add.star(0, -6, 6, 5, 10, 0xfff1bb, 0.95).setStrokeStyle(2, 0xd49b1e, 0.82);
-            const halo = this.add.ellipse(0, -6, 70, 26, 0xffdb58, 0.16);
+            const halo = this.add.ellipse(0, -6, 82, 30, 0xffdb58, 0.16);
             const fins = [
-                this.add.rectangle(-34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7),
-                this.add.rectangle(34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
+                this.add.rectangle(-40, -4, 12, 34, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7),
+                this.add.rectangle(40, -4, 12, 34, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
             ];
-            const studs = [-42, -20, 20, 42].map(x => this.add.circle(x, 16, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
+            const studs = [-48, -24, 24, 48].map(x => this.add.circle(x, 18, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
             const bigMult = this.add.text(0, -2, `X${def.value}`, {
                 fontFamily: "Arial",
-                fontSize: def.value >= 20 ? "34px" : "38px",
-                color: "#fff8d2",
+                fontSize: def.value >= 20 ? "40px" : "44px",
+                color: "#4f2900",
                 fontStyle: "bold",
-                stroke: "#b67c18",
-                strokeThickness: 7
+                stroke: "#f0cb4e",
+                strokeThickness: 8
             }).setOrigin(0.5);
             faceParts.push(bigMult);
             parts.splice(1, 0, halo, frame, beamGate, gem, ...fins, ...studs);
         } else if (def.type === "mul") {
             const coil = this.add.roundRectangle
-                ? this.add.roundRectangle(0, 0, 82, 44, 12, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88)
-                : this.add.rectangle(0, 0, 82, 44, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88);
-            const glow = this.add.ellipse(0, 0, 74, 34, 0x65ff98, 0.14);
+                ? this.add.roundRectangle(0, 0, 84, 52, 12, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88)
+                : this.add.rectangle(0, 0, 84, 52, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88);
+            const glow = this.add.ellipse(0, 0, 76, 38, 0x65ff98, 0.14);
             const bigMult = this.add.text(0, 0, `X${def.value}`, {
                 fontFamily: "Arial",
-                fontSize: "38px",
+                fontSize: "42px",
                 color: "#a9ff5a",
                 fontStyle: "bold",
                 stroke: "#11341d",
@@ -157,65 +181,82 @@ window.EggGameModules.entitiesFx = {
             parts.splice(1, 0, coil);
         }
         if (def.type === "shield") {
-            const glow = this.add.ellipse(0, 0, 138, 84, 0x79d8ff, 0.10);
-            const topCap = this.add.rectangle(0, -24, 108, 12, 0x2e3742, 0.96).setStrokeStyle(2, 0xc7d3de, 0.7);
-            const bottomCap = this.add.rectangle(0, 22, 98, 10, 0x26303a, 0.95).setStrokeStyle(2, 0x95a8b8, 0.62);
-            const panel = this.add.rectangle(0, -4, 92, 24, 0x2d3743, 0.98).setStrokeStyle(2, 0xc7d3de, 0.75);
-            const sidePanelL = this.add.rectangle(-42, 2, 16, 38, 0x353f4a, 0.96).setStrokeStyle(2, 0xa9b9c8, 0.68);
-            const sidePanelR = this.add.rectangle(42, 2, 16, 38, 0x353f4a, 0.96).setStrokeStyle(2, 0xa9b9c8, 0.68);
-            const ventL = this.add.rectangle(-23, 18, 18, 5, 0xcfd8e2, 0.9);
-            const ventC = this.add.rectangle(0, 18, 18, 5, 0xcfd8e2, 0.9);
-            const ventR = this.add.rectangle(23, 18, 18, 5, 0xcfd8e2, 0.9);
-            const reactorOuter = this.add.circle(0, -6, 14, 0x102230, 1).setStrokeStyle(3, 0xc7efff, 0.95);
-            const reactorMid = this.add.circle(0, -6, 9.5, 0x25445e, 1).setStrokeStyle(2, 0xeafcff, 0.72);
-            const reactorCore = this.add.circle(0, -6, 6, 0x7fe7ff, 1);
-            const reactorGlow = this.add.circle(0, -6, 17, 0x56d9ff, 0.18);
-            const reactorCrossH = this.add.rectangle(0, -6, 16, 2.6, 0xe9fbff, 0.9);
-            const reactorCrossV = this.add.rectangle(0, -6, 2.6, 16, 0xe9fbff, 0.9);
+            const glow = this.add.ellipse(0, 0, 144, 88, 0x79d8ff, 0.12);
+            const topCap = this.add.rectangle(0, -24, 110, 12, 0x27323c, 0.98).setStrokeStyle(2, 0xd6eaf3, 0.76);
+            const bottomCap = this.add.rectangle(0, 24, 104, 12, 0x1c252d, 0.96).setStrokeStyle(2, 0x95a8b8, 0.68);
+            const panel = this.add.rectangle(0, -4, 96, 30, 0x273440, 1).setStrokeStyle(2, 0xd5edf6, 0.82);
+            const sidePanelL = this.add.rectangle(-44, 2, 18, 42, 0x33414d, 0.98).setStrokeStyle(2, 0xb8ccd9, 0.72);
+            const sidePanelR = this.add.rectangle(44, 2, 18, 42, 0x33414d, 0.98).setStrokeStyle(2, 0xb8ccd9, 0.72);
+            const ventL = this.add.rectangle(-24, 20, 18, 5, 0xcfd8e2, 0.9);
+            const ventC = this.add.rectangle(0, 20, 18, 5, 0xcfd8e2, 0.9);
+            const ventR = this.add.rectangle(24, 20, 18, 5, 0xcfd8e2, 0.9);
+            const reactorOuter = this.add.circle(0, -8, 16, 0x102230, 1).setStrokeStyle(3, 0xaef1ff, 0.95);
+            const reactorMid = this.add.circle(0, -8, 11, 0x1a5b69, 1).setStrokeStyle(2, 0xeafcff, 0.72);
+            const reactorCore = this.add.circle(0, -8, 7, 0x6af3ff, 1);
+            const reactorGlow = this.add.circle(0, -8, 21, 0x47eeff, 0.2);
+            const reactorCrossH = this.add.rectangle(0, -8, 18, 2.8, 0xe9fbff, 0.9);
+            const reactorCrossV = this.add.rectangle(0, -8, 2.8, 18, 0xe9fbff, 0.9);
             const microPlates = [
-                this.add.rectangle(-31, -4, 12, 8, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
-                this.add.rectangle(31, -4, 12, 8, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
-                this.add.rectangle(-31, 10, 12, 6, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55),
-                this.add.rectangle(31, 10, 12, 6, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55)
+                this.add.rectangle(-32, -6, 13, 9, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
+                this.add.rectangle(32, -6, 13, 9, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
+                this.add.rectangle(-32, 11, 13, 7, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55),
+                this.add.rectangle(32, 11, 13, 7, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55)
             ];
             const panelBars = [
-                this.add.rectangle(-44, -16, 16, 3.5, 0xe7eef6, 0.88),
-                this.add.rectangle(44, -16, 16, 3.5, 0xe7eef6, 0.88),
-                this.add.rectangle(-44, 15, 16, 3.5, 0xe7eef6, 0.88),
-                this.add.rectangle(44, 15, 16, 3.5, 0xe7eef6, 0.88)
+                this.add.rectangle(-46, -16, 18, 4, 0xe7eef6, 0.88),
+                this.add.rectangle(46, -16, 18, 4, 0xe7eef6, 0.88),
+                this.add.rectangle(-46, 16, 18, 4, 0xe7eef6, 0.88),
+                this.add.rectangle(46, 16, 18, 4, 0xe7eef6, 0.88)
             ];
             const rivets = [
-                this.add.circle(-52, -22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(52, -22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-52, 22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(52, 22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-24, -28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(24, -28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-24, 28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(24, 28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-8, -30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
-                this.add.circle(8, -30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
-                this.add.circle(-8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
-                this.add.circle(8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280)
+                this.add.circle(-54, -22, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(54, -22, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-54, 22, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(54, 22, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-26, -30, 3.6, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(26, -30, 3.6, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-26, 30, 3.6, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(26, 30, 3.6, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-8, -32, 3, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(8, -32, 3, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(-8, 32, 3, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(8, 32, 3, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280)
             ];
             const shieldPlate = this.add.roundRectangle
-                ? this.add.roundRectangle(0, 0, 54, 58, 14, 0x1e2b37, 0.94).setStrokeStyle(3, 0xdff5ff, 0.9)
-                : this.add.rectangle(0, 0, 54, 58, 0x1e2b37, 0.94).setStrokeStyle(3, 0xdff5ff, 0.9);
+                ? this.add.roundRectangle(0, 2, 60, 64, 16, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95)
+                : this.add.rectangle(0, 2, 60, 64, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95);
             const shieldCore = this.add.graphics();
-            shieldCore.fillStyle(0x73e8ff, 1);
-            shieldCore.lineStyle(2, 0xffffff, 0.85);
-            shieldCore.beginPath();
-            shieldCore.moveTo(0, -18);
-            shieldCore.lineTo(16, -10);
-            shieldCore.lineTo(14, 9);
-            shieldCore.lineTo(0, 22);
-            shieldCore.lineTo(-14, 9);
-            shieldCore.lineTo(-16, -10);
-            shieldCore.closePath();
-            shieldCore.fillPath();
-            shieldCore.strokePath();
-            const shieldGlow = this.add.ellipse(0, 2, 42, 48, 0x64e5ff, 0.18);
-            faceParts.push(shieldGlow, shieldPlate, shieldCore);
+            const shieldPts = [
+                { x: 0, y: -22 },
+                { x: 18, y: -12 },
+                { x: 16, y: 10 },
+                { x: 0, y: 24 },
+                { x: -16, y: 10 },
+                { x: -18, y: -12 }
+            ];
+            shieldCore.fillStyle(0x54f3ea, 1);
+            shieldCore.lineStyle(2.5, 0xe8ffff, 0.92);
+            shieldCore.fillPoints(shieldPts, true, true);
+            shieldCore.strokePoints(shieldPts, true, true);
+            const shieldInner = this.add.graphics();
+            const shieldInnerPts = [
+                { x: 0, y: -11 },
+                { x: 8, y: -5 },
+                { x: 7, y: 6 },
+                { x: 0, y: 14 },
+                { x: -7, y: 6 },
+                { x: -8, y: -5 }
+            ];
+            shieldInner.fillStyle(0xb7fff9, 0.92);
+            shieldInner.fillPoints(shieldInnerPts, true, true);
+            const shieldGlow = this.add.ellipse(0, 4, 54, 58, 0x4cece3, 0.22);
+            const shieldStuds = [
+                this.add.circle(-20, -12, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
+                this.add.circle(20, -12, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
+                this.add.circle(-20, 16, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
+                this.add.circle(20, 16, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a)
+            ];
+            faceParts.push(shieldGlow, shieldPlate, shieldCore, shieldInner, ...shieldStuds);
             parts.unshift(glow);
             parts.splice(1, 0,
                 topCap,
