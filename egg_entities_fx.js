@@ -204,6 +204,15 @@ window.EggGameModules.entitiesFx = {
         };
     },
 
+    getEggFocusAccent(egg) {
+        if (!egg) return 0xffffff;
+        if (egg.diamondFx) return 0x84e9ff;
+        if (egg.goldFx) return 0xffde6d;
+        if (egg.mysteryFx) return 0xc98cff;
+        if (egg.bomb) return 0xff835e;
+        return egg.color || 0xffffff;
+    },
+
     setEggBoxDamageVisual(item, damage) {
         if (!item || !item.container || !Array.isArray(item.container._eggBoxCracks)) return;
         item.boxDamage = damage || 0;
@@ -881,20 +890,29 @@ window.EggGameModules.entitiesFx = {
         if (item.wetFx && item.wetFx.length) return;
         item.wetFx = [];
 
-        const points = [
-            { x: -24, y: -34, r: 6 },
-            { x: -10, y: -39, r: 5 },
-            { x: 10, y: -38, r: 5 },
-            { x: 24, y: -34, r: 6 },
-            { x: 0, y: -43, r: 5 }
-        ];
+        const points = item.eggsBox
+            ? [
+                { x: -40, y: -4, r: 6 },
+                { x: -18, y: 6, r: 5 },
+                { x: 4, y: 10, r: 5 },
+                { x: 28, y: 6, r: 6 },
+                { x: 42, y: -2, r: 5 }
+            ]
+            : [
+                { x: -24, y: -34, r: 6 },
+                { x: -10, y: -39, r: 5 },
+                { x: 10, y: -38, r: 5 },
+                { x: 24, y: -34, r: 6 },
+                { x: 0, y: -43, r: 5 }
+            ];
 
         for (const p of points) {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
             item.container.add(d);
+            if (typeof item.container.bringToTop === "function") item.container.bringToTop(d);
             this.tweens.add({
                 targets: d,
-                y: p.y - 5,
+                y: p.y - (item.eggsBox ? 2 : 5),
                 x: p.x + Phaser.Math.Between(-3, 3),
                 alpha: 0.62,
                 scaleX: 0.78,

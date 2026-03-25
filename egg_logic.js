@@ -5,6 +5,57 @@ window.EggGameModules.logic = {
         return egg ? { ...egg } : null;
     },
 
+    getArmoredPayloadEgg() {
+        const white = this.getEggTypeByKey("white");
+        const bomb = this.getEggTypeByKey("bomb");
+        const mystery = this.getEggTypeByKey("mystery");
+        const pool = [
+            { egg: white, weight: 0.62 },
+            { egg: bomb, weight: 0.22 },
+            { egg: mystery, weight: 0.16 }
+        ].filter(entry => entry.egg);
+        const total = pool.reduce((sum, entry) => sum + entry.weight, 0);
+        let roll = Math.random() * Math.max(total, 0.0001);
+        for (const entry of pool) {
+            roll -= entry.weight;
+            if (roll <= 0) return this.cloneEggTypeData(entry.egg);
+        }
+        return this.cloneEggTypeData((pool[0] || {}).egg || white);
+    },
+
+    unwrapArmoredEggData(egg) {
+        if (!egg || !egg.armored) return this.cloneEggTypeData(egg);
+        const payload = egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : this.getArmoredPayloadEgg();
+        if (payload) {
+            payload.armored = false;
+            payload.armorDamage = 0;
+            payload.innerEgg = null;
+            if (payload.bomb) payload.bombLit = false;
+        }
+        return payload;
+    },
+
+    createArmoredEggData(innerEgg = null) {
+        const shell = this.getEggTypeByKey("armored");
+        const payloadSource = innerEgg ? this.unwrapArmoredEggData(innerEgg) : this.getArmoredPayloadEgg();
+        const payload = this.cloneEggTypeData(payloadSource);
+        return {
+            ...payload,
+            key: shell ? shell.key : "armored",
+            label: shell ? shell.label : "Armored",
+            color: shell ? shell.color : 0x939ca7,
+            stroke: shell ? shell.stroke : 0xdfe6ef,
+            armored: true,
+            armorDamage: 0,
+            innerEgg: payload,
+            bomb: false,
+            bombLit: false,
+            goldFx: false,
+            diamondFx: false,
+            mysteryFx: false
+        };
+    },
+
     getWeightedEggType(excludeKeys = []) {
         const exclude = new Set(excludeKeys);
         const pool = (this.eggTypes || []).filter(egg => egg && !exclude.has(egg.key));
@@ -56,6 +107,8 @@ window.EggGameModules.logic = {
         this.roundEggHiddenStartIndex = 10;
         this.spawnedEggBoxCount = 0;
         this.line1EntryCheckCount = 0;
+        this.line1EggGapRemaining = 0;
+        this.line1EggRunRemaining = 0;
 
         const boxRoll = Math.random();
         this.eggBoxTargetCount = boxRoll < 0.02 ? 3 : (boxRoll < 0.14 ? 2 : 1);
@@ -84,13 +137,19 @@ window.EggGameModules.logic = {
         if (Array.isArray(this.roundEggPool) && this.roundEggPool.length > 0) {
             const index = Phaser.Math.Between(0, this.roundEggPool.length - 1);
             const [egg] = this.roundEggPool.splice(index, 1);
-            return this.cloneEggTypeData(egg);
+            return egg && egg.key === "armored"
+                ? this.createArmoredEggData()
+                : this.cloneEggTypeData(egg);
         }
         const r = Math.random();
         let sum = 0;
         for (const egg of this.eggTypes) {
             sum += egg.chance;
-            if (r <= sum) return this.cloneEggTypeData(egg);
+            if (r <= sum) {
+                return egg && egg.key === "armored"
+                    ? this.createArmoredEggData()
+                    : this.cloneEggTypeData(egg);
+            }
         }
         return this.cloneEggTypeData(this.eggTypes[0]);
     },
@@ -145,15 +204,43 @@ window.EggGameModules.logic = {
 
     handleAutoDrop() {
         if (this.roundPopupShown || this.eggsSpawnedThisRound >= this.roundEggLimit) return;
-
         const slotIndex = this.getLine1EntrySlotIndex();
         if (slotIndex === this.autoDropCheckSlot) return;
-        this.autoDropCheckSlot = slotIndex;
-        if (this.getLine1SlotEntryType(slotIndex) === "box") {
-            this.spawnLine1EggBox(slotIndex);
-        } else {
-            this.placeLine1Pillow(0x46c466, 1);
+        const startSlot = this.autoDropCheckSlot == null ? slotIndex : this.autoDropCheckSlot + 1;
+        for (let currentSlot = startSlot; currentSlot <= slotIndex; currentSlot++) {
+            if (!this.roundPopupShown && this.getLine1SlotEntryType(currentSlot) === "box") {
+                this.spawnLine1EggBox(currentSlot);
+                continue;
+            }
+            if (!this.roundPopupShown && this.shouldSpawnEggAtEntrySlot(currentSlot)) {
+                this.spawnEggAtEntrySlot(currentSlot);
+            }
         }
+        this.autoDropCheckSlot = slotIndex;
+    },
+
+    rollLine1EggSpawnSegment() {
+        const gapRoll = Math.random();
+        this.line1EggGapRemaining = gapRoll < 0.16 ? 3 : (gapRoll < 0.46 ? 2 : (gapRoll < 0.78 ? 1 : 0));
+        const runRoll = Math.random();
+        this.line1EggRunRemaining = runRoll < 0.18 ? 4 : (runRoll < 0.48 ? 3 : (runRoll < 0.82 ? 2 : 1));
+    },
+
+    shouldSpawnEggAtEntrySlot(slotIndex) {
+        if (this.eggsSpawnedThisRound >= this.roundEggLimit) return false;
+        if (this.line1Pillows.has(slotIndex)) return false;
+        if (!this.line1EggRunRemaining && !this.line1EggGapRemaining) {
+            this.rollLine1EggSpawnSegment();
+        }
+        if (this.line1EggGapRemaining > 0) {
+            this.line1EggGapRemaining -= 1;
+            return false;
+        }
+        if (this.line1EggRunRemaining > 0) {
+            this.line1EggRunRemaining -= 1;
+            return true;
+        }
+        return false;
     },
 
     placeLine1Pillow(color = 0x46c466, multiplier = 1) {
@@ -184,6 +271,49 @@ window.EggGameModules.logic = {
         this.line1Pillows.set(slotIndex, box);
         this.pillowLayer.add(box.container);
         this.spawnedEggBoxCount = (this.spawnedEggBoxCount || 0) + 1;
+        return true;
+    },
+
+    addEggToPillow(pillow, eggType, options = {}) {
+        if (!pillow || pillow.eggsBox) return false;
+        const visual = options.visual || this.createEggVisual(eggType, false).container;
+        const eggData = { ...eggType };
+        if (eggData.bomb) eggData.bombLit = options.bombLit ?? false;
+        if (eggData.armored) eggData.armorDamage = eggData.armorDamage || 0;
+        pillow.eggs.push(eggData);
+        pillow.eggMultSum += eggData.mult;
+        pillow.currentValue += pillow.spentCost * eggData.mult;
+        if (eggData.armored) {
+            pillow.armored = true;
+            pillow.permanentTextColor = "#d8e3ef";
+        }
+
+        pillow.container.add(visual);
+        if (pillow.eggs.length === 1) {
+            visual.x = 0;
+        } else {
+            const prevEggContainer = pillow.container.list[pillow.container.length - 2];
+            if (prevEggContainer) prevEggContainer.x = -10;
+            visual.x = 10;
+        }
+        visual.y = -26;
+        visual._eggTypeData = eggData;
+        if (eggData.bomb) this.setBombVisualState(visual, eggData.bombLit !== false);
+        this.updatePillowValueText(pillow);
+        return true;
+    },
+
+    spawnEggAtEntrySlot(slotIndex) {
+        const pillow = this.ensureLine1PillowAtSlot(slotIndex, 0x46c466, 1);
+        if (!pillow || pillow === true) return false;
+        const item = this.line1Pillows.get(slotIndex);
+        if (!item || item.eggsBox) return false;
+        const eggType = this.chooseEggType();
+        const added = this.addEggToPillow(item, eggType, { bombLit: eggType.bomb ? true : false });
+        if (!added) return false;
+        this.eggsSpawnedThisRound += 1;
+        this.remainingEggCount = Math.max(0, this.roundEggLimit - this.eggsSpawnedThisRound);
+        this.updatePillowButtonLabels();
         return true;
     },
 
@@ -265,25 +395,17 @@ window.EggGameModules.logic = {
     },
 
     handleEggSpawns() {
-        if (!this.gameplayEggSpawnsArmed) {
-            if (!this.isFirstDropperLaneReady()) return;
-            this.gameplayEggSpawnsArmed = true;
-            this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.speedClock, false);
-            this.nextEggSpawnB = Infinity;
-        }
-
-        while (this.eggsSpawnedThisRound < this.roundEggLimit && this.speedClock >= this.nextEggSpawnA - this.fallDuration()) {
-            this.spawnEgg(this.dropperAX, this.nextEggSpawnA);
-            this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.nextEggSpawnA);
-        }
+        return;
     },
 
     armRoundGameplayStart() {
         this.roundSetupActive = false;
         this.autoDropCheckSlot = null;
         this.gameplayEggSpawnsArmed = true;
-        this.nextEggSpawnA = this.computeEggDropperNextSpawnClock("A", this.speedClock, false);
+        this.nextEggSpawnA = Infinity;
         this.nextEggSpawnB = Infinity;
+        this.line1EggGapRemaining = 0;
+        this.line1EggRunRemaining = 0;
         this.lastTime = this.time.now;
     },
 
@@ -602,6 +724,8 @@ window.EggGameModules.logic = {
     },
 
     beginGameplayPause(focusContainers = [], withOverlay = true) {
+        this.gameplayPauseDepth = (this.gameplayPauseDepth || 0) + 1;
+        this.gameplayFocusTargets = (this.gameplayFocusTargets || []).concat(focusContainers.filter(Boolean));
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
@@ -615,11 +739,11 @@ window.EggGameModules.logic = {
         } else {
             this.gameplayFocusOverlay = null;
         }
-
-        this.gameplayFocusTargets = focusContainers.filter(Boolean);
     },
 
     endGameplayPause() {
+        this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
+        if (this.gameplayPauseDepth > 0) return;
         const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
 
         for (const def of [...this.line1Machines, ...this.line2Machines, ...this.line3Machines]) {
@@ -650,6 +774,70 @@ window.EggGameModules.logic = {
                 this.updatePillowValueText(item);
             }
         }
+    },
+
+    runFocusedMachineAction(def, item, config = {}) {
+        if (!def || !item || item.destroyed || item.finished) return false;
+        if (this.gameplayPaused) return false;
+
+        const accent = config.accent || (def.type === "water" ? "#9fe5ff" : (def.type === "fire" ? "#ffb38a" : (def.rarity === "gold" ? "#ffe8a6" : "#d4ffd7")));
+        const prevMachineDepth = def.container.depth || 0;
+        const prevItemDepth = item.container.depth || 0;
+        const startValue = item.currentValue || 0;
+        const endValue = typeof config.nextValue === "number" ? config.nextValue : startValue;
+
+        this.beginGameplayPause([def.container, item.container]);
+        def.container.setDepth(9205);
+        item.container.setDepth(9205);
+
+        const halo = this.add.ellipse(item.container.x, item.container.y - 14, 182, 124, this.getEggFocusAccent((item.eggs || [])[0]), 0.18)
+            .setDepth(9208);
+        this.popupLayer.add(halo);
+
+        const txt = this.add.text(item.container.x, item.container.y - 112, this.formatMoneyValue(startValue), {
+            fontFamily: "Arial",
+            fontSize: "62px",
+            color: accent,
+            fontStyle: "bold",
+            stroke: "#20110a",
+            strokeThickness: 8
+        }).setOrigin(0.5).setDepth(9210);
+        this.popupLayer.add(txt);
+
+        this.tweens.add({
+            targets: halo,
+            scaleX: 1.16,
+            scaleY: 1.08,
+            alpha: 0.3,
+            duration: 180,
+            yoyo: true
+        });
+
+        if (config.animateValue && Math.abs(endValue - startValue) > 0.001) {
+            const counter = { value: startValue };
+            this.tweens.add({
+                targets: counter,
+                value: endValue,
+                duration: config.duration || 650,
+                ease: "Cubic.Out",
+                onUpdate: () => txt.setText(this.formatMoneyValue(counter.value))
+            });
+        } else if (config.label) {
+            txt.setText(config.label);
+        }
+
+        this.time.delayedCall(config.applyDelay || 180, () => {
+            if (typeof config.onApply === "function") config.onApply();
+        });
+
+        this.time.delayedCall(config.totalDelay || 620, () => {
+            halo.destroy();
+            txt.destroy();
+            if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
+            if (item.container && item.container.scene) item.container.setDepth(prevItemDepth);
+            this.endGameplayPause();
+        });
+        return true;
     },
 
     animateMysteryTransformItem(item, mapEgg, flashColor) {
@@ -697,54 +885,20 @@ window.EggGameModules.logic = {
     },
 
     runX50FocusBonus(def, item, nextValue) {
-        if (!def || !item || item.destroyed || item.finished) return;
-        const startValue = item.currentValue || 0;
-        const prevMachineDepth = def.container.depth || 0;
-        const prevItemDepth = item.container.depth || 0;
-
-        this.beginGameplayPause([def.container, item.container]);
-        def.container.setDepth(9205);
-        item.container.setDepth(9205);
-
-        const txt = this.add.text(item.container.x, item.container.y - 112, this.formatMoneyValue(startValue), {
-            fontFamily: "Arial",
-            fontSize: "74px",
-            color: "#fff4b5",
-            fontStyle: "bold",
-            stroke: "#3a2200",
-            strokeThickness: 8
-        }).setOrigin(0.5).setDepth(9210);
-        this.popupLayer.add(txt);
-
-        const counter = { value: startValue };
-        this.tweens.add({
-            targets: counter,
-            value: nextValue,
+        this.runFocusedMachineAction(def, item, {
+            accent: "#fff4b5",
+            nextValue,
+            animateValue: true,
+            applyDelay: 320,
+            totalDelay: 1220,
             duration: 850,
-            ease: "Cubic.Out",
-            onUpdate: () => {
-                txt.setText(this.formatMoneyValue(counter.value));
-            },
-            onComplete: () => {
+            onApply: () => {
                 item.currentValue = nextValue;
                 item.eggMultSum *= def.value;
                 item.permanentTextColor = "#f1cb4a";
                 this.updatePillowValueText(item);
                 this.flashValueText(item, "#fff2a3");
                 this.pulseItem(item);
-                this.tweens.add({
-                    targets: txt,
-                    scaleX: 1.08,
-                    scaleY: 1.08,
-                    duration: 150,
-                    ease: "Back.Out"
-                });
-                this.time.delayedCall(1000, () => {
-                    txt.destroy();
-                    def.container.setDepth(prevMachineDepth);
-                    item.container.setDepth(prevItemDepth);
-                    this.endGameplayPause();
-                });
             }
         });
     },
@@ -910,17 +1064,8 @@ window.EggGameModules.logic = {
                 .sort((a, b) => a.y - b.y)
                 .map(item => () => {
                     this.animateMysteryTransformItem(item, egg => ({
-                        ...egg,
-                        key: armoredBase.key,
-                        label: armoredBase.label,
-                        color: armoredBase.color,
-                        stroke: armoredBase.stroke,
-                        armored: true,
-                        bomb: false,
-                        bombLit: false,
-                        goldFx: false,
-                        diamondFx: false,
-                        mysteryFx: false
+                        ...this.createArmoredEggData(egg),
+                        mult: egg.mult
                     }), "#d8e3ef");
                     item.armored = true;
                     item.permanentTextColor = "#d8e3ef";
@@ -1089,6 +1234,38 @@ window.EggGameModules.logic = {
 
     applyMachineEffect(def, item) {
         if (item.destroyed || item.finished) return;
+        if (!item.focusApplied && !this.gameplayPaused) {
+            if (def.type === "mul" && item.eggMultSum > 0) {
+                if (def.value === 50) {
+                    this.runX50FocusBonus(def, item, item.currentValue * def.value);
+                } else {
+                    this.runFocusedMachineAction(def, item, {
+                        animateValue: true,
+                        nextValue: item.currentValue * def.value,
+                        accent: def.rarity === "gold" ? "#fff2a3" : "#c5ffd2",
+                        onApply: () => {
+                            item.focusApplied = true;
+                            this.applyMachineEffect(def, item);
+                            item.focusApplied = false;
+                        }
+                    });
+                }
+                return;
+            }
+
+            this.runFocusedMachineAction(def, item, {
+                label: def.label,
+                accent: def.type === "water" ? "#9fe5ff" : (def.type === "fire" ? "#ffb38a" : "#ffd9bf"),
+                totalDelay: 540,
+                onApply: () => {
+                    item.focusApplied = true;
+                    this.applyMachineEffect(def, item);
+                    item.focusApplied = false;
+                }
+            });
+            return;
+        }
+
         if (item.eggsBox) {
             if (def.type === "water") {
                 item.wet = true;
@@ -1131,7 +1308,16 @@ window.EggGameModules.logic = {
             if (armoredEggsLocal.length === 0) return false;
 
             const nextDamage = Math.max(...armoredEggsLocal.map(egg => egg.armorDamage || 0)) + 1;
-            if (nextDamage >= 2) return false;
+            if (nextDamage >= 3) {
+                const nextEggs = armoredEggsLocal.map(egg => this.unwrapArmoredEggData(egg)).filter(Boolean);
+                item.eggs = nextEggs;
+                item.armored = false;
+                item.permanentTextColor = null;
+                this.setItemEggs(item, nextEggs);
+                this.flashValueText(item, "#fff0e0");
+                this.updatePillowValueText(item);
+                return true;
+            }
 
             const nextEggs = armoredEggsLocal.map(egg => ({
                 ...egg,
@@ -1183,16 +1369,12 @@ window.EggGameModules.logic = {
 
         if (def.type === "mul") {
             if (item.eggMultSum <= 0) return;
-            if (def.value === 50) {
-                this.runX50FocusBonus(def, item, item.currentValue * def.value);
-            } else {
-                item.eggMultSum *= def.value;
-                item.currentValue *= def.value;
-                if (def.rarity === "gold") item.permanentTextColor = "#f1cb4a";
-                this.updatePillowValueText(item);
-                this.flashValueText(item, def.rarity === "gold" ? "#fff2a3" : "#7dff9c");
-                this.pulseItem(item);
-            }
+            item.eggMultSum *= def.value;
+            item.currentValue *= def.value;
+            if (def.rarity === "gold") item.permanentTextColor = "#f1cb4a";
+            this.updatePillowValueText(item);
+            this.flashValueText(item, def.rarity === "gold" ? "#fff2a3" : "#7dff9c");
+            this.pulseItem(item);
             return;
         }
 
@@ -1336,7 +1518,7 @@ window.EggGameModules.logic = {
                 return;
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 2) {
+            if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 3) {
                 if (damageArmoredEggs(false)) {
                     this.spawnCrushFx(item.container.x, item.container.y - 4);
                     this.pulseItem(item);
@@ -1344,7 +1526,7 @@ window.EggGameModules.logic = {
                 }
             }
 
-            if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 2) {
+            if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 3) {
                 if (damageArmoredEggs(true)) {
                     this.spawnCrushFx(item.container.x, item.container.y - 4);
                     this.pulseItem(item);

@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-23-crush-empty-splat-fix-v78"
+    version: "2026-03-25-line1-direct-spawn-all-focus-armor-reveal-v79"
 };
