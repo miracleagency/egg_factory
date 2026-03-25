@@ -797,6 +797,10 @@ window.EggGameModules.logic = {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
+        this.gameplayPauseBrokenSnapshot = new Set(
+            [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]
+                .filter(def => def && def.brokenUntil && this.time.now < def.brokenUntil)
+        );
         this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
 
         if (withOverlay) {
@@ -843,8 +847,19 @@ window.EggGameModules.logic = {
     endGameplayPause() {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
+        const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
+        const pausedBrokenMachines = this.gameplayPauseBrokenSnapshot instanceof Set
+            ? Array.from(this.gameplayPauseBrokenSnapshot)
+            : [];
+
+        for (const def of pausedBrokenMachines) {
+            if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
+            def.brokenUntil += elapsed;
+            if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
+        }
 
         this.gameplayFocusTargets = [];
+        this.gameplayPauseBrokenSnapshot = null;
 
         if (this.gameplayFocusOverlay) {
             this.gameplayFocusOverlay.destroy();
@@ -1521,7 +1536,9 @@ window.EggGameModules.logic = {
                 const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
                 const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
                 const head = this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
-                press.add([shaft, top, head]);
+                const spikeXs = [-34, -17, 0, 17, 34];
+                const spikes = spikeXs.map(x => this.add.triangle(x, 38, -5, -3, 5, -3, 0, 10, 0xf2ddc6, 1).setStrokeStyle(1.2, 0x5b493e, 0.7));
+                press.add([shaft, top, head, ...spikes]);
             }
             this.fxLayer.add(press);
 

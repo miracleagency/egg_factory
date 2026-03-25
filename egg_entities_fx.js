@@ -60,6 +60,7 @@ window.EggGameModules.entitiesFx = {
         hammer.add([hammerHandle, hammerHead]);
 
         const parts = [body, lip, label, timerText, hammer];
+        const faceParts = [];
         if (def.type === "water") {
             const tank = this.add.roundRectangle
                 ? this.add.roundRectangle(0, -4, 92, 30, 10, 0x19476d, 0.96).setStrokeStyle(2, 0xb7f3ff, 0.85)
@@ -74,6 +75,20 @@ window.EggGameModules.entitiesFx = {
             const bubbleB = this.add.circle(26, -4, 3.5, 0xbff7ff, 0.56);
             const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
+            const iconDisk = this.add.circle(0, -4, 18, 0x0c2844, 0.98).setStrokeStyle(3, 0x6edcff, 0.95);
+            const drop = this.add.graphics();
+            drop.fillStyle(0x7fe9ff, 1);
+            drop.lineStyle(2, 0xeaffff, 0.95);
+            drop.beginPath();
+            drop.moveTo(0, -16);
+            drop.quadraticCurveTo(10, -4, 7, 6);
+            drop.quadraticCurveTo(4, 15, 0, 15);
+            drop.quadraticCurveTo(-4, 15, -7, 6);
+            drop.quadraticCurveTo(-10, -4, 0, -16);
+            drop.closePath();
+            drop.fillPath();
+            drop.strokePath();
+            faceParts.push(iconDisk, drop);
             parts.splice(1, 0, tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
         } else if (def.type === "crush") {
             const hood = this.add.rectangle(0, -18, 102, 14, 0x4d4037, 1).setStrokeStyle(2, 0xe0c6ad, 0.72);
@@ -97,6 +112,10 @@ window.EggGameModules.entitiesFx = {
             const chimneyL = this.add.rectangle(-34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
+            const iconDisk = this.add.circle(0, -4, 18, 0x23110f, 0.98).setStrokeStyle(3, 0xff7b52, 0.9);
+            const flameOuter = this.add.ellipse(0, -2, 16, 22, 0xff5d2f, 0.96).setStrokeStyle(2, 0xffd5a8, 0.8);
+            const flameInner = this.add.ellipse(0, -4, 8, 12, 0xffef9f, 0.92);
+            faceParts.push(iconDisk, flameOuter, flameInner);
             parts.splice(1, 0, emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
@@ -110,19 +129,31 @@ window.EggGameModules.entitiesFx = {
                 this.add.rectangle(34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
             ];
             const studs = [-42, -20, 20, 42].map(x => this.add.circle(x, 16, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
+            const bigMult = this.add.text(0, -2, `X${def.value}`, {
+                fontFamily: "Arial",
+                fontSize: def.value >= 20 ? "34px" : "38px",
+                color: "#fff8d2",
+                fontStyle: "bold",
+                stroke: "#b67c18",
+                strokeThickness: 7
+            }).setOrigin(0.5);
+            faceParts.push(bigMult);
             parts.splice(1, 0, halo, frame, beamGate, gem, ...fins, ...studs);
         } else if (def.type === "mul") {
             const coil = this.add.roundRectangle
-                ? this.add.roundRectangle(0, -4, 96, 32, 11, 0x1d472d, 0.94).setStrokeStyle(2, 0xcafede, 0.82)
-                : this.add.rectangle(0, -4, 96, 32, 0x1d472d, 0.94).setStrokeStyle(2, 0xcafede, 0.82);
-            const node = this.add.circle(0, -4, 12, 0xe9fff1, 1).setStrokeStyle(2, 0x54ff91, 0.82);
-            const nodeCore = this.add.circle(0, -4, 6, 0x59ff98, 1);
-            const railL = this.add.rectangle(-26, -4, 18, 6, 0x7dff9c, 0.92);
-            const railR = this.add.rectangle(26, -4, 18, 6, 0x7dff9c, 0.92);
-            const ventA = this.add.rectangle(-16, 16, 16, 4, 0xc6ffd5, 0.84);
-            const ventB = this.add.rectangle(0, 16, 16, 4, 0xc6ffd5, 0.84);
-            const ventC = this.add.rectangle(16, 16, 16, 4, 0xc6ffd5, 0.84);
-            parts.splice(1, 0, coil, node, nodeCore, railL, railR, ventA, ventB, ventC);
+                ? this.add.roundRectangle(0, 0, 82, 44, 12, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88)
+                : this.add.rectangle(0, 0, 82, 44, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88);
+            const glow = this.add.ellipse(0, 0, 74, 34, 0x65ff98, 0.14);
+            const bigMult = this.add.text(0, 0, `X${def.value}`, {
+                fontFamily: "Arial",
+                fontSize: "38px",
+                color: "#a9ff5a",
+                fontStyle: "bold",
+                stroke: "#11341d",
+                strokeThickness: 6
+            }).setOrigin(0.5);
+            faceParts.push(glow, bigMult);
+            parts.splice(1, 0, coil);
         }
         if (def.type === "shield") {
             const glow = this.add.ellipse(0, 0, 138, 84, 0x79d8ff, 0.10);
@@ -166,6 +197,24 @@ window.EggGameModules.entitiesFx = {
                 this.add.circle(-8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
                 this.add.circle(8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280)
             ];
+            const shieldPlate = this.add.roundRectangle
+                ? this.add.roundRectangle(0, 0, 54, 58, 14, 0x1e2b37, 0.94).setStrokeStyle(3, 0xdff5ff, 0.9)
+                : this.add.rectangle(0, 0, 54, 58, 0x1e2b37, 0.94).setStrokeStyle(3, 0xdff5ff, 0.9);
+            const shieldCore = this.add.graphics();
+            shieldCore.fillStyle(0x73e8ff, 1);
+            shieldCore.lineStyle(2, 0xffffff, 0.85);
+            shieldCore.beginPath();
+            shieldCore.moveTo(0, -18);
+            shieldCore.lineTo(16, -10);
+            shieldCore.lineTo(14, 9);
+            shieldCore.lineTo(0, 22);
+            shieldCore.lineTo(-14, 9);
+            shieldCore.lineTo(-16, -10);
+            shieldCore.closePath();
+            shieldCore.fillPath();
+            shieldCore.strokePath();
+            const shieldGlow = this.add.ellipse(0, 2, 42, 48, 0x64e5ff, 0.18);
+            faceParts.push(shieldGlow, shieldPlate, shieldCore);
             parts.unshift(glow);
             parts.splice(1, 0,
                 topCap,
@@ -187,12 +236,16 @@ window.EggGameModules.entitiesFx = {
                 ...rivets
             );
         }
+        if (faceParts.length > 0) {
+            parts.splice(parts.length - 3, 0, ...faceParts);
+        }
         container.add(parts);
         container.setScale(1.12);
         this.machineLayer.add(container);
 
         def.container = container;
         def.labelText = label;
+        def.faceParts = faceParts;
         def.timerText = timerText;
         def.hammer = hammer;
         def.baseLabel = def.label;
@@ -200,6 +253,7 @@ window.EggGameModules.entitiesFx = {
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
         def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.04, 0.12) : Phaser.Math.FloatBetween(0.16, 0.30);
+        label.setVisible(!(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.rarity === "gold"));
 
         return def;
     },
@@ -307,6 +361,7 @@ window.EggGameModules.entitiesFx = {
         crackC.moveTo(2, -10);
         crackC.lineTo(18, 2);
         crackC.strokePath();
+        const wetOverlay = this.add.container(0, 0);
 
         container.add([
             shadow,
@@ -322,9 +377,11 @@ window.EggGameModules.entitiesFx = {
             ...rivets,
             crackA,
             crackB,
-            crackC
+            crackC,
+            wetOverlay
         ]);
         container._eggBoxCracks = [crackA, crackB, crackC];
+        container._wetOverlay = wetOverlay;
 
         return {
             container,
@@ -756,6 +813,9 @@ window.EggGameModules.entitiesFx = {
     setMachineBrokenVisual(def, broken, secondsLeft = 0) {
         if (!def || !def.labelText || !def.timerText || !def.hammer) return;
         def.labelText.setVisible(!broken);
+        if (Array.isArray(def.faceParts)) {
+            def.faceParts.forEach(part => part && part.setVisible && part.setVisible(!broken));
+        }
         def.timerText.setVisible(broken);
         def.timerText.setText(broken ? `${secondsLeft.toFixed(1)}s` : "");
         def.hammer.setVisible(broken);
@@ -1030,6 +1090,9 @@ window.EggGameModules.entitiesFx = {
     ensureWetFx(item) {
         if (item.wetFx && item.wetFx.length) return;
         item.wetFx = [];
+        const wetParent = item.eggsBox && item.container && item.container._wetOverlay
+            ? item.container._wetOverlay
+            : item.container;
 
         const points = item.eggsBox
             ? [
@@ -1065,18 +1128,18 @@ window.EggGameModules.entitiesFx = {
             const bead = item.eggsBox
                 ? this.add.circle(p.x + Phaser.Math.Between(-2, 2), p.y + p.r + Phaser.Math.Between(10, 18), Math.max(2.6, p.r * 0.3), 0xbfeeff, 0.82)
                 : null;
-            if (outline) item.container.add(outline);
-            if (streak) item.container.add(streak);
-            if (streakShine) item.container.add(streakShine);
-            if (bead) item.container.add(bead);
-            item.container.add(d);
-            item.container.add(shine);
-            if (outline && typeof item.container.bringToTop === "function") item.container.bringToTop(outline);
-            if (streak && typeof item.container.bringToTop === "function") item.container.bringToTop(streak);
-            if (streakShine && typeof item.container.bringToTop === "function") item.container.bringToTop(streakShine);
-            if (bead && typeof item.container.bringToTop === "function") item.container.bringToTop(bead);
-            if (typeof item.container.bringToTop === "function") item.container.bringToTop(d);
-            if (typeof item.container.bringToTop === "function") item.container.bringToTop(shine);
+            if (outline) wetParent.add(outline);
+            if (streak) wetParent.add(streak);
+            if (streakShine) wetParent.add(streakShine);
+            if (bead) wetParent.add(bead);
+            wetParent.add(d);
+            wetParent.add(shine);
+            if (outline && typeof wetParent.bringToTop === "function") wetParent.bringToTop(outline);
+            if (streak && typeof wetParent.bringToTop === "function") wetParent.bringToTop(streak);
+            if (streakShine && typeof wetParent.bringToTop === "function") wetParent.bringToTop(streakShine);
+            if (bead && typeof wetParent.bringToTop === "function") wetParent.bringToTop(bead);
+            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(d);
+            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(shine);
             this.tweens.add({
                 targets: streak ? [outline, streak, streakShine, bead, d, shine].filter(Boolean) : [d, shine],
                 y: p.y - (item.eggsBox ? 3 : 5),
@@ -1094,6 +1157,9 @@ window.EggGameModules.entitiesFx = {
             if (bead) item.wetFx.push(bead);
             item.wetFx.push(d);
             item.wetFx.push(shine);
+        }
+        if (item.eggsBox && item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
+            item.container.bringToTop(item.container._wetOverlay);
         }
     },
 
