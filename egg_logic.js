@@ -797,10 +797,6 @@ window.EggGameModules.logic = {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
-        this.gameplayPauseBrokenSnapshot = new Set(
-            [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]
-                .filter(def => def && def.brokenUntil && this.time.now < def.brokenUntil)
-        );
         this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
 
         if (withOverlay) {
@@ -848,18 +844,13 @@ window.EggGameModules.logic = {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
         const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
-        const pausedBrokenMachines = this.gameplayPauseBrokenSnapshot instanceof Set
-            ? Array.from(this.gameplayPauseBrokenSnapshot)
-            : [];
-
-        for (const def of pausedBrokenMachines) {
+        for (const def of [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]) {
             if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
             def.brokenUntil += elapsed;
             if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
         }
 
         this.gameplayFocusTargets = [];
-        this.gameplayPauseBrokenSnapshot = null;
 
         if (this.gameplayFocusOverlay) {
             this.gameplayFocusOverlay.destroy();
@@ -1941,9 +1932,9 @@ window.EggGameModules.logic = {
         }
     },
 
-    breakMachine(def, repairDurationMs = 20000) {
+    breakMachine(def, repairDurationMs = 10000) {
         if (!def) return;
-        const baseDurationMs = repairDurationMs;
+        const baseDurationMs = Math.min(10000, Math.max(0, repairDurationMs || 10000));
         const turbo = Math.max(0.01, this.getTurboMultiplier ? this.getTurboMultiplier() : 1);
         const slowestTurbo = Math.min(...(this.turboValues || [1]));
         const actualDurationMs = baseDurationMs * (slowestTurbo / turbo);
@@ -1992,14 +1983,14 @@ window.EggGameModules.logic = {
                 this.setMachineBrokenVisual(def, false, 0);
                 continue;
             }
-            const duration = Math.max(1, def.brokenDurationMs || 20000);
+            const duration = Math.max(1, def.brokenDurationMs || 10000);
             const displaySeconds = def.brokenDisplaySeconds || (duration / 1000);
             const secondsVisual = displaySeconds * (msLeft / duration);
             this.setMachineBrokenVisual(def, true, secondsVisual);
         }
     },
 
-    breakMachinesByTypes(types, repairDurationMs = 20000) {
+    breakMachinesByTypes(types, repairDurationMs = 10000) {
         const match = new Set(types);
         const allDefs = [...this.line1Machines, ...this.line2Machines, ...this.line3Machines];
         for (const def of allDefs) {

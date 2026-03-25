@@ -72,7 +72,7 @@ window.EggGameModules.entitiesFx = {
         if (def.type === "water") {
             const iconDisk = this.add.circle(0, -2, 32, 0x0a2240, 1).setStrokeStyle(4, 0x6edcff, 0.95);
             const ringGlow = this.add.ellipse(0, -2, 76, 56, 0x4cdfff, 0.12);
-            const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 36);
+            const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 56);
             if (dropSvg) {
                 dropSvg.y = -2;
                 faceParts.push(ringGlow, iconDisk, dropSvg);
@@ -102,10 +102,10 @@ window.EggGameModules.entitiesFx = {
         } else if (def.type === "fire") {
             const iconDisk = this.add.circle(0, -2, 32, 0x0f0908, 1).setStrokeStyle(4, 0xff7b52, 0.9);
             const emberGlow = this.add.ellipse(0, -2, 78, 58, 0xff7b32, 0.12);
-            const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 39);
+            const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 60);
             if (flameSvg) {
                 flameSvg.y = -2;
-                const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 20);
+                const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 30);
                 if (flameInner) flameInner.y = 2;
                 faceParts.push(emberGlow, iconDisk, flameSvg, ...(flameInner ? [flameInner] : []));
             } else {
@@ -220,8 +220,8 @@ window.EggGameModules.entitiesFx = {
             const shieldPlate = this.add.roundRectangle
                 ? this.add.roundRectangle(0, 2, 60, 64, 16, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95)
                 : this.add.rectangle(0, 2, 60, 64, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95);
-            const shieldCoreSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0x54f3ea, 52);
-            const shieldInnerSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0xb7fff9, 28);
+            const shieldCoreSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0x54f3ea, 74);
+            const shieldInnerSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0xb7fff9, 40);
             const shieldGlow = this.add.ellipse(0, 4, 54, 58, 0x4cece3, 0.22);
             const shieldStuds = [
                 this.add.circle(-20, -12, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
@@ -296,7 +296,8 @@ window.EggGameModules.entitiesFx = {
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
         def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.04, 0.12) : Phaser.Math.FloatBetween(0.16, 0.30);
-        label.setVisible(!(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.rarity === "gold"));
+        def.showBaseLabel = !(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.rarity === "gold");
+        label.setVisible(def.showBaseLabel);
 
         return def;
     },
@@ -857,7 +858,7 @@ window.EggGameModules.entitiesFx = {
 
     setMachineBrokenVisual(def, broken, secondsLeft = 0) {
         if (!def || !def.labelText || !def.timerText || !def.hammer) return;
-        def.labelText.setVisible(!broken);
+        def.labelText.setVisible(!broken && !!def.showBaseLabel);
         if (Array.isArray(def.faceParts)) {
             def.faceParts.forEach(part => part && part.setVisible && part.setVisible(!broken));
         }
@@ -1142,14 +1143,12 @@ window.EggGameModules.entitiesFx = {
 
         const points = item.eggsBox
             ? [
-                { x: -46, y: -14, r: 12 },
-                { x: -22, y: 2, r: 11 },
-                { x: 6, y: 14, r: 12 },
-                { x: 32, y: 4, r: 12 },
-                { x: 56, y: -16, r: 10 },
-                { x: -4, y: -30, r: 10 },
-                { x: -12, y: 26, r: 14 },
-                { x: 18, y: 24, r: 12 }
+                { x: -34, y: -8, r: 12 },
+                { x: -12, y: -2, r: 11 },
+                { x: 10, y: 4, r: 12 },
+                { x: 30, y: -4, r: 12 },
+                { x: -20, y: 18, r: 13 },
+                { x: 8, y: 20, r: 12 }
             ]
             : (hasMegaArmor
                 ? [
@@ -1174,29 +1173,17 @@ window.EggGameModules.entitiesFx = {
             const outline = (item.eggsBox || hasMegaArmor)
                 ? this.add.circle(p.x, p.y, p.r + (item.eggsBox ? 2.8 : 1.8), 0xdff6ff, item.eggsBox ? 0.32 : 0.22)
                 : null;
-            const streak = item.eggsBox
-                ? this.add.ellipse(p.x, p.y + p.r + 11, Math.max(8, p.r * 0.92), Math.max(18, p.r * 2.35), 0x8cd9ff, 0.44)
-                : null;
-            const streakShine = item.eggsBox
-                ? this.add.ellipse(p.x - 1, p.y + p.r + 6, Math.max(2.5, p.r * 0.22), Math.max(9, p.r * 1.15), 0xffffff, 0.28)
-                : null;
-            const bead = item.eggsBox
-                ? this.add.circle(p.x + Phaser.Math.Between(-2, 2), p.y + p.r + Phaser.Math.Between(10, 18), Math.max(2.6, p.r * 0.3), 0xbfeeff, 0.82)
-                : null;
+            const streak = null;
+            const streakShine = null;
+            const bead = null;
             if (outline) wetParent.add(outline);
-            if (streak) wetParent.add(streak);
-            if (streakShine) wetParent.add(streakShine);
-            if (bead) wetParent.add(bead);
             wetParent.add(d);
             wetParent.add(shine);
             if (outline && typeof wetParent.bringToTop === "function") wetParent.bringToTop(outline);
-            if (streak && typeof wetParent.bringToTop === "function") wetParent.bringToTop(streak);
-            if (streakShine && typeof wetParent.bringToTop === "function") wetParent.bringToTop(streakShine);
-            if (bead && typeof wetParent.bringToTop === "function") wetParent.bringToTop(bead);
             if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(d);
             if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(shine);
             this.tweens.add({
-                targets: streak ? [outline, streak, streakShine, bead, d, shine].filter(Boolean) : [d, shine],
+                targets: outline ? [outline, d, shine] : [d, shine],
                 y: p.y - (item.eggsBox ? 3 : 5),
                 x: p.x + Phaser.Math.Between(-3, 3),
                 alpha: item.eggsBox ? 0.92 : 0.62,
@@ -1207,32 +1194,8 @@ window.EggGameModules.entitiesFx = {
                 duration: 360 + Phaser.Math.Between(0, 170)
             });
             if (outline) item.wetFx.push(outline);
-            if (streak) item.wetFx.push(streak);
-            if (streakShine) item.wetFx.push(streakShine);
-            if (bead) item.wetFx.push(bead);
             item.wetFx.push(d);
             item.wetFx.push(shine);
-        }
-        if (item.eggsBox) {
-            const curtainA = this.add.ellipse(-18, 18, 34, 52, 0x8cd9ff, 0.34);
-            const curtainB = this.add.ellipse(14, 20, 38, 58, 0x8cd9ff, 0.36);
-            const curtainC = this.add.ellipse(40, 8, 22, 42, 0xbfeeff, 0.26);
-            wetParent.add([curtainA, curtainB, curtainC]);
-            if (typeof wetParent.bringToTop === "function") {
-                wetParent.bringToTop(curtainA);
-                wetParent.bringToTop(curtainB);
-                wetParent.bringToTop(curtainC);
-            }
-            this.tweens.add({
-                targets: [curtainA, curtainB, curtainC],
-                alpha: 0.16,
-                scaleY: 1.18,
-                y: "+=4",
-                duration: 420,
-                yoyo: true,
-                repeat: -1
-            });
-            item.wetFx.push(curtainA, curtainB, curtainC);
         }
         if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
             item.container.bringToTop(item.container._wetOverlay);

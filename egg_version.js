@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-factory-cleanup-and-box-wet-v108"
+    version: "2026-03-25-break-rules-unified-v110"
 };
