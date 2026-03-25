@@ -1650,6 +1650,7 @@ window.EggGameModules.logic = {
         if (item.eggsBox) {
             if (def.type === "water") {
                 item.wet = true;
+                this.ensureWetFx(item);
                 this.spawnWaterEggSplash(item);
                 this.pulseItem(item);
                 return;
