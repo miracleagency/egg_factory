@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-focus-align-lift-fix-hit-cooldown-v87"
+    version: "2026-03-25-mystery-frontlift-soft-align-v88"
 };

@@ -914,8 +914,6 @@ window.EggGameModules.logic = {
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
-        item.container.x = shotConfig.endX;
-        item.container.y = shotConfig.endY + 4;
         this.updatePillowValueText(item);
         const pauseText = item.pauseValueText || item.valueText;
         if (pauseText && pauseText.scene) {
@@ -934,6 +932,18 @@ window.EggGameModules.logic = {
             ease: "Sine.InOut",
             yoyo: true,
             repeat: -1
+        });
+        this.tweens.add({
+            targets: [item.container, itemGlow],
+            x: shotConfig.endX,
+            duration: 260,
+            ease: "Cubic.Out"
+        });
+        this.tweens.add({
+            targets: item.container,
+            y: shotConfig.endY + 4,
+            duration: 260,
+            ease: "Cubic.Out"
         });
 
         const badge = this.spawnMysteryBonusText(`GOLD LASER x${def.value}`, "#fff2a3", 0xf0cb4e);
@@ -1015,8 +1025,6 @@ window.EggGameModules.logic = {
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
         def.container.setDepth(9205);
         item.container.setDepth(9205);
-        item.container.x = def.container.x;
-        item.container.y = item.container.y;
         const machineGlow = this.add.ellipse(def.container.x, def.container.y + 10, 240, 156, 0xffc6a3, 0.18).setDepth(9204);
         const itemGlow = this.add.ellipse(item.container.x, item.container.y - 8, 196, 128, 0xd78cff, 0.22).setDepth(9204);
         this.popupLayer.add([machineGlow, itemGlow]);
@@ -1029,6 +1037,12 @@ window.EggGameModules.logic = {
             ease: "Sine.InOut",
             yoyo: true,
             repeat: -1
+        });
+        this.tweens.add({
+            targets: [item.container, itemGlow],
+            x: def.container.x,
+            duration: 260,
+            ease: "Cubic.Out"
         });
         this.time.delayedCall(950, () => {
             if (typeof action === "function") action(() => {
@@ -1117,6 +1131,7 @@ window.EggGameModules.logic = {
             .concat((config.focusMachines || []).map(def => def.container));
         this.addDebugLog(`mystery start ${config.title} items=${(config.focusItems || []).length} machines=${(config.focusMachines || []).length}`);
         this.beginGameplayPause(focusContainers);
+        const lifted = this.liftContainersToPopupLayer(focusContainers);
         this.spawnMysteryBonusText(config.title, config.textColor, config.accent);
 
         const steps = config.steps || [];
@@ -1124,7 +1139,10 @@ window.EggGameModules.logic = {
         const runNext = () => {
             if (index >= steps.length) {
                 this.addDebugLog(`mystery finish ${config.title}`);
-                this.time.delayedCall(config.finishDelay || 440, () => this.endGameplayPause());
+                this.time.delayedCall(config.finishDelay || 440, () => {
+                    this.restoreLiftedContainers(lifted);
+                    this.endGameplayPause();
+                });
                 return;
             }
             const step = steps[index++];
@@ -1153,6 +1171,7 @@ window.EggGameModules.logic = {
         item.destroyed = true;
 
         this.beginGameplayPause([item.container]);
+        const lifted = this.liftContainersToPopupLayer([item.container]);
         item.container.setDepth(9205);
 
         for (let i = 0; i < 10; i++) {
@@ -1242,7 +1261,10 @@ window.EggGameModules.logic = {
                                     this.updatePillowButtonLabels();
                                     if (index === visuals.length - 1) {
                                         item.boxBonusRunning = false;
-                                        this.time.delayedCall(250, () => this.endGameplayPause());
+                                        this.time.delayedCall(250, () => {
+                                            this.restoreLiftedContainers(lifted);
+                                            this.endGameplayPause();
+                                        });
                                     }
                                 }
                             });
