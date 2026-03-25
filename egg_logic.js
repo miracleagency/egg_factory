@@ -206,8 +206,18 @@ window.EggGameModules.logic = {
         if (this.roundPopupShown || this.eggsSpawnedThisRound >= this.roundEggLimit) return;
         const slotIndex = this.getLine1EntrySlotIndex();
         if (slotIndex === this.autoDropCheckSlot) return;
-        const startSlot = this.autoDropCheckSlot == null ? slotIndex : this.autoDropCheckSlot + 1;
-        for (let currentSlot = startSlot; currentSlot <= slotIndex; currentSlot++) {
+        if (this.autoDropCheckSlot == null) {
+            if (this.getLine1SlotEntryType(slotIndex) === "box") {
+                this.spawnLine1EggBox(slotIndex);
+            } else if (this.shouldSpawnEggAtEntrySlot(slotIndex)) {
+                this.spawnEggAtEntrySlot(slotIndex);
+            }
+            this.autoDropCheckSlot = slotIndex;
+            return;
+        }
+
+        const step = slotIndex < this.autoDropCheckSlot ? -1 : 1;
+        for (let currentSlot = this.autoDropCheckSlot + step; step < 0 ? currentSlot >= slotIndex : currentSlot <= slotIndex; currentSlot += step) {
             if (!this.roundPopupShown && this.getLine1SlotEntryType(currentSlot) === "box") {
                 this.spawnLine1EggBox(currentSlot);
                 continue;
