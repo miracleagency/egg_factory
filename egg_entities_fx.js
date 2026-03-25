@@ -84,7 +84,7 @@ window.EggGameModules.entitiesFx = {
             const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
             const iconDisk = this.add.circle(0, -2, 24, 0x0a2240, 1).setStrokeStyle(3, 0x6edcff, 0.95);
-            const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 28);
+            const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 36);
             if (dropSvg) {
                 dropSvg.y = -2;
                 faceParts.push(iconDisk, dropSvg);
@@ -128,10 +128,10 @@ window.EggGameModules.entitiesFx = {
             const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
             const iconDisk = this.add.circle(0, -2, 24, 0x0f0908, 1).setStrokeStyle(3, 0xff7b52, 0.9);
-            const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 30);
+            const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 39);
             if (flameSvg) {
                 flameSvg.y = -2;
-                const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 15);
+                const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 20);
                 if (flameInner) flameInner.y = 2;
                 faceParts.push(iconDisk, flameSvg, ...(flameInner ? [flameInner] : []));
             } else {
@@ -247,8 +247,8 @@ window.EggGameModules.entitiesFx = {
             const shieldPlate = this.add.roundRectangle
                 ? this.add.roundRectangle(0, 2, 60, 64, 16, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95)
                 : this.add.rectangle(0, 2, 60, 64, 0x153542, 0.98).setStrokeStyle(3, 0xc2fbff, 0.95);
-            const shieldCoreSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0x54f3ea, 40);
-            const shieldInnerSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0xb7fff9, 21);
+            const shieldCoreSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0x54f3ea, 52);
+            const shieldInnerSvg = this.createSvgMachineIcon("egg_icon_shield_svg", 0xb7fff9, 28);
             const shieldGlow = this.add.ellipse(0, 4, 54, 58, 0x4cece3, 0.22);
             const shieldStuds = [
                 this.add.circle(-20, -12, 2.8, 0xe7fbff, 1).setStrokeStyle(1.2, 0x44717a),
@@ -353,8 +353,10 @@ window.EggGameModules.entitiesFx = {
         const body = this.add.rectangle(0, 0, 108, 40, color, 0).setStrokeStyle(0, 0xffffff, 0).setVisible(false);
         const gloss = this.add.rectangle(0, -8, 72, 14, 0xffffff, 0).setVisible(false);
         const valueText = this.createPillowValueText(`${cost}$`);
+        const wetOverlay = this.add.container(0, 0);
 
-        container.add([shadow, body, gloss, valueText]);
+        container.add([shadow, body, gloss, valueText, wetOverlay]);
+        container._wetOverlay = wetOverlay;
 
         return {
             container,
@@ -1162,9 +1164,10 @@ window.EggGameModules.entitiesFx = {
     ensureWetFx(item) {
         if (item.wetFx && item.wetFx.length) return;
         item.wetFx = [];
-        const wetParent = item.eggsBox && item.container && item.container._wetOverlay
+        const wetParent = item.container && item.container._wetOverlay
             ? item.container._wetOverlay
             : item.container;
+        const hasMegaArmor = !item.eggsBox && (item.eggs || []).some(egg => egg && egg.megaArmored);
 
         const points = item.eggsBox
             ? [
@@ -1177,13 +1180,22 @@ window.EggGameModules.entitiesFx = {
                 { x: -8, y: 28, r: 13 },
                 { x: 30, y: 30, r: 10 }
             ]
-            : [
-                { x: -24, y: -34, r: 6 },
-                { x: -10, y: -39, r: 5 },
-                { x: 10, y: -38, r: 5 },
-                { x: 24, y: -34, r: 6 },
-                { x: 0, y: -43, r: 5 }
-            ];
+            : (hasMegaArmor
+                ? [
+                    { x: -28, y: -42, r: 7 },
+                    { x: -12, y: -48, r: 6 },
+                    { x: 12, y: -47, r: 6 },
+                    { x: 28, y: -42, r: 7 },
+                    { x: 0, y: -54, r: 6 },
+                    { x: -2, y: -28, r: 7 }
+                ]
+                : [
+                    { x: -24, y: -34, r: 6 },
+                    { x: -10, y: -39, r: 5 },
+                    { x: 10, y: -38, r: 5 },
+                    { x: 24, y: -34, r: 6 },
+                    { x: 0, y: -43, r: 5 }
+                ]);
 
         for (const p of points) {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
@@ -1230,7 +1242,7 @@ window.EggGameModules.entitiesFx = {
             item.wetFx.push(d);
             item.wetFx.push(shine);
         }
-        if (item.eggsBox && item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
+        if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
             item.container.bringToTop(item.container._wetOverlay);
         }
     },

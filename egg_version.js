@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-svg-machine-icons-v105"
+    version: "2026-03-25-conveyor-hazard-walls-v107"
 };
