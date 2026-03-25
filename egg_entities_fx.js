@@ -60,6 +60,70 @@ window.EggGameModules.entitiesFx = {
         hammer.add([hammerHandle, hammerHead]);
 
         const parts = [body, lip, label, timerText, hammer];
+        if (def.type === "water") {
+            const tank = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -4, 92, 30, 10, 0x19476d, 0.96).setStrokeStyle(2, 0xb7f3ff, 0.85)
+                : this.add.rectangle(0, -4, 92, 30, 0x19476d, 0.96).setStrokeStyle(2, 0xb7f3ff, 0.85);
+            const pipeL = this.add.rectangle(-34, 16, 14, 34, 0x356992, 1).setStrokeStyle(2, 0xa4eaff, 0.72);
+            const pipeR = this.add.rectangle(34, 16, 14, 34, 0x356992, 1).setStrokeStyle(2, 0xa4eaff, 0.72);
+            const nozzle = this.add.rectangle(0, 26, 42, 12, 0xccefff, 0.94).setStrokeStyle(2, 0xffffff, 0.85);
+            const gauge = this.add.circle(-42, -16, 10, 0x233647, 1).setStrokeStyle(2, 0xe3f9ff, 0.9);
+            const gaugeNeedle = this.add.rectangle(-40, -18, 8, 2, 0xffe482, 1);
+            gaugeNeedle.angle = 24;
+            const bubbleA = this.add.circle(16, -14, 5, 0xe8ffff, 0.7);
+            const bubbleB = this.add.circle(26, -4, 3.5, 0xbff7ff, 0.56);
+            const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
+            const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
+            parts.unshift(tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
+        } else if (def.type === "crush") {
+            const hood = this.add.rectangle(0, -18, 102, 14, 0x4d4037, 1).setStrokeStyle(2, 0xe0c6ad, 0.72);
+            const jaw = this.add.rectangle(0, 16, 88, 20, 0x615249, 1).setStrokeStyle(3, 0xf0dcc4, 0.82);
+            const toothPoints = [-28, -14, 0, 14, 28];
+            const teeth = toothPoints.map(x => this.add.triangle(x, 26, -6, -2, 6, -2, 0, 12, 0xf2ddc6, 1).setStrokeStyle(1, 0x5b493e, 0.6));
+            const stripeL = this.add.rectangle(-40, 2, 18, 40, 0xd3a63f, 0.96).setStrokeStyle(2, 0x3f342c, 0.7);
+            const stripeR = this.add.rectangle(40, 2, 18, 40, 0xd3a63f, 0.96).setStrokeStyle(2, 0x3f342c, 0.7);
+            stripeL.angle = -18;
+            stripeR.angle = 18;
+            const bolts = [-48, -18, 18, 48].map(x => this.add.circle(x, -22, 3.2, 0xf0e1d1, 1).setStrokeStyle(1.5, 0x725c4d));
+            parts.unshift(hood, jaw, stripeL, stripeR, ...teeth, ...bolts);
+        } else if (def.type === "fire") {
+            const furnace = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -2, 96, 34, 10, 0x5e1915, 0.96).setStrokeStyle(2, 0xffb29f, 0.78)
+                : this.add.rectangle(0, -2, 96, 34, 0x5e1915, 0.96).setStrokeStyle(2, 0xffb29f, 0.78);
+            const grate = this.add.rectangle(0, 16, 82, 10, 0x2f1410, 1).setStrokeStyle(2, 0xffb18c, 0.58);
+            const slitA = this.add.rectangle(-20, -2, 12, 20, 0xff9b4d, 0.92);
+            const slitB = this.add.rectangle(0, -2, 12, 22, 0xffcf6a, 0.96);
+            const slitC = this.add.rectangle(20, -2, 12, 20, 0xff7d35, 0.92);
+            const chimneyL = this.add.rectangle(-34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
+            const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
+            const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
+            parts.unshift(emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
+        } else if (def.rarity === "gold") {
+            const frame = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -4, 100, 36, 12, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
+                : this.add.rectangle(0, -4, 100, 36, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9);
+            const beamGate = this.add.rectangle(0, 18, 78, 10, 0x6b4c0f, 1).setStrokeStyle(2, 0xffda6d, 0.7);
+            const gem = this.add.star(0, -6, 6, 5, 10, 0xfff1bb, 0.95).setStrokeStyle(2, 0xd49b1e, 0.82);
+            const halo = this.add.ellipse(0, -6, 70, 26, 0xffdb58, 0.16);
+            const fins = [
+                this.add.rectangle(-34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7),
+                this.add.rectangle(34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
+            ];
+            const studs = [-42, -20, 20, 42].map(x => this.add.circle(x, 16, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
+            parts.unshift(halo, frame, beamGate, gem, ...fins, ...studs);
+        } else if (def.type === "mul") {
+            const coil = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -4, 96, 32, 11, 0x1d472d, 0.94).setStrokeStyle(2, 0xcafede, 0.82)
+                : this.add.rectangle(0, -4, 96, 32, 0x1d472d, 0.94).setStrokeStyle(2, 0xcafede, 0.82);
+            const node = this.add.circle(0, -4, 12, 0xe9fff1, 1).setStrokeStyle(2, 0x54ff91, 0.82);
+            const nodeCore = this.add.circle(0, -4, 6, 0x59ff98, 1);
+            const railL = this.add.rectangle(-26, -4, 18, 6, 0x7dff9c, 0.92);
+            const railR = this.add.rectangle(26, -4, 18, 6, 0x7dff9c, 0.92);
+            const ventA = this.add.rectangle(-16, 16, 16, 4, 0xc6ffd5, 0.84);
+            const ventB = this.add.rectangle(0, 16, 16, 4, 0xc6ffd5, 0.84);
+            const ventC = this.add.rectangle(16, 16, 16, 4, 0xc6ffd5, 0.84);
+            parts.unshift(coil, node, nodeCore, railL, railR, ventA, ventB, ventC);
+        }
         if (def.type === "shield") {
             const glow = this.add.ellipse(0, 0, 138, 84, 0x79d8ff, 0.10);
             const topCap = this.add.rectangle(0, -24, 108, 12, 0x2e3742, 0.96).setStrokeStyle(2, 0xc7d3de, 0.7);
@@ -1116,24 +1180,96 @@ window.EggGameModules.entitiesFx = {
         });
     },
 
+    spawnMachineTrailFx(def, x, y) {
+        if (!def) return;
+        if (def.type === "water") {
+            const droplet = this.add.circle(x + Phaser.Math.Between(-5, 5), y + Phaser.Math.Between(-10, 10), Phaser.Math.Between(2, 4), 0xbdf6ff, 0.8).setDepth(5001);
+            this.fxLayer.add(droplet);
+            this.tweens.add({
+                targets: droplet,
+                x: droplet.x + Phaser.Math.Between(-12, 12),
+                y: droplet.y + Phaser.Math.Between(8, 20),
+                alpha: 0,
+                duration: 140,
+                onComplete: () => droplet.destroy()
+            });
+            return;
+        }
+
+        if (def.type === "fire") {
+            const ember = this.add.circle(x + Phaser.Math.Between(-4, 4), y + Phaser.Math.Between(-8, 8), Phaser.Math.Between(2, 4), 0xffc36f, 0.9).setDepth(5001);
+            this.fxLayer.add(ember);
+            this.tweens.add({
+                targets: ember,
+                x: ember.x + Phaser.Math.Between(-14, 14),
+                y: ember.y + Phaser.Math.Between(-10, 14),
+                alpha: 0,
+                scaleX: 0.4,
+                scaleY: 0.4,
+                duration: 130,
+                onComplete: () => ember.destroy()
+            });
+            return;
+        }
+
+        if (def.rarity === "gold") {
+            const star = this.add.star(x, y, 4, 1.4, 4.6, 0xfff4bd, 0.88).setDepth(5001);
+            this.fxLayer.add(star);
+            this.tweens.add({
+                targets: star,
+                scaleX: 2,
+                scaleY: 2,
+                alpha: 0,
+                angle: Phaser.Math.Between(-28, 28),
+                duration: 150,
+                onComplete: () => star.destroy()
+            });
+            return;
+        }
+
+        const spark = this.add.circle(x, y, 2.5, 0xbaffc8, 0.74).setDepth(5001);
+        this.fxLayer.add(spark);
+        this.tweens.add({
+            targets: spark,
+            alpha: 0,
+            scaleX: 1.8,
+            scaleY: 1.8,
+            duration: 120,
+            onComplete: () => spark.destroy()
+        });
+    },
+
     spawnMachineImpactFx(def, x, y) {
         if (def && def.type === "water") {
             const mist = this.add.ellipse(x, y, 70, 34, 0xa7ecff, 0.38).setDepth(5099);
-            this.fxLayer.add(mist);
+            const ring = this.add.ellipse(x, y, 48, 20, 0xe0fbff, 0.28).setDepth(5100);
+            const splashCore = this.add.circle(x, y, 10, 0xffffff, 0.55).setDepth(5101);
+            this.fxLayer.add([mist, ring, splashCore]);
             this.tweens.add({
-                targets: mist,
+                targets: [mist, ring],
                 scaleX: 1.45,
                 scaleY: 1.1,
                 alpha: 0,
                 duration: 240,
-                onComplete: () => mist.destroy()
+                onComplete: () => {
+                    mist.destroy();
+                    ring.destroy();
+                }
+            });
+            this.tweens.add({
+                targets: splashCore,
+                scaleX: 2.8,
+                scaleY: 2.8,
+                alpha: 0,
+                duration: 180,
+                onComplete: () => splashCore.destroy()
             });
             this.spawnRadialSparkBurst(x, y, {
-                count: 10,
+                count: 14,
                 color: 0xd8fbff,
                 colorAlt: 0x59b7ff,
                 minSpeed: 38,
-                maxSpeed: 96
+                maxSpeed: 112
             });
             return;
         }
@@ -1141,67 +1277,78 @@ window.EggGameModules.entitiesFx = {
         if (def && def.type === "fire") {
             const flash = this.add.ellipse(x, y, 60, 30, 0xff6c34, 0.42).setDepth(5100);
             const core = this.add.ellipse(x, y, 26, 16, 0xfff0a6, 0.78).setDepth(5101);
-            this.fxLayer.add(flash);
-            this.fxLayer.add(core);
+            const ring = this.add.ellipse(x, y, 44, 18, 0xffb05a, 0.3).setDepth(5099);
+            this.fxLayer.add([ring, flash, core]);
             this.tweens.add({
-                targets: [flash, core],
+                targets: [ring, flash, core],
                 scaleX: 1.35,
                 scaleY: 0.85,
                 alpha: 0,
                 duration: 180,
                 onComplete: () => {
+                    ring.destroy();
                     flash.destroy();
                     core.destroy();
                 }
             });
             this.spawnRadialSparkBurst(x + 10, y, {
-                count: 12,
+                count: 16,
                 color: 0xfff0a6,
                 colorAlt: 0xff7a38,
                 minSpeed: 44,
-                maxSpeed: 118
+                maxSpeed: 132
             });
             return;
         }
 
         if (def && def.rarity === "gold") {
             const flash = this.add.circle(x, y, 22, 0xffd85b, 0.34).setDepth(5100);
-            this.fxLayer.add(flash);
+            const star = this.add.star(x, y, 7, 6, 16, 0xfff4bd, 0.74).setDepth(5101);
+            const ring = this.add.ellipse(x, y, 56, 22, 0xffed95, 0.24).setDepth(5099);
+            this.fxLayer.add([ring, flash, star]);
             this.tweens.add({
-                targets: flash,
+                targets: [flash, star, ring],
                 scaleX: 2.6,
                 scaleY: 2.6,
                 alpha: 0,
                 duration: 220,
-                onComplete: () => flash.destroy()
+                onComplete: () => {
+                    flash.destroy();
+                    star.destroy();
+                    ring.destroy();
+                }
             });
             this.spawnRadialSparkBurst(x, y, {
-                count: 16,
+                count: 22,
                 color: 0xffef9f,
                 colorAlt: 0xd9a321,
                 minSpeed: 56,
-                maxSpeed: 156
+                maxSpeed: 176
             });
             return;
         }
 
         if (def && def.type === "mul") {
             const flash = this.add.ellipse(x, y, 58, 24, 0x7dff9c, 0.32).setDepth(5100);
-            this.fxLayer.add(flash);
+            const ring = this.add.ellipse(x, y, 38, 14, 0xcfffd9, 0.24).setDepth(5101);
+            this.fxLayer.add([flash, ring]);
             this.tweens.add({
-                targets: flash,
+                targets: [flash, ring],
                 scaleX: 2.2,
                 scaleY: 0.72,
                 alpha: 0,
                 duration: 150,
-                onComplete: () => flash.destroy()
+                onComplete: () => {
+                    flash.destroy();
+                    ring.destroy();
+                }
             });
             this.spawnRadialSparkBurst(x, y, {
-                count: 8,
+                count: 10,
                 color: 0xb7ff9c,
                 colorAlt: 0x39ff7a,
                 minSpeed: 28,
-                maxSpeed: 88
+                maxSpeed: 94
             });
             return;
         }
@@ -1217,15 +1364,17 @@ window.EggGameModules.entitiesFx = {
         let primary = null;
 
         if (def.type === "fire") {
-            const glow = this.add.ellipse(0, 0, 22, 58, 0xff5c31, 0.20);
+            const glow = this.add.ellipse(0, 0, 26, 64, 0xff5c31, 0.22);
+            const ring = this.add.ellipse(0, 10, 20, 34, 0xffad52, 0.16);
             const body = this.add.ellipse(0, 0, 14, 46, 0xff7c2d, 0.96).setStrokeStyle(2, 0xfff0a6, 0.72);
             const core = this.add.ellipse(0, -6, 8, 22, 0xfff0ad, 0.92);
             const tailA = this.add.ellipse(-4, 10, 10, 20, 0xff4e23, 0.72);
             const tailB = this.add.ellipse(4, 12, 8, 18, 0xffa43d, 0.64);
-            projectile.add([glow, tailA, tailB, body, core]);
+            const spark = this.add.star(0, -24, 4, 1.8, 5.4, 0xfff4bc, 0.95);
+            projectile.add([glow, ring, tailA, tailB, body, core, spark]);
             primary = body;
             this.tweens.add({
-                targets: [body, core, tailA, tailB],
+                targets: [body, core, tailA, tailB, spark],
                 scaleX: 0.72,
                 scaleY: 1.16,
                 y: "-=8",
@@ -1235,15 +1384,16 @@ window.EggGameModules.entitiesFx = {
                 repeat: -1
             });
         } else if (def.type === "water") {
-            const mist = this.add.ellipse(0, 0, 20, 40, 0x9ce8ff, 0.18);
-            const streamA = this.add.rectangle(-4, 0, 4, 54, 0x8de6ff, 0.84);
+            const mist = this.add.ellipse(0, 0, 24, 44, 0x9ce8ff, 0.18);
+            const streamA = this.add.rectangle(-5, 0, 4, 54, 0x8de6ff, 0.84);
             const streamB = this.add.rectangle(0, 0, 6, 58, 0xbdf6ff, 0.92);
-            const streamC = this.add.rectangle(4, 0, 4, 50, 0x5ec3ff, 0.80);
+            const streamC = this.add.rectangle(5, 0, 4, 50, 0x5ec3ff, 0.80);
+            const crown = this.add.ellipse(0, -26, 16, 12, 0xffffff, 0.5);
             const head = this.add.circle(0, -28, 6, 0xe4fbff, 0.98);
-            projectile.add([mist, streamA, streamB, streamC, head]);
+            projectile.add([mist, streamA, streamB, streamC, crown, head]);
             primary = streamB;
             this.tweens.add({
-                targets: [streamA, streamB, streamC],
+                targets: [streamA, streamB, streamC, crown],
                 alpha: 0.42,
                 scaleY: 0.76,
                 duration: 90,
@@ -1252,14 +1402,17 @@ window.EggGameModules.entitiesFx = {
                 repeat: -1
             });
         } else if (def.rarity === "gold") {
-            const glow = this.add.ellipse(0, 0, 24, 64, 0xffd75c, 0.18);
+            const glow = this.add.ellipse(0, 0, 28, 68, 0xffd75c, 0.18);
+            const ring = this.add.ellipse(0, 2, 22, 56, 0xfff0ad, 0.12);
             const beam = this.add.rectangle(0, 0, 14, 62, 0xffd84c, 0.96).setStrokeStyle(3, 0xfff5b8, 0.85);
             const core = this.add.rectangle(0, 0, 6, 64, 0xfff6be, 0.96);
             const head = this.add.star(0, -34, 4, 2.5, 7, 0xfff6be, 0.98);
-            projectile.add([glow, beam, core, head]);
+            const flareA = this.add.star(-6, -10, 4, 1.3, 4.4, 0xffef9f, 0.88);
+            const flareB = this.add.star(6, 10, 4, 1.3, 4.4, 0xffef9f, 0.72);
+            projectile.add([glow, ring, beam, core, head, flareA, flareB]);
             primary = beam;
             this.tweens.add({
-                targets: [glow, beam, core],
+                targets: [glow, ring, beam, core, flareA, flareB],
                 alpha: 0.58,
                 duration: 100,
                 ease: "Sine.InOut",
@@ -1270,10 +1423,12 @@ window.EggGameModules.entitiesFx = {
             const glow = this.add.ellipse(0, 0, 26, 60, 0x56ff86, 0.16);
             const beam = this.add.rectangle(0, 0, 16, 60, 0x3aff77, 0.94).setStrokeStyle(3, 0xd8ffd8, 0.78);
             const core = this.add.rectangle(0, 0, 8, 62, 0xe6fff0, 0.90);
-            projectile.add([glow, beam, core]);
+            const pulseA = this.add.circle(-5, -12, 3, 0xd9ffe7, 0.86);
+            const pulseB = this.add.circle(5, 10, 2.6, 0x8dffb0, 0.76);
+            projectile.add([glow, beam, core, pulseA, pulseB]);
             primary = beam;
             this.tweens.add({
-                targets: [glow, beam],
+                targets: [glow, beam, pulseA, pulseB],
                 alpha: 0.5,
                 duration: 100,
                 ease: "Sine.InOut",
@@ -1291,6 +1446,11 @@ window.EggGameModules.entitiesFx = {
             y: endY,
             duration: travelDuration,
             ease: def.type === "fire" ? "Cubic.In" : "Sine.In",
+            onUpdate: () => {
+                if (Math.random() < 0.55) {
+                    this.spawnMachineTrailFx(def, projectile.x, projectile.y);
+                }
+            },
             onComplete: () => {
                 if (projectile.scene) projectile.destroy();
                 if (typeof onComplete === "function") onComplete();

@@ -270,9 +270,9 @@ window.EggGameModules.logic = {
 
     rollLine1EggSpawnSegment() {
         const gapRoll = Math.random();
-        this.line1EggGapRemaining = gapRoll < 0.18 ? 5 : (gapRoll < 0.44 ? 4 : (gapRoll < 0.72 ? 3 : (gapRoll < 0.9 ? 2 : 1)));
+        this.line1EggGapRemaining = gapRoll < 0.12 ? 4 : (gapRoll < 0.34 ? 3 : (gapRoll < 0.62 ? 2 : (gapRoll < 0.86 ? 1 : 0)));
         const runRoll = Math.random();
-        this.line1EggRunRemaining = runRoll < 0.14 ? 3 : (runRoll < 0.56 ? 2 : 1);
+        this.line1EggRunRemaining = runRoll < 0.28 ? 3 : (runRoll < 0.73 ? 2 : 1);
     },
 
     shouldSpawnEggAtEntrySlot(slotIndex) {
