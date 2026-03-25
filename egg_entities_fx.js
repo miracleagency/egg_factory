@@ -1197,6 +1197,33 @@ window.EggGameModules.entitiesFx = {
             item.wetFx.push(d);
             item.wetFx.push(shine);
         }
+        if (item.eggsBox) {
+            const frontDrops = [
+                { x: -18, y: -2, r: 16 },
+                { x: 8, y: 6, r: 14 },
+                { x: 28, y: -4, r: 12 }
+            ];
+            for (const p of frontDrops) {
+                const drop = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.98);
+                const shine = this.add.circle(p.x - 2, p.y - 2, Math.max(2, p.r * 0.32), 0xffffff, 0.6);
+                wetParent.add(drop);
+                wetParent.add(shine);
+                if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(drop);
+                if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(shine);
+                this.tweens.add({
+                    targets: [drop, shine],
+                    y: p.y - 4,
+                    x: p.x + Phaser.Math.Between(-2, 2),
+                    alpha: 0.9,
+                    scaleX: 0.9,
+                    scaleY: 1.18,
+                    yoyo: true,
+                    repeat: -1,
+                    duration: 320 + Phaser.Math.Between(0, 120)
+                });
+                item.wetFx.push(drop, shine);
+            }
+        }
         if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
             item.container.bringToTop(item.container._wetOverlay);
         }

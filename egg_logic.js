@@ -639,7 +639,7 @@ window.EggGameModules.logic = {
         let maxSkip = 3;
         if (def.type === "mul" && def.value === 2) {
             minSkip = 0;
-            maxSkip = 2;
+            maxSkip = 1;
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
@@ -844,8 +844,10 @@ window.EggGameModules.logic = {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
         const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
+        const pauseStart = this.gameplayPauseStartedAt || this.time.now;
         for (const def of [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]) {
             if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
+            if ((def.brokenStartedAt || 0) >= pauseStart - 0.5) continue;
             def.brokenUntil += elapsed;
             if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
         }
