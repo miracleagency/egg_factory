@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-machine-style-and-flow-v97"
+    version: "2026-03-25-machine-layering-fix-v99"
 };

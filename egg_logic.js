@@ -1358,7 +1358,13 @@ window.EggGameModules.logic = {
                 .sort((a, b) => a.y - b.y)
                 .map(item => () => {
                     this.animateMysteryTransformItem(item, egg => {
-                        if (egg.armored) return { ...egg };
+                        if (egg.megaArmored) return { ...egg };
+                        if (egg.armored) {
+                            return {
+                                ...this.createMegaArmoredEggData(egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : egg),
+                                mult: egg.mult
+                            };
+                        }
                         return {
                             ...this.createArmoredEggData(egg),
                             mult: egg.mult

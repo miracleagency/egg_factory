@@ -74,7 +74,7 @@ window.EggGameModules.entitiesFx = {
             const bubbleB = this.add.circle(26, -4, 3.5, 0xbff7ff, 0.56);
             const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
-            parts.unshift(tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
+            parts.splice(1, 0, tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
         } else if (def.type === "crush") {
             const hood = this.add.rectangle(0, -18, 102, 14, 0x4d4037, 1).setStrokeStyle(2, 0xe0c6ad, 0.72);
             const jaw = this.add.rectangle(0, 16, 88, 20, 0x615249, 1).setStrokeStyle(3, 0xf0dcc4, 0.82);
@@ -85,7 +85,7 @@ window.EggGameModules.entitiesFx = {
             stripeL.angle = -18;
             stripeR.angle = 18;
             const bolts = [-48, -18, 18, 48].map(x => this.add.circle(x, -22, 3.2, 0xf0e1d1, 1).setStrokeStyle(1.5, 0x725c4d));
-            parts.unshift(hood, jaw, stripeL, stripeR, ...teeth, ...bolts);
+            parts.splice(1, 0, hood, jaw, stripeL, stripeR, ...teeth, ...bolts);
         } else if (def.type === "fire") {
             const furnace = this.add.roundRectangle
                 ? this.add.roundRectangle(0, -2, 96, 34, 10, 0x5e1915, 0.96).setStrokeStyle(2, 0xffb29f, 0.78)
@@ -97,7 +97,7 @@ window.EggGameModules.entitiesFx = {
             const chimneyL = this.add.rectangle(-34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
             const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
-            parts.unshift(emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
+            parts.splice(1, 0, emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
                 ? this.add.roundRectangle(0, -4, 100, 36, 12, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
@@ -110,7 +110,7 @@ window.EggGameModules.entitiesFx = {
                 this.add.rectangle(34, -4, 10, 30, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
             ];
             const studs = [-42, -20, 20, 42].map(x => this.add.circle(x, 16, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
-            parts.unshift(halo, frame, beamGate, gem, ...fins, ...studs);
+            parts.splice(1, 0, halo, frame, beamGate, gem, ...fins, ...studs);
         } else if (def.type === "mul") {
             const coil = this.add.roundRectangle
                 ? this.add.roundRectangle(0, -4, 96, 32, 11, 0x1d472d, 0.94).setStrokeStyle(2, 0xcafede, 0.82)
@@ -122,7 +122,7 @@ window.EggGameModules.entitiesFx = {
             const ventA = this.add.rectangle(-16, 16, 16, 4, 0xc6ffd5, 0.84);
             const ventB = this.add.rectangle(0, 16, 16, 4, 0xc6ffd5, 0.84);
             const ventC = this.add.rectangle(16, 16, 16, 4, 0xc6ffd5, 0.84);
-            parts.unshift(coil, node, nodeCore, railL, railR, ventA, ventB, ventC);
+            parts.splice(1, 0, coil, node, nodeCore, railL, railR, ventA, ventB, ventC);
         }
         if (def.type === "shield") {
             const glow = this.add.ellipse(0, 0, 138, 84, 0x79d8ff, 0.10);
@@ -166,8 +166,8 @@ window.EggGameModules.entitiesFx = {
                 this.add.circle(-8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
                 this.add.circle(8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280)
             ];
-            parts.unshift(
-                glow,
+            parts.unshift(glow);
+            parts.splice(1, 0,
                 topCap,
                 bottomCap,
                 sidePanelL,
@@ -1033,13 +1033,14 @@ window.EggGameModules.entitiesFx = {
 
         const points = item.eggsBox
             ? [
-                { x: -48, y: -4, r: 10 },
-                { x: -22, y: 8, r: 9 },
-                { x: 6, y: 16, r: 9 },
-                { x: 34, y: 10, r: 10 },
-                { x: 50, y: -2, r: 8 },
-                { x: 0, y: -16, r: 8 },
-                { x: -4, y: 30, r: 11 }
+                { x: -54, y: -20, r: 12 },
+                { x: -28, y: -2, r: 11 },
+                { x: 4, y: 10, r: 11 },
+                { x: 36, y: 2, r: 12 },
+                { x: 56, y: -16, r: 10 },
+                { x: -4, y: -30, r: 10 },
+                { x: -8, y: 28, r: 13 },
+                { x: 30, y: 30, r: 10 }
             ]
             : [
                 { x: -24, y: -34, r: 6 },
@@ -1053,32 +1054,44 @@ window.EggGameModules.entitiesFx = {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
             const shine = this.add.circle(p.x - 1.6, p.y - 1.8, Math.max(1.6, p.r * 0.32), 0xffffff, 0.55);
             const outline = item.eggsBox
-                ? this.add.circle(p.x, p.y, p.r + 1.8, 0xdff6ff, 0.22)
+                ? this.add.circle(p.x, p.y, p.r + 2.8, 0xdff6ff, 0.32)
                 : null;
             const streak = item.eggsBox
-                ? this.add.ellipse(p.x, p.y + p.r + 8, Math.max(6, p.r * 0.85), Math.max(12, p.r * 1.8), 0x8cd9ff, 0.34)
+                ? this.add.ellipse(p.x, p.y + p.r + 11, Math.max(8, p.r * 0.92), Math.max(18, p.r * 2.35), 0x8cd9ff, 0.44)
+                : null;
+            const streakShine = item.eggsBox
+                ? this.add.ellipse(p.x - 1, p.y + p.r + 6, Math.max(2.5, p.r * 0.22), Math.max(9, p.r * 1.15), 0xffffff, 0.28)
+                : null;
+            const bead = item.eggsBox
+                ? this.add.circle(p.x + Phaser.Math.Between(-2, 2), p.y + p.r + Phaser.Math.Between(10, 18), Math.max(2.6, p.r * 0.3), 0xbfeeff, 0.82)
                 : null;
             if (outline) item.container.add(outline);
             if (streak) item.container.add(streak);
+            if (streakShine) item.container.add(streakShine);
+            if (bead) item.container.add(bead);
             item.container.add(d);
             item.container.add(shine);
             if (outline && typeof item.container.bringToTop === "function") item.container.bringToTop(outline);
             if (streak && typeof item.container.bringToTop === "function") item.container.bringToTop(streak);
+            if (streakShine && typeof item.container.bringToTop === "function") item.container.bringToTop(streakShine);
+            if (bead && typeof item.container.bringToTop === "function") item.container.bringToTop(bead);
             if (typeof item.container.bringToTop === "function") item.container.bringToTop(d);
             if (typeof item.container.bringToTop === "function") item.container.bringToTop(shine);
             this.tweens.add({
-                targets: streak ? [outline, streak, d, shine].filter(Boolean) : [d, shine],
-                y: p.y - (item.eggsBox ? 2 : 5),
+                targets: streak ? [outline, streak, streakShine, bead, d, shine].filter(Boolean) : [d, shine],
+                y: p.y - (item.eggsBox ? 3 : 5),
                 x: p.x + Phaser.Math.Between(-3, 3),
-                alpha: item.eggsBox ? 0.78 : 0.62,
-                scaleX: 0.78,
-                scaleY: 1.22,
+                alpha: item.eggsBox ? 0.92 : 0.62,
+                scaleX: item.eggsBox ? 0.92 : 0.78,
+                scaleY: item.eggsBox ? 1.34 : 1.22,
                 yoyo: true,
                 repeat: -1,
                 duration: 360 + Phaser.Math.Between(0, 170)
             });
             if (outline) item.wetFx.push(outline);
             if (streak) item.wetFx.push(streak);
+            if (streakShine) item.wetFx.push(streakShine);
+            if (bead) item.wetFx.push(bead);
             item.wetFx.push(d);
             item.wetFx.push(shine);
         }
