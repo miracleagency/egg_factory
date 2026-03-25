@@ -22,8 +22,8 @@ window.EggGameModules.entitiesFx = {
             fill = 0x8a7363;
             stroke = 0xd0b8a2;
         } else if (def.type === "shield") {
-            fill = 0x6f7b88;
-            stroke = 0xdce4ed;
+            fill = 0x4f5967;
+            stroke = 0xf1f6fb;
         } else if (def.type === "fire") {
             fill = 0xd3412c;
             stroke = 0xff9f8f;
@@ -35,9 +35,9 @@ window.EggGameModules.entitiesFx = {
         let lip;
         if (def.type === "shield") {
             body = this.add.roundRectangle
-                ? this.add.roundRectangle(0, 0, 132, 82, 16, fill, 1).setStrokeStyle(4, stroke)
-                : this.add.rectangle(0, 0, 132, 82, fill, 1).setStrokeStyle(4, stroke);
-            lip = this.add.rectangle(0, 48, 86, 12, 0x394552, 1).setStrokeStyle(2, 0x9aa9b6);
+                ? this.add.roundRectangle(0, 0, 136, 84, 16, fill, 1).setStrokeStyle(4, stroke)
+                : this.add.rectangle(0, 0, 136, 84, fill, 1).setStrokeStyle(4, stroke);
+            lip = this.add.rectangle(0, 50, 92, 12, 0x222b35, 1).setStrokeStyle(2, 0xaab9c7);
         } else {
             body = this.add.rectangle(0, 0, 126, 72, fill, 1).setStrokeStyle(4, stroke);
             lip = this.add.rectangle(0, 44, 84, 12, 0x3a4554, 1).setStrokeStyle(2, 0x7c8998);
@@ -61,14 +61,26 @@ window.EggGameModules.entitiesFx = {
 
         const parts = [body, lip, label, timerText, hammer];
         if (def.type === "shield") {
-            const panel = this.add.rectangle(0, -8, 92, 26, 0x495563, 0.95).setStrokeStyle(2, 0xbec9d5, 0.7);
-            const rivets = [
-                this.add.circle(-44, -20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(44, -20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-44, 20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(44, 20, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280)
+            const glow = this.add.ellipse(0, 0, 150, 92, 0x79d8ff, 0.10);
+            const panel = this.add.rectangle(0, -10, 96, 28, 0x2d3743, 0.98).setStrokeStyle(2, 0xc7d3de, 0.75);
+            const reactorOuter = this.add.circle(0, -8, 15, 0x102230, 1).setStrokeStyle(3, 0xc7efff, 0.95);
+            const reactorCore = this.add.circle(0, -8, 8, 0x7fe7ff, 1);
+            const reactorGlow = this.add.circle(0, -8, 18, 0x56d9ff, 0.18);
+            const panelBars = [
+                this.add.rectangle(-22, 18, 22, 6, 0xcfd8e2, 0.9),
+                this.add.rectangle(22, 18, 22, 6, 0xcfd8e2, 0.9)
             ];
-            parts.unshift(panel, ...rivets);
+            const rivets = [
+                this.add.circle(-50, -24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(50, -24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-50, 24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(50, 24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-20, -28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(20, -28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-20, 28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(20, 28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280)
+            ];
+            parts.unshift(glow, panel, reactorGlow, reactorOuter, reactorCore, ...panelBars, ...rivets);
         }
         container.add(parts);
         container.setScale(1.12);
@@ -362,13 +374,16 @@ window.EggGameModules.entitiesFx = {
 
         if (eggType.armored) {
             const mega = !!eggType.megaArmored;
-            const shell = this.add.ellipse(0, 0, mega ? 40 : 34, mega ? 54 : 46, mega ? 0x79838e : 0x8d969f, 1).setStrokeStyle(3, mega ? 0xf0f6fd : 0xdfe6ef);
-            const band = this.add.rectangle(0, 0, mega ? 30 : 26, mega ? 40 : 34, mega ? 0x5d6671 : 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
+            const shell = this.add.ellipse(0, 0, mega ? 42 : 34, mega ? 58 : 46, mega ? 0x5c6470 : 0x8d969f, 1).setStrokeStyle(3, mega ? 0xf7fbff : 0xdfe6ef);
+            const band = this.add.rectangle(0, 0, mega ? 32 : 26, mega ? 42 : 34, mega ? 0x323b46 : 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
             const rivetPoints = mega
                 ? [[-13, -17], [0, -19], [13, -17], [-15, 0], [15, 0], [-13, 17], [0, 19], [13, 17]]
                 : [[-11, -11], [11, -11], [-11, 11], [11, 11]];
             const rivets = rivetPoints.map(([x, y]) => this.add.circle(x, y, mega ? 3.2 : 2.8, 0xe4eaf1, 1));
             const shine = this.add.ellipse(-7, -12, 7, 12, 0xffffff, 0.22);
+            const reactorOuter = mega ? this.add.circle(0, 0, 10, 0x17273a, 1).setStrokeStyle(2, 0xbfefff, 0.95) : null;
+            const reactorCore = mega ? this.add.circle(0, 0, 5.5, 0x72e9ff, 1) : null;
+            const reactorGlow = mega ? this.add.circle(0, 0, 14, 0x57dcff, 0.22) : null;
             const crackA = this.add.graphics();
             crackA.lineStyle(2, 0x25303a, 0.92);
             crackA.beginPath();
@@ -398,7 +413,7 @@ window.EggGameModules.entitiesFx = {
             const armorDamage = eggType.armorDamage || 0;
             crackA.setVisible(armorDamage >= 1);
             crackB.setVisible(armorDamage >= (mega ? 999 : 2));
-            container.add([shell, band, ...rivets, shine, crackA, crackB]);
+            container.add([shell, band, ...(mega ? [reactorGlow, reactorOuter, reactorCore] : []), ...rivets, shine, crackA, crackB]);
             container._armorCrackA = crackA;
             container._armorCrackB = crackB;
             container.setScale(eggScale);
@@ -960,7 +975,7 @@ window.EggGameModules.entitiesFx = {
         const oy = item.container.y - 28;
 
         for (let i = 0; i < 3; i++) {
-            const spray = this.add.rectangle(ox + (i - 1) * 10, oy - 38, 6, 54, 0x8de6ff, 0.48).setDepth(5098);
+            const spray = this.add.rectangle(ox + (i - 1) * 10, oy - 38, 6, 54, 0x8de6ff, 0.48).setDepth(9302);
             spray.angle = Phaser.Math.Between(-10, 10);
             this.fxLayer.add(spray);
             this.tweens.add({
@@ -975,7 +990,7 @@ window.EggGameModules.entitiesFx = {
         }
 
         for (let i = 0; i < 14; i++) {
-            const drop = this.add.circle(ox, oy, Phaser.Math.Between(3, 6), 0x57c3ff, 1).setDepth(5100);
+            const drop = this.add.circle(ox, oy, Phaser.Math.Between(3, 6), 0x57c3ff, 1).setDepth(9304);
             this.fxLayer.add(drop);
             this.tweens.add({
                 targets: drop,
@@ -988,7 +1003,7 @@ window.EggGameModules.entitiesFx = {
         }
 
         for (let i = 0; i < 4; i++) {
-            const streak = this.add.rectangle(ox, oy, 4, 22, 0x8ddcff, 0.8).setDepth(5099);
+            const streak = this.add.rectangle(ox, oy, 4, 22, 0x8ddcff, 0.8).setDepth(9303);
             streak.angle = Phaser.Math.Between(-35, 35);
             this.fxLayer.add(streak);
             this.tweens.add({
