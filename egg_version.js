@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-25-box-wet-overlay-v102"
+    version: "2026-03-25-water-icon-crash-fix-v103"
 };

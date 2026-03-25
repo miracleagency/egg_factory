@@ -77,17 +77,18 @@ window.EggGameModules.entitiesFx = {
             const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
             const iconDisk = this.add.circle(0, -4, 18, 0x0c2844, 0.98).setStrokeStyle(3, 0x6edcff, 0.95);
             const drop = this.add.graphics();
+            const dropPoints = [
+                { x: 0, y: -16 },
+                { x: 9, y: -4 },
+                { x: 7, y: 8 },
+                { x: 0, y: 15 },
+                { x: -7, y: 8 },
+                { x: -9, y: -4 }
+            ];
             drop.fillStyle(0x7fe9ff, 1);
             drop.lineStyle(2, 0xeaffff, 0.95);
-            drop.beginPath();
-            drop.moveTo(0, -16);
-            drop.quadraticCurveTo(10, -4, 7, 6);
-            drop.quadraticCurveTo(4, 15, 0, 15);
-            drop.quadraticCurveTo(-4, 15, -7, 6);
-            drop.quadraticCurveTo(-10, -4, 0, -16);
-            drop.closePath();
-            drop.fillPath();
-            drop.strokePath();
+            drop.fillPoints(dropPoints, true, true);
+            drop.strokePoints(dropPoints, true, true);
             faceParts.push(iconDisk, drop);
             parts.splice(1, 0, tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
         } else if (def.type === "crush") {
