@@ -1133,7 +1133,75 @@ window.EggGameModules.entitiesFx = {
         });
     },
 
+    ensureEggBoxWetFx(item) {
+        if (!item || !item.container) return;
+        if (item.wetFx && item.wetFx.length) return;
+        item.wetFx = [];
+        const wetParent = item.container._wetOverlay || item.container;
+
+        const sheenEdge = this.add.ellipse(0, 6, 132, 96, 0xdff6ff, 0.16);
+        const sheen = this.add.ellipse(0, 8, 120, 86, 0x66c9ff, 0.24);
+        const drips = [
+            { x: -34, y: -10, r: 14, h: 28 },
+            { x: -10, y: -2, r: 12, h: 24 },
+            { x: 18, y: 2, r: 13, h: 26 },
+            { x: 42, y: -8, r: 12, h: 22 },
+            { x: -20, y: 24, r: 15, h: 24 },
+            { x: 14, y: 26, r: 13, h: 22 }
+        ];
+
+        wetParent.add([sheenEdge, sheen]);
+        if (typeof wetParent.bringToTop === "function") {
+            wetParent.bringToTop(sheenEdge);
+            wetParent.bringToTop(sheen);
+        }
+        this.tweens.add({
+            targets: [sheenEdge, sheen],
+            alpha: 0.12,
+            scaleX: 1.04,
+            scaleY: 1.06,
+            duration: 360,
+            yoyo: true,
+            repeat: -1
+        });
+        item.wetFx.push(sheenEdge, sheen);
+
+        for (const p of drips) {
+            const drop = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.98);
+            const shine = this.add.circle(p.x - 2, p.y - 2, Math.max(2, p.r * 0.32), 0xffffff, 0.62);
+            const tail = this.add.ellipse(p.x, p.y + p.r + 8, Math.max(8, p.r * 0.82), p.h, 0x8cd9ff, 0.58);
+            const tailShine = this.add.ellipse(p.x - 1, p.y + p.r + 6, Math.max(2.5, p.r * 0.2), Math.max(10, p.h * 0.55), 0xffffff, 0.24);
+            wetParent.add([tail, tailShine, drop, shine]);
+            if (typeof wetParent.bringToTop === "function") {
+                wetParent.bringToTop(tail);
+                wetParent.bringToTop(tailShine);
+                wetParent.bringToTop(drop);
+                wetParent.bringToTop(shine);
+            }
+            this.tweens.add({
+                targets: [tail, tailShine, drop, shine],
+                y: p.y - 4,
+                x: p.x + Phaser.Math.Between(-2, 2),
+                alpha: 0.92,
+                scaleX: 0.92,
+                scaleY: 1.18,
+                yoyo: true,
+                repeat: -1,
+                duration: 300 + Phaser.Math.Between(0, 140)
+            });
+            item.wetFx.push(tail, tailShine, drop, shine);
+        }
+
+        if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
+            item.container.bringToTop(item.container._wetOverlay);
+        }
+    },
+
     ensureWetFx(item) {
+        if (item && item.eggsBox) {
+            this.ensureEggBoxWetFx(item);
+            return;
+        }
         if (item.wetFx && item.wetFx.length) return;
         item.wetFx = [];
         const wetParent = item.container && item.container._wetOverlay
@@ -1196,48 +1264,6 @@ window.EggGameModules.entitiesFx = {
             if (outline) item.wetFx.push(outline);
             item.wetFx.push(d);
             item.wetFx.push(shine);
-        }
-        if (item.eggsBox) {
-            const sheenEdge = this.add.ellipse(2, 6, 126, 92, 0xdff6ff, 0.10);
-            const sheen = this.add.ellipse(2, 6, 116, 82, 0x66c9ff, 0.18);
-            wetParent.add([sheenEdge, sheen]);
-            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(sheenEdge);
-            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(sheen);
-            this.tweens.add({
-                targets: [sheenEdge, sheen],
-                alpha: 0.08,
-                scaleX: 1.03,
-                scaleY: 1.05,
-                duration: 340,
-                yoyo: true,
-                repeat: -1
-            });
-            item.wetFx.push(sheenEdge, sheen);
-            const frontDrops = [
-                { x: -18, y: -2, r: 16 },
-                { x: 8, y: 6, r: 14 },
-                { x: 28, y: -4, r: 12 }
-            ];
-            for (const p of frontDrops) {
-                const drop = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.98);
-                const shine = this.add.circle(p.x - 2, p.y - 2, Math.max(2, p.r * 0.32), 0xffffff, 0.6);
-                wetParent.add(drop);
-                wetParent.add(shine);
-                if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(drop);
-                if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(shine);
-                this.tweens.add({
-                    targets: [drop, shine],
-                    y: p.y - 4,
-                    x: p.x + Phaser.Math.Between(-2, 2),
-                    alpha: 0.9,
-                    scaleX: 0.9,
-                    scaleY: 1.18,
-                    yoyo: true,
-                    repeat: -1,
-                    duration: 320 + Phaser.Math.Between(0, 120)
-                });
-                item.wetFx.push(drop, shine);
-            }
         }
         if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
             item.container.bringToTop(item.container._wetOverlay);

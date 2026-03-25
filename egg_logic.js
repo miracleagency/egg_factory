@@ -639,7 +639,7 @@ window.EggGameModules.logic = {
         let maxSkip = 3;
         if (def.type === "mul" && def.value === 2) {
             minSkip = 0;
-            maxSkip = 1;
+            maxSkip = 0;
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
