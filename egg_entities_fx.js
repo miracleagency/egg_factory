@@ -70,24 +70,12 @@ window.EggGameModules.entitiesFx = {
         const parts = [body, lip, label, timerText, hammer];
         const faceParts = [];
         if (def.type === "water") {
-            const tank = this.add.roundRectangle
-                ? this.add.roundRectangle(0, -4, 92, 30, 10, 0x19476d, 0.96).setStrokeStyle(2, 0xb7f3ff, 0.85)
-                : this.add.rectangle(0, -4, 92, 30, 0x19476d, 0.96).setStrokeStyle(2, 0xb7f3ff, 0.85);
-            const pipeL = this.add.rectangle(-34, 16, 14, 34, 0x356992, 1).setStrokeStyle(2, 0xa4eaff, 0.72);
-            const pipeR = this.add.rectangle(34, 16, 14, 34, 0x356992, 1).setStrokeStyle(2, 0xa4eaff, 0.72);
-            const nozzle = this.add.rectangle(0, 26, 42, 12, 0xccefff, 0.94).setStrokeStyle(2, 0xffffff, 0.85);
-            const gauge = this.add.circle(-42, -16, 10, 0x233647, 1).setStrokeStyle(2, 0xe3f9ff, 0.9);
-            const gaugeNeedle = this.add.rectangle(-40, -18, 8, 2, 0xffe482, 1);
-            gaugeNeedle.angle = 24;
-            const bubbleA = this.add.circle(16, -14, 5, 0xe8ffff, 0.7);
-            const bubbleB = this.add.circle(26, -4, 3.5, 0xbff7ff, 0.56);
-            const waveA = this.add.rectangle(8, -4, 54, 4, 0x91e9ff, 0.72);
-            const waveB = this.add.rectangle(4, 3, 46, 4, 0x5ecfff, 0.6);
-            const iconDisk = this.add.circle(0, -2, 24, 0x0a2240, 1).setStrokeStyle(3, 0x6edcff, 0.95);
+            const iconDisk = this.add.circle(0, -2, 32, 0x0a2240, 1).setStrokeStyle(4, 0x6edcff, 0.95);
+            const ringGlow = this.add.ellipse(0, -2, 76, 56, 0x4cdfff, 0.12);
             const dropSvg = this.createSvgMachineIcon("egg_icon_water_svg", 0x7fe9ff, 36);
             if (dropSvg) {
                 dropSvg.y = -2;
-                faceParts.push(iconDisk, dropSvg);
+                faceParts.push(ringGlow, iconDisk, dropSvg);
             } else {
                 const drop = this.add.graphics();
                 const dropPoints = [
@@ -102,38 +90,24 @@ window.EggGameModules.entitiesFx = {
                 drop.lineStyle(2.5, 0xeaffff, 0.95);
                 drop.fillPoints(dropPoints, true, true);
                 drop.strokePoints(dropPoints, true, true);
-                faceParts.push(iconDisk, drop);
+                faceParts.push(ringGlow, iconDisk, drop);
             }
-            parts.splice(1, 0, tank, pipeL, pipeR, nozzle, gauge, gaugeNeedle, bubbleA, bubbleB, waveA, waveB);
         } else if (def.type === "crush") {
-            const hood = this.add.rectangle(0, -18, 102, 14, 0x4d4037, 1).setStrokeStyle(2, 0xe0c6ad, 0.72);
-            const jaw = this.add.rectangle(0, 16, 88, 20, 0x615249, 1).setStrokeStyle(3, 0xf0dcc4, 0.82);
-            const toothPoints = [-28, -14, 0, 14, 28];
-            const teeth = toothPoints.map(x => this.add.triangle(x, 26, -6, -2, 6, -2, 0, 12, 0xf2ddc6, 1).setStrokeStyle(1, 0x5b493e, 0.6));
-            const stripeL = this.add.rectangle(-40, 2, 18, 40, 0xd3a63f, 0.96).setStrokeStyle(2, 0x3f342c, 0.7);
-            const stripeR = this.add.rectangle(40, 2, 18, 40, 0xd3a63f, 0.96).setStrokeStyle(2, 0x3f342c, 0.7);
-            stripeL.angle = -18;
-            stripeR.angle = 18;
-            const bolts = [-48, -18, 18, 48].map(x => this.add.circle(x, -22, 3.2, 0xf0e1d1, 1).setStrokeStyle(1.5, 0x725c4d));
-            parts.splice(1, 0, hood, jaw, stripeL, stripeR, ...teeth, ...bolts);
+            const hood = this.add.rectangle(0, -18, 96, 12, 0x51433a, 1).setStrokeStyle(2, 0xe0c6ad, 0.64);
+            const jaw = this.add.rectangle(0, 14, 82, 16, 0x65564d, 1).setStrokeStyle(3, 0xf0dcc4, 0.72);
+            const toothPoints = [-24, -8, 8, 24];
+            const teeth = toothPoints.map(x => this.add.triangle(x, 24, -5, -2, 5, -2, 0, 10, 0xf2ddc6, 1).setStrokeStyle(1, 0x5b493e, 0.56));
+            const bolts = [-42, -16, 16, 42].map(x => this.add.circle(x, -20, 2.8, 0xf0e1d1, 1).setStrokeStyle(1.3, 0x725c4d));
+            parts.splice(1, 0, hood, jaw, ...teeth, ...bolts);
         } else if (def.type === "fire") {
-            const furnace = this.add.roundRectangle
-                ? this.add.roundRectangle(0, -2, 96, 34, 10, 0x5e1915, 0.96).setStrokeStyle(2, 0xffb29f, 0.78)
-                : this.add.rectangle(0, -2, 96, 34, 0x5e1915, 0.96).setStrokeStyle(2, 0xffb29f, 0.78);
-            const grate = this.add.rectangle(0, 16, 82, 10, 0x2f1410, 1).setStrokeStyle(2, 0xffb18c, 0.58);
-            const slitA = this.add.rectangle(-20, -2, 12, 20, 0xff9b4d, 0.92);
-            const slitB = this.add.rectangle(0, -2, 12, 22, 0xffcf6a, 0.96);
-            const slitC = this.add.rectangle(20, -2, 12, 20, 0xff7d35, 0.92);
-            const chimneyL = this.add.rectangle(-34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
-            const chimneyR = this.add.rectangle(34, -24, 12, 18, 0x6d777f, 1).setStrokeStyle(2, 0xd8e0e8, 0.65);
-            const emberGlow = this.add.ellipse(0, -4, 70, 28, 0xff7b32, 0.16);
-            const iconDisk = this.add.circle(0, -2, 24, 0x0f0908, 1).setStrokeStyle(3, 0xff7b52, 0.9);
+            const iconDisk = this.add.circle(0, -2, 32, 0x0f0908, 1).setStrokeStyle(4, 0xff7b52, 0.9);
+            const emberGlow = this.add.ellipse(0, -2, 78, 58, 0xff7b32, 0.12);
             const flameSvg = this.createSvgMachineIcon("egg_icon_fire_svg", 0xff5d2f, 39);
             if (flameSvg) {
                 flameSvg.y = -2;
                 const flameInner = this.createSvgMachineIcon("egg_icon_fire_svg", 0xffef9f, 20);
                 if (flameInner) flameInner.y = 2;
-                faceParts.push(iconDisk, flameSvg, ...(flameInner ? [flameInner] : []));
+                faceParts.push(emberGlow, iconDisk, flameSvg, ...(flameInner ? [flameInner] : []));
             } else {
                 const flameOuter = this.add.graphics();
                 const flameOuterPts = [
@@ -161,31 +135,30 @@ window.EggGameModules.entitiesFx = {
                 ];
                 flameInner.fillStyle(0xffef9f, 1);
                 flameInner.fillPoints(flameInnerPts, true, true);
-                faceParts.push(iconDisk, flameOuter, flameInner);
+                faceParts.push(emberGlow, iconDisk, flameOuter, flameInner);
             }
-            parts.splice(1, 0, emberGlow, furnace, grate, slitA, slitB, slitC, chimneyL, chimneyR);
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
-                ? this.add.roundRectangle(0, -2, 112, 44, 14, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
-                : this.add.rectangle(0, -2, 112, 44, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9);
-            const beamGate = this.add.rectangle(0, 21, 88, 10, 0x6b4c0f, 1).setStrokeStyle(2, 0xffda6d, 0.7);
-            const gem = this.add.star(0, -6, 6, 5, 10, 0xfff1bb, 0.95).setStrokeStyle(2, 0xd49b1e, 0.82);
-            const halo = this.add.ellipse(0, -6, 82, 30, 0xffdb58, 0.16);
-            const fins = [
-                this.add.rectangle(-40, -4, 12, 34, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7),
-                this.add.rectangle(40, -4, 12, 34, 0xd8af3c, 1).setStrokeStyle(2, 0xfff0a8, 0.7)
-            ];
-            const studs = [-48, -24, 24, 48].map(x => this.add.circle(x, 18, 3, 0xffefb2, 1).setStrokeStyle(1.5, 0xa67b1b));
+                ? this.add.roundRectangle(0, 0, 94, def.value === 50 ? 58 : 52, 12, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
+                : this.add.rectangle(0, 0, 94, def.value === 50 ? 58 : 52, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9);
+            const halo = this.add.ellipse(0, 0, def.value === 50 ? 100 : 88, def.value === 50 ? 48 : 42, 0xffdb58, 0.16);
             const bigMult = this.add.text(0, -2, `X${def.value}`, {
                 fontFamily: "Arial",
-                fontSize: def.value >= 20 ? "40px" : "44px",
+                fontSize: def.value === 50 ? "46px" : (def.value >= 20 ? "42px" : "44px"),
                 color: "#4f2900",
                 fontStyle: "bold",
                 stroke: "#f0cb4e",
                 strokeThickness: 8
             }).setOrigin(0.5);
-            faceParts.push(bigMult);
-            parts.splice(1, 0, halo, frame, beamGate, gem, ...fins, ...studs);
+            const flashes = def.value === 50
+                ? [
+                    this.add.star(-34, -18, 4, 2, 6, 0xfff1bb, 0.95),
+                    this.add.star(34, -8, 4, 2, 6, 0xfff1bb, 0.92),
+                    this.add.star(-28, 18, 4, 1.8, 5.5, 0xffe47b, 0.9),
+                    this.add.star(28, 20, 4, 1.8, 5.5, 0xffe47b, 0.88)
+                ]
+                : [];
+            faceParts.push(halo, frame, bigMult, ...flashes);
         } else if (def.type === "mul") {
             const coil = this.add.roundRectangle
                 ? this.add.roundRectangle(0, 0, 84, 52, 12, 0x163d25, 0.96).setStrokeStyle(3, 0xafffcc, 0.88)
@@ -308,9 +281,7 @@ window.EggGameModules.entitiesFx = {
                 ...rivets
             );
         }
-        if (faceParts.length > 0) {
-            parts.splice(parts.length - 3, 0, ...faceParts);
-        }
+        if (faceParts.length > 0) parts.splice(parts.length - 3, 0, ...faceParts);
         container.add(parts);
         container.setScale(1.12);
         this.machineLayer.add(container);
@@ -1171,23 +1142,23 @@ window.EggGameModules.entitiesFx = {
 
         const points = item.eggsBox
             ? [
-                { x: -54, y: -20, r: 12 },
-                { x: -28, y: -2, r: 11 },
-                { x: 4, y: 10, r: 11 },
-                { x: 36, y: 2, r: 12 },
+                { x: -46, y: -14, r: 12 },
+                { x: -22, y: 2, r: 11 },
+                { x: 6, y: 14, r: 12 },
+                { x: 32, y: 4, r: 12 },
                 { x: 56, y: -16, r: 10 },
                 { x: -4, y: -30, r: 10 },
-                { x: -8, y: 28, r: 13 },
-                { x: 30, y: 30, r: 10 }
+                { x: -12, y: 26, r: 14 },
+                { x: 18, y: 24, r: 12 }
             ]
             : (hasMegaArmor
                 ? [
-                    { x: -28, y: -42, r: 7 },
-                    { x: -12, y: -48, r: 6 },
-                    { x: 12, y: -47, r: 6 },
-                    { x: 28, y: -42, r: 7 },
-                    { x: 0, y: -54, r: 6 },
-                    { x: -2, y: -28, r: 7 }
+                    { x: -28, y: -42, r: 8 },
+                    { x: -12, y: -48, r: 7 },
+                    { x: 12, y: -47, r: 7 },
+                    { x: 28, y: -42, r: 8 },
+                    { x: 0, y: -54, r: 7 },
+                    { x: -2, y: -28, r: 8 }
                 ]
                 : [
                     { x: -24, y: -34, r: 6 },
@@ -1200,8 +1171,8 @@ window.EggGameModules.entitiesFx = {
         for (const p of points) {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
             const shine = this.add.circle(p.x - 1.6, p.y - 1.8, Math.max(1.6, p.r * 0.32), 0xffffff, 0.55);
-            const outline = item.eggsBox
-                ? this.add.circle(p.x, p.y, p.r + 2.8, 0xdff6ff, 0.32)
+            const outline = (item.eggsBox || hasMegaArmor)
+                ? this.add.circle(p.x, p.y, p.r + (item.eggsBox ? 2.8 : 1.8), 0xdff6ff, item.eggsBox ? 0.32 : 0.22)
                 : null;
             const streak = item.eggsBox
                 ? this.add.ellipse(p.x, p.y + p.r + 11, Math.max(8, p.r * 0.92), Math.max(18, p.r * 2.35), 0x8cd9ff, 0.44)
@@ -1241,6 +1212,27 @@ window.EggGameModules.entitiesFx = {
             if (bead) item.wetFx.push(bead);
             item.wetFx.push(d);
             item.wetFx.push(shine);
+        }
+        if (item.eggsBox) {
+            const curtainA = this.add.ellipse(-18, 18, 34, 52, 0x8cd9ff, 0.34);
+            const curtainB = this.add.ellipse(14, 20, 38, 58, 0x8cd9ff, 0.36);
+            const curtainC = this.add.ellipse(40, 8, 22, 42, 0xbfeeff, 0.26);
+            wetParent.add([curtainA, curtainB, curtainC]);
+            if (typeof wetParent.bringToTop === "function") {
+                wetParent.bringToTop(curtainA);
+                wetParent.bringToTop(curtainB);
+                wetParent.bringToTop(curtainC);
+            }
+            this.tweens.add({
+                targets: [curtainA, curtainB, curtainC],
+                alpha: 0.16,
+                scaleY: 1.18,
+                y: "+=4",
+                duration: 420,
+                yoyo: true,
+                repeat: -1
+            });
+            item.wetFx.push(curtainA, curtainB, curtainC);
         }
         if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
             item.container.bringToTop(item.container._wetOverlay);
