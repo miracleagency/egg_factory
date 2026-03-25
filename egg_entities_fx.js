@@ -1198,6 +1198,21 @@ window.EggGameModules.entitiesFx = {
             item.wetFx.push(shine);
         }
         if (item.eggsBox) {
+            const sheenEdge = this.add.ellipse(2, 6, 126, 92, 0xdff6ff, 0.10);
+            const sheen = this.add.ellipse(2, 6, 116, 82, 0x66c9ff, 0.18);
+            wetParent.add([sheenEdge, sheen]);
+            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(sheenEdge);
+            if (typeof wetParent.bringToTop === "function") wetParent.bringToTop(sheen);
+            this.tweens.add({
+                targets: [sheenEdge, sheen],
+                alpha: 0.08,
+                scaleX: 1.03,
+                scaleY: 1.05,
+                duration: 340,
+                yoyo: true,
+                repeat: -1
+            });
+            item.wetFx.push(sheenEdge, sheen);
             const frontDrops = [
                 { x: -18, y: -2, r: 16 },
                 { x: 8, y: 6, r: 14 },

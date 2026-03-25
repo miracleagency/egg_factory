@@ -797,6 +797,15 @@ window.EggGameModules.logic = {
         if (this.gameplayPaused) return;
         this.gameplayPaused = true;
         this.gameplayPauseStartedAt = this.time.now;
+        this.gameplayPauseBrokenSnapshot = new Map();
+        for (const def of [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]) {
+            if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
+            this.gameplayPauseBrokenSnapshot.set(def, {
+                remainingMs: Math.max(0, def.brokenUntil - this.time.now),
+                durationMs: Math.max(1, def.brokenDurationMs || 10000),
+                displaySeconds: def.brokenDisplaySeconds || ((def.brokenDurationMs || 10000) / 1000)
+            });
+        }
         this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
 
         if (withOverlay) {
@@ -843,16 +852,21 @@ window.EggGameModules.logic = {
     endGameplayPause() {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
-        const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
         const pauseStart = this.gameplayPauseStartedAt || this.time.now;
-        for (const def of [...(this.line1Machines || []), ...(this.line2Machines || []), ...(this.line3Machines || [])]) {
+        const brokenSnapshot = this.gameplayPauseBrokenSnapshot instanceof Map ? this.gameplayPauseBrokenSnapshot : new Map();
+        for (const [def, snap] of brokenSnapshot.entries()) {
             if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
             if ((def.brokenStartedAt || 0) >= pauseStart - 0.5) continue;
-            def.brokenUntil += elapsed;
-            if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
+            const remainingMs = Math.max(0, snap && typeof snap.remainingMs === "number" ? snap.remainingMs : 0);
+            const durationMs = Math.max(1, snap && typeof snap.durationMs === "number" ? snap.durationMs : (def.brokenDurationMs || 10000));
+            def.brokenUntil = this.time.now + remainingMs;
+            def.brokenDurationMs = durationMs;
+            def.brokenDisplaySeconds = snap && typeof snap.displaySeconds === "number" ? snap.displaySeconds : (durationMs / 1000);
+            def.brokenStartedAt = this.time.now - Math.max(0, durationMs - remainingMs);
         }
 
         this.gameplayFocusTargets = [];
+        this.gameplayPauseBrokenSnapshot = null;
 
         if (this.gameplayFocusOverlay) {
             this.gameplayFocusOverlay.destroy();
