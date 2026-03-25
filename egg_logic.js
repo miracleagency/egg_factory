@@ -657,6 +657,9 @@ window.EggGameModules.logic = {
             if (def.value === 50) {
                 minSkip = 7;
                 maxSkip = 11;
+            } else if (def.value === 5 || def.value === 10) {
+                minSkip = 2;
+                maxSkip = def.value === 5 ? 4 : 5;
             } else {
                 minSkip = def.fastGold ? 4 : 5;
                 maxSkip = def.fastGold ? 8 : 10;
@@ -840,13 +843,6 @@ window.EggGameModules.logic = {
     endGameplayPause() {
         this.gameplayPauseDepth = Math.max(0, (this.gameplayPauseDepth || 1) - 1);
         if (this.gameplayPauseDepth > 0) return;
-        const elapsed = Math.max(0, this.time.now - (this.gameplayPauseStartedAt || this.time.now));
-
-        for (const def of [...this.line1Machines, ...this.line2Machines, ...this.line3Machines]) {
-            if (!def || !def.brokenUntil) continue;
-            def.brokenUntil += elapsed;
-            if (def.brokenStartedAt) def.brokenStartedAt += elapsed;
-        }
 
         this.gameplayFocusTargets = [];
 
@@ -1331,7 +1327,7 @@ window.EggGameModules.logic = {
             : eggs.map((_, index) => (index === 0 ? -10 : 10));
 
         eggs.forEach((eggData, index) => {
-            const visual = this.createEggVisual(eggData, false, { disableAmbientFx: this.gameplayPaused });
+            const visual = this.createEggVisual(eggData, false);
             visual.container.x = positions[index] || 0;
             visual.container.y = -26;
             visual.container._eggTypeData = eggData;
@@ -1491,15 +1487,36 @@ window.EggGameModules.logic = {
 
         const performCrush = (done) => {
             const press = this.add.container(targetX, startY).setDepth(5050);
-            const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
-            const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
-            const head = def.type === "shield"
-                ? this.add.rectangle(0, 28, 104, 32, 0x7a8692, 1).setStrokeStyle(4, 0xe5ecf4)
-                : this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
             if (def.type === "shield") {
-                head.setFillStyle(0x7a8692, 1).setStrokeStyle(4, 0xe5ecf4);
+                const top = this.add.rectangle(0, -20, 82, 14, 0x2f3944, 1).setStrokeStyle(3, 0xdce8f2);
+                const railL = this.add.rectangle(-18, 4, 10, 42, 0x4b5562, 1).setStrokeStyle(2, 0xbcc9d6);
+                const railR = this.add.rectangle(18, 4, 10, 42, 0x4b5562, 1).setStrokeStyle(2, 0xbcc9d6);
+                const core = this.add.rectangle(0, 0, 18, 38, 0x29333d, 1).setStrokeStyle(2, 0x96acbd);
+                const head = this.add.roundRectangle
+                    ? this.add.roundRectangle(0, 30, 108, 36, 10, 0x6d7886, 1).setStrokeStyle(4, 0xf0f7ff)
+                    : this.add.rectangle(0, 30, 108, 36, 0x6d7886, 1).setStrokeStyle(4, 0xf0f7ff);
+                const headPlate = this.add.rectangle(0, 24, 78, 10, 0x2e3945, 0.96).setStrokeStyle(2, 0xaab9c7, 0.78);
+                const headCoreOuter = this.add.circle(0, 31, 10, 0x142635, 1).setStrokeStyle(2, 0xc8f1ff, 0.95);
+                const headCore = this.add.circle(0, 31, 5, 0x75ebff, 1);
+                const fins = [
+                    this.add.rectangle(-32, 30, 12, 20, 0x4a5662, 1).setStrokeStyle(2, 0xa8b7c6),
+                    this.add.rectangle(32, 30, 12, 20, 0x4a5662, 1).setStrokeStyle(2, 0xa8b7c6)
+                ];
+                const rivets = [
+                    this.add.circle(-40, 19, 3, 0xe5edf6, 1).setStrokeStyle(1.5, 0x677482),
+                    this.add.circle(40, 19, 3, 0xe5edf6, 1).setStrokeStyle(1.5, 0x677482),
+                    this.add.circle(-40, 41, 3, 0xe5edf6, 1).setStrokeStyle(1.5, 0x677482),
+                    this.add.circle(40, 41, 3, 0xe5edf6, 1).setStrokeStyle(1.5, 0x677482),
+                    this.add.circle(-16, 19, 2.5, 0xe5edf6, 1).setStrokeStyle(1.2, 0x677482),
+                    this.add.circle(16, 19, 2.5, 0xe5edf6, 1).setStrokeStyle(1.2, 0x677482)
+                ];
+                press.add([top, railL, railR, core, head, headPlate, headCoreOuter, headCore, ...fins, ...rivets]);
+            } else {
+                const top = this.add.rectangle(0, -18, 74, 16, 0x66584f, 1).setStrokeStyle(3, 0xd7c0ab);
+                const shaft = this.add.rectangle(0, 0, 18, 42, 0x918175, 1).setStrokeStyle(2, 0xe3d0ba);
+                const head = this.add.rectangle(0, 28, 96, 26, 0xa38f7f, 1).setStrokeStyle(4, 0xf0dcc4);
+                press.add([shaft, top, head]);
             }
-            press.add([shaft, top, head]);
             this.fxLayer.add(press);
 
             this.tweens.add({

@@ -35,16 +35,16 @@ window.EggGameModules.entitiesFx = {
         let lip;
         if (def.type === "shield") {
             body = this.add.roundRectangle
-                ? this.add.roundRectangle(0, 0, 136, 84, 16, fill, 1).setStrokeStyle(4, stroke)
-                : this.add.rectangle(0, 0, 136, 84, fill, 1).setStrokeStyle(4, stroke);
-            lip = this.add.rectangle(0, 50, 92, 12, 0x222b35, 1).setStrokeStyle(2, 0xaab9c7);
+                ? this.add.roundRectangle(0, 0, 126, 72, 14, fill, 1).setStrokeStyle(4, stroke)
+                : this.add.rectangle(0, 0, 126, 72, fill, 1).setStrokeStyle(4, stroke);
+            lip = this.add.rectangle(0, 44, 84, 12, 0x222b35, 1).setStrokeStyle(2, 0xaab9c7);
         } else {
             body = this.add.rectangle(0, 0, 126, 72, fill, 1).setStrokeStyle(4, stroke);
             lip = this.add.rectangle(0, 44, 84, 12, 0x3a4554, 1).setStrokeStyle(2, 0x7c8998);
         }
         const label = this.add.text(0, -2, def.label, {
             fontFamily: "Arial",
-            fontSize: def.type === "shield" ? "28px" : "36px",
+            fontSize: def.type === "shield" ? "26px" : "36px",
             color: def.rarity === "gold" ? "#4a2a00" : "#ffffff",
             fontStyle: "bold"
         }).setOrigin(0.5);
@@ -61,26 +61,67 @@ window.EggGameModules.entitiesFx = {
 
         const parts = [body, lip, label, timerText, hammer];
         if (def.type === "shield") {
-            const glow = this.add.ellipse(0, 0, 150, 92, 0x79d8ff, 0.10);
-            const panel = this.add.rectangle(0, -10, 96, 28, 0x2d3743, 0.98).setStrokeStyle(2, 0xc7d3de, 0.75);
-            const reactorOuter = this.add.circle(0, -8, 15, 0x102230, 1).setStrokeStyle(3, 0xc7efff, 0.95);
-            const reactorCore = this.add.circle(0, -8, 8, 0x7fe7ff, 1);
-            const reactorGlow = this.add.circle(0, -8, 18, 0x56d9ff, 0.18);
+            const glow = this.add.ellipse(0, 0, 138, 84, 0x79d8ff, 0.10);
+            const topCap = this.add.rectangle(0, -24, 108, 12, 0x2e3742, 0.96).setStrokeStyle(2, 0xc7d3de, 0.7);
+            const bottomCap = this.add.rectangle(0, 22, 98, 10, 0x26303a, 0.95).setStrokeStyle(2, 0x95a8b8, 0.62);
+            const panel = this.add.rectangle(0, -4, 92, 24, 0x2d3743, 0.98).setStrokeStyle(2, 0xc7d3de, 0.75);
+            const sidePanelL = this.add.rectangle(-42, 2, 16, 38, 0x353f4a, 0.96).setStrokeStyle(2, 0xa9b9c8, 0.68);
+            const sidePanelR = this.add.rectangle(42, 2, 16, 38, 0x353f4a, 0.96).setStrokeStyle(2, 0xa9b9c8, 0.68);
+            const ventL = this.add.rectangle(-23, 18, 18, 5, 0xcfd8e2, 0.9);
+            const ventC = this.add.rectangle(0, 18, 18, 5, 0xcfd8e2, 0.9);
+            const ventR = this.add.rectangle(23, 18, 18, 5, 0xcfd8e2, 0.9);
+            const reactorOuter = this.add.circle(0, -6, 14, 0x102230, 1).setStrokeStyle(3, 0xc7efff, 0.95);
+            const reactorMid = this.add.circle(0, -6, 9.5, 0x25445e, 1).setStrokeStyle(2, 0xeafcff, 0.72);
+            const reactorCore = this.add.circle(0, -6, 6, 0x7fe7ff, 1);
+            const reactorGlow = this.add.circle(0, -6, 17, 0x56d9ff, 0.18);
+            const reactorCrossH = this.add.rectangle(0, -6, 16, 2.6, 0xe9fbff, 0.9);
+            const reactorCrossV = this.add.rectangle(0, -6, 2.6, 16, 0xe9fbff, 0.9);
+            const microPlates = [
+                this.add.rectangle(-31, -4, 12, 8, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
+                this.add.rectangle(31, -4, 12, 8, 0x4a5663, 0.92).setStrokeStyle(1, 0x9baebd, 0.6),
+                this.add.rectangle(-31, 10, 12, 6, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55),
+                this.add.rectangle(31, 10, 12, 6, 0x4a5663, 0.9).setStrokeStyle(1, 0x9baebd, 0.55)
+            ];
             const panelBars = [
-                this.add.rectangle(-22, 18, 22, 6, 0xcfd8e2, 0.9),
-                this.add.rectangle(22, 18, 22, 6, 0xcfd8e2, 0.9)
+                this.add.rectangle(-44, -16, 16, 3.5, 0xe7eef6, 0.88),
+                this.add.rectangle(44, -16, 16, 3.5, 0xe7eef6, 0.88),
+                this.add.rectangle(-44, 15, 16, 3.5, 0xe7eef6, 0.88),
+                this.add.rectangle(44, 15, 16, 3.5, 0xe7eef6, 0.88)
             ];
             const rivets = [
-                this.add.circle(-50, -24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(50, -24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-50, 24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(50, 24, 4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-20, -28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(20, -28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(-20, 28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
-                this.add.circle(20, 28, 3.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280)
+                this.add.circle(-52, -22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(52, -22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-52, 22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(52, 22, 3.8, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-24, -28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(24, -28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-24, 28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(24, 28, 3.4, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280),
+                this.add.circle(-8, -30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(8, -30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(-8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280),
+                this.add.circle(8, 30, 2.8, 0xe4ebf5, 1).setStrokeStyle(1.5, 0x667280)
             ];
-            parts.unshift(glow, panel, reactorGlow, reactorOuter, reactorCore, ...panelBars, ...rivets);
+            parts.unshift(
+                glow,
+                topCap,
+                bottomCap,
+                sidePanelL,
+                sidePanelR,
+                panel,
+                reactorGlow,
+                reactorOuter,
+                reactorMid,
+                reactorCore,
+                reactorCrossH,
+                reactorCrossV,
+                ventL,
+                ventC,
+                ventR,
+                ...microPlates,
+                ...panelBars,
+                ...rivets
+            );
         }
         container.add(parts);
         container.setScale(1.12);
@@ -928,12 +969,13 @@ window.EggGameModules.entitiesFx = {
 
         const points = item.eggsBox
             ? [
-                { x: -42, y: 14, r: 8 },
-                { x: -18, y: 20, r: 7 },
-                { x: 4, y: 24, r: 7 },
-                { x: 28, y: 18, r: 8 },
-                { x: 46, y: 12, r: 6 },
-                { x: 0, y: 6, r: 6 }
+                { x: -48, y: -4, r: 10 },
+                { x: -22, y: 8, r: 9 },
+                { x: 6, y: 16, r: 9 },
+                { x: 34, y: 10, r: 10 },
+                { x: 50, y: -2, r: 8 },
+                { x: 0, y: -16, r: 8 },
+                { x: -4, y: 30, r: 11 }
             ]
             : [
                 { x: -24, y: -34, r: 6 },
@@ -946,21 +988,33 @@ window.EggGameModules.entitiesFx = {
         for (const p of points) {
             const d = this.add.circle(p.x, p.y, p.r, 0x66c9ff, 0.95);
             const shine = this.add.circle(p.x - 1.6, p.y - 1.8, Math.max(1.6, p.r * 0.32), 0xffffff, 0.55);
+            const outline = item.eggsBox
+                ? this.add.circle(p.x, p.y, p.r + 1.8, 0xdff6ff, 0.22)
+                : null;
+            const streak = item.eggsBox
+                ? this.add.ellipse(p.x, p.y + p.r + 8, Math.max(6, p.r * 0.85), Math.max(12, p.r * 1.8), 0x8cd9ff, 0.34)
+                : null;
+            if (outline) item.container.add(outline);
+            if (streak) item.container.add(streak);
             item.container.add(d);
             item.container.add(shine);
+            if (outline && typeof item.container.bringToTop === "function") item.container.bringToTop(outline);
+            if (streak && typeof item.container.bringToTop === "function") item.container.bringToTop(streak);
             if (typeof item.container.bringToTop === "function") item.container.bringToTop(d);
             if (typeof item.container.bringToTop === "function") item.container.bringToTop(shine);
             this.tweens.add({
-                targets: [d, shine],
+                targets: streak ? [outline, streak, d, shine].filter(Boolean) : [d, shine],
                 y: p.y - (item.eggsBox ? 2 : 5),
                 x: p.x + Phaser.Math.Between(-3, 3),
-                alpha: 0.62,
+                alpha: item.eggsBox ? 0.78 : 0.62,
                 scaleX: 0.78,
                 scaleY: 1.22,
                 yoyo: true,
                 repeat: -1,
                 duration: 360 + Phaser.Math.Between(0, 170)
             });
+            if (outline) item.wetFx.push(outline);
+            if (streak) item.wetFx.push(streak);
             item.wetFx.push(d);
             item.wetFx.push(shine);
         }
