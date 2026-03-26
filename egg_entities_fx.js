@@ -178,14 +178,19 @@ window.EggGameModules.entitiesFx = {
             const siloR = this.add.rectangle(36, 4, 18, 46, 0x444f61, 0.96).setStrokeStyle(2, 0x9ba8b8, 0.62);
             const rocketLBody = this.add.rectangle(-36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
             const rocketRBody = this.add.rectangle(36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
-            const rocketLTip = this.add.triangle(-36, -17, -6, 4, 6, 4, 0, -9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
-            const rocketRTip = this.add.triangle(36, -17, -6, 4, 6, 4, 0, -9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
-            const rocketLFinA = this.add.triangle(-40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
-            const rocketLFinB = this.add.triangle(-32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
-            const rocketRFinA = this.add.triangle(32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
-            const rocketRFinB = this.add.triangle(40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
+            const rocketLTip = this.add.triangle(-36, 17, -6, -4, 6, -4, 0, 9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketRTip = this.add.triangle(36, 17, -6, -4, 6, -4, 0, 9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketLFinA = this.add.triangle(-40, -9, -5, -2, 0, 8, 5, -2, 0x8c98a9, 0.92).setAngle(-90);
+            const rocketLFinB = this.add.triangle(-32, -9, -5, -2, 0, 8, 5, -2, 0x8c98a9, 0.92).setAngle(90);
+            const rocketRFinA = this.add.triangle(32, -9, -5, -2, 0, 8, 5, -2, 0x8c98a9, 0.92).setAngle(-90);
+            const rocketRFinB = this.add.triangle(40, -9, -5, -2, 0, 8, 5, -2, 0x8c98a9, 0.92).setAngle(90);
             const iconDisk = this.add.circle(0, -2, 22, 0x11171f, 1).setStrokeStyle(3, 0xffbb60, 0.82);
             const iconGlow = this.add.ellipse(0, -2, 50, 34, 0xffa84a, 0.14);
+            const iconBody = this.add.rectangle(0, -1, 7, 18, 0xdfe6ef, 1).setStrokeStyle(1.1, 0x6f7986, 0.76);
+            const iconTip = this.add.triangle(0, -12, -5, 3, 5, 3, 0, -7, 0xff6743, 1).setStrokeStyle(0.9, 0xffe0b3, 0.78);
+            const iconFinL = this.add.triangle(-5, 5, -3, -1, 0, 5, 3, -1, 0x8c98a9, 0.96);
+            const iconFinR = this.add.triangle(5, 5, -3, -1, 0, 5, 3, -1, 0x8c98a9, 0.96);
+            const iconFlame = this.add.ellipse(0, 9, 5, 7, 0xffd27a, 0.88);
             faceParts.push(
                 glow,
                 hull,
@@ -200,7 +205,12 @@ window.EggGameModules.entitiesFx = {
                 rocketRFinA,
                 rocketRFinB,
                 iconGlow,
-                iconDisk
+                iconDisk,
+                iconBody,
+                iconTip,
+                iconFinL,
+                iconFinR,
+                iconFlame
             );
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
@@ -459,7 +469,7 @@ window.EggGameModules.entitiesFx = {
         def.hammer = hammer;
         def.baseLabel = def.label;
         def.nextShot = 0;
-        def.showCycleTimer = def.type === "rocket";
+        def.showCycleTimer = false;
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
         def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.04, 0.12) : Phaser.Math.FloatBetween(0.16, 0.30);

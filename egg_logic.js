@@ -5,6 +5,23 @@ window.EggGameModules.logic = {
         return egg ? { ...egg } : null;
     },
 
+    enforceWetBombState(item) {
+        if (!item || !item.wet) return;
+        if (Array.isArray(item.eggs)) {
+            item.eggs.forEach(egg => {
+                if (egg && egg.bomb) egg.bombLit = false;
+            });
+        }
+        if (item.container && Array.isArray(item.container.list)) {
+            item.container.list.forEach(child => {
+                if (child && child._eggTypeData && child._eggTypeData.bomb) {
+                    child._eggTypeData.bombLit = false;
+                    this.setBombVisualState(child, false);
+                }
+            });
+        }
+    },
+
     enqueueBonusPause(job) {
         if (!job || typeof job.execute !== "function") return;
         this.pendingBonusQueue = this.pendingBonusQueue || [];
@@ -429,7 +446,7 @@ window.EggGameModules.logic = {
         if (!pillow || pillow.eggsBox) return false;
         const visual = options.visual || this.createEggVisual(eggType, false).container;
         const eggData = { ...eggType };
-        if (eggData.bomb) eggData.bombLit = options.bombLit ?? false;
+        if (eggData.bomb) eggData.bombLit = item.wet ? false : (options.bombLit ?? false);
         if (eggData.armored) eggData.armorDamage = eggData.armorDamage || 0;
         pillow.eggs.push(eggData);
         pillow.eggMultSum += eggData.mult;
@@ -450,6 +467,7 @@ window.EggGameModules.logic = {
         visual.y = -26;
         visual._eggTypeData = eggData;
         if (eggData.bomb) this.setBombVisualState(visual, eggData.bombLit !== false);
+        if (item.wet) this.enforceWetBombState(pillow);
         this.updatePillowValueText(pillow);
         return true;
     },
@@ -550,7 +568,7 @@ window.EggGameModules.logic = {
 
     populateInitialLine1EntrySlot() {
         const entrySlot = this.getLine1EntrySlotIndex();
-        for (const slot of [entrySlot + 1, entrySlot + 2]) {
+        for (const slot of [entrySlot - 1, entrySlot]) {
             if (this.line1Pillows.has(slot)) continue;
             const entryType = this.getLine1SlotEntryType(slot);
             if (entryType === "box" || entryType === "gold_box") {
@@ -628,7 +646,7 @@ window.EggGameModules.logic = {
             if (pillow && !pillow.eggsBox) {
                 egg.state = "saved";
                 const eggData = { ...egg.typeData };
-                if (eggData.bomb) eggData.bombLit = true;
+                if (eggData.bomb) eggData.bombLit = pillow.wet ? false : true;
                 if (eggData.armored) eggData.armorDamage = eggData.armorDamage || 0;
                 pillow.eggs.push(eggData);
                 pillow.eggMultSum += eggData.mult;
@@ -651,8 +669,9 @@ window.EggGameModules.logic = {
                 egg.container.y = -26;
                 egg.container._eggTypeData = eggData;
                 if (eggData.bomb) {
-                    this.setBombVisualState(egg.container, true);
+                    this.setBombVisualState(egg.container, eggData.bombLit !== false);
                 }
+                if (pillow.wet) this.enforceWetBombState(pillow);
                 this.updatePillowValueText(pillow);
             } else {
                 egg.state = "dead";
@@ -837,8 +856,26 @@ window.EggGameModules.logic = {
         });
     },
 
+    getActiveVisibleEggCount() {
+        return this.getAllActiveItems().reduce((sum, item) => {
+            if (!item || item.eggsBox) return sum;
+            return sum + ((item.eggs || []).length || 0);
+        }, 0);
+    },
+
+    getRocketMachineFireIntervalMs() {
+        const activeEggs = this.getActiveVisibleEggCount();
+        const minSeconds = activeEggs < 3 ? 10 : 5;
+        const maxSeconds = activeEggs < 3 ? 15 : 10;
+        return Phaser.Math.Between(minSeconds * 1000, maxSeconds * 1000);
+    },
+
     updateRocketMachineCycleText(def) {
         if (!def || def.type !== "rocket" || !def.cycleText) return;
+        if (!def.showCycleTimer) {
+            def.cycleText.setVisible(false);
+            return;
+        }
         const gameplayNow = this.getGameplayTimeNow();
         if (def.permaDestroyed || (def.brokenUntil && gameplayNow < def.brokenUntil)) {
             def.cycleText.setVisible(false);
@@ -923,44 +960,77 @@ window.EggGameModules.logic = {
             repeat: -1
         });
 
-        const state = { t: 0 };
-        this.tweens.add({
-            targets: state,
-            t: 1,
-            duration: flightDuration,
-            ease: "Sine.InOut",
-            onUpdate: () => {
-                if (!rocket.scene) return;
-                const liveTargetX = target && target.container ? target.container.x : startX;
-                const liveTargetY = target && target.container ? (target.eggsBox ? (target.container.y - 6) : (target.container.y - 8)) : targetY;
-                const t = state.t;
-                const baseX = Phaser.Math.Linear(startX, liveTargetX, t);
-                const baseY = Phaser.Math.Linear(startY, liveTargetY, t);
-                const loopWave = Math.sin(t * Math.PI * 4.0);
-                const rollWave = Math.sin(t * Math.PI * 2.0 + Math.PI * 0.5);
-                const curveX = baseX + loopWave * 34 + rollWave * 12;
-                const curveY = baseY - Math.sin(t * Math.PI) * 54 + Math.cos(t * Math.PI * 4.0) * 16;
-                rocket.setPosition(curveX, curveY);
-                const aheadT = Math.min(1, t + 0.02);
-                const aheadBaseX = Phaser.Math.Linear(startX, liveTargetX, aheadT);
-                const aheadBaseY = Phaser.Math.Linear(startY, liveTargetY, aheadT);
-                const aheadLoopWave = Math.sin(aheadT * Math.PI * 4.0);
-                const aheadRollWave = Math.sin(aheadT * Math.PI * 2.0 + Math.PI * 0.5);
-                const aheadX = aheadBaseX + aheadLoopWave * 34 + aheadRollWave * 12;
-                const aheadY = aheadBaseY - Math.sin(aheadT * Math.PI) * 54 + Math.cos(aheadT * Math.PI * 4.0) * 16;
-                rocket.angle = Phaser.Math.RadToDeg(Math.atan2(aheadY - rocket.y, aheadX - rocket.x)) + 90;
-                if (Math.random() < 0.72) this.spawnMachineTrailFx({ type: "rocket" }, rocket.x, rocket.y);
-            },
-            onComplete: () => {
-                if (rocket.scene) rocket.destroy();
-                if (target && !target.destroyed && !target.finished) {
-                    this.applyMachineEffect(def, target);
-                    this.spawnMachineImpactFx(def, target.container.x, target.eggsBox ? (target.container.y - 6) : (target.container.y - 8));
-                }
-            }
+        this.activeRocketProjectiles = this.activeRocketProjectiles || [];
+        this.activeRocketProjectiles.push({
+            kind: "machine_rocket",
+            container: rocket,
+            flame,
+            target,
+            def,
+            startX,
+            startY,
+            fallbackTargetY: targetY,
+            startTime: this.getGameplayTimeNow(),
+            durationMs: flightDuration,
+            smokeTick: 0,
+            hitDone: false
         });
 
         return true;
+    },
+
+    updateActiveRocketProjectiles() {
+        if (!Array.isArray(this.activeRocketProjectiles) || this.activeRocketProjectiles.length === 0) return;
+        const gameplayNow = this.getGameplayTimeNow();
+        const next = [];
+
+        for (const rocket of this.activeRocketProjectiles) {
+            if (!rocket || !rocket.container || !rocket.container.scene) continue;
+            const liveTarget = rocket.target;
+            const liveTargetX = liveTarget && liveTarget.container ? liveTarget.container.x : rocket.startX;
+            const liveTargetY = liveTarget && liveTarget.container
+                ? (liveTarget.eggsBox ? (liveTarget.container.y - 6) : (liveTarget.container.y - 8))
+                : rocket.fallbackTargetY;
+            const t = Phaser.Math.Clamp((gameplayNow - rocket.startTime) / Math.max(1, rocket.durationMs || 1), 0, 1);
+            const baseX = Phaser.Math.Linear(rocket.startX, liveTargetX, t);
+            const baseY = Phaser.Math.Linear(rocket.startY, liveTargetY, t);
+            const loopWave = Math.sin(t * Math.PI * 4.0);
+            const rollWave = Math.sin(t * Math.PI * 2.0 + Math.PI * 0.5);
+            const curveX = baseX + loopWave * 34 + rollWave * 12;
+            const curveY = baseY - Math.sin(t * Math.PI) * 54 + Math.cos(t * Math.PI * 4.0) * 16;
+            rocket.container.setPosition(curveX, curveY);
+
+            const aheadT = Math.min(1, t + 0.02);
+            const aheadBaseX = Phaser.Math.Linear(rocket.startX, liveTargetX, aheadT);
+            const aheadBaseY = Phaser.Math.Linear(rocket.startY, liveTargetY, aheadT);
+            const aheadLoopWave = Math.sin(aheadT * Math.PI * 4.0);
+            const aheadRollWave = Math.sin(aheadT * Math.PI * 2.0 + Math.PI * 0.5);
+            const aheadX = aheadBaseX + aheadLoopWave * 34 + aheadRollWave * 12;
+            const aheadY = aheadBaseY - Math.sin(aheadT * Math.PI) * 54 + Math.cos(aheadT * Math.PI * 4.0) * 16;
+            rocket.container.angle = Phaser.Math.RadToDeg(Math.atan2(aheadY - rocket.container.y, aheadX - rocket.container.x)) + 90;
+            if (rocket.flame) {
+                rocket.flame.scaleX = 0.9 + Math.random() * 0.35;
+                rocket.flame.scaleY = 0.8 + Math.random() * 0.3;
+            }
+            rocket.smokeTick = (rocket.smokeTick || 0) + 1;
+            if (!this.gameplayPaused && rocket.smokeTick % 2 === 0) {
+                this.spawnMachineTrailFx({ type: "rocket" }, rocket.container.x, rocket.container.y);
+            }
+
+            if (t >= 1 && !rocket.hitDone) {
+                rocket.hitDone = true;
+                if (rocket.container.scene) rocket.container.destroy();
+                if (liveTarget && !liveTarget.destroyed && !liveTarget.finished) {
+                    this.applyMachineEffect(rocket.def, liveTarget);
+                    this.spawnMachineImpactFx(rocket.def, liveTarget.container.x, liveTarget.eggsBox ? (liveTarget.container.y - 6) : (liveTarget.container.y - 8));
+                }
+                continue;
+            }
+
+            next.push(rocket);
+        }
+
+        this.activeRocketProjectiles = next;
     },
 
     getPlayableTweens() {
@@ -1934,6 +2004,7 @@ window.EggGameModules.logic = {
             if (eggData.nuclearEgg) this.setNuclearEggVisualState(visual.container, eggData.nuclearHits || 0);
             item.container.add(visual.container);
         });
+        if (item.wet) this.enforceWetBombState(item);
     },
 
     transformAllEggs(mapper) {
@@ -2078,14 +2149,14 @@ window.EggGameModules.logic = {
                     return;
                 }
                 def.rocketCycleStarted = true;
-                def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 5000);
+                def.nextRocketAt = gameplayNow + this.getRocketMachineFireIntervalMs();
                 this.updateRocketMachineCycleText(def);
                 return;
             }
-            if (!def.nextRocketAt) def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 5000);
+            if (!def.nextRocketAt) def.nextRocketAt = gameplayNow + this.getRocketMachineFireIntervalMs();
             if (gameplayNow + 0.0001 < def.nextRocketAt) return;
             const fired = this.fireRocketMachine(def, stage);
-            def.nextRocketAt = gameplayNow + (fired ? (def.fireIntervalMs || 5000) : 500);
+            def.nextRocketAt = gameplayNow + (fired ? this.getRocketMachineFireIntervalMs() : 500);
             this.updateRocketMachineCycleText(def);
             return;
         }
