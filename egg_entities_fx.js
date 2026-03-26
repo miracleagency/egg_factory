@@ -18,6 +18,29 @@ window.EggGameModules.entitiesFx = {
         return icon;
     },
 
+    createNuclearSymbolGraphic(size = 24) {
+        const g = this.add.graphics();
+        const scale = size / 24;
+        g.fillStyle(0xfcbb29, 1);
+        g.fillCircle(0, 0, 11 * scale);
+        g.fillStyle(0x4d4d4d, 1);
+        g.fillCircle(0, 0, 2.2 * scale);
+
+        const sector = (rotationDeg) => {
+            const start = Phaser.Math.DegToRad(rotationDeg - 28);
+            const end = Phaser.Math.DegToRad(rotationDeg + 28);
+            g.slice(0, 0, 8.4 * scale, start, end, false);
+            g.lineTo(Math.cos(Phaser.Math.DegToRad(rotationDeg)) * 4.1 * scale, Math.sin(Phaser.Math.DegToRad(rotationDeg)) * 4.1 * scale);
+            g.closePath();
+            g.fillPath();
+        };
+
+        sector(-90);
+        sector(30);
+        sector(150);
+        return g;
+    },
+
     createMachineBlock(def) {
         const container = this.add.container(0, 0).setDepth(200);
         let fill = 0x8694a8;
@@ -698,8 +721,7 @@ window.EggGameModules.entitiesFx = {
                 band.setFillStyle(0x232f37, 0.98).setStrokeStyle(2, 0xdce3ea, 0.95);
                 const logoPlate = this.add.circle(0, 2, 13, 0xf3cd2e, 1).setStrokeStyle(2, 0x1e1f20, 0.96);
                 const logoGlow = this.add.circle(0, 2, 20, 0x86ff5b, 0.14);
-                const logoSvg = this.createSvgMachineIcon("egg_icon_nuclear_svg", null, 24);
-                let logoFallback = null;
+                const logoSvg = this.createNuclearSymbolGraphic(24);
                 const crackGlowA = this.add.graphics();
                 const crackGlowB = this.add.graphics();
                 const crackGlowC = this.add.graphics();
@@ -725,28 +747,14 @@ window.EggGameModules.entitiesFx = {
                 drawGlowCrack(crackGlowB, 0x4cff67, [[10, -16], [5, -8], [11, 2], [4, 12], [-2, 18]]);
                 drawGlowCrack(crackGlowC, 0x7dff72, [[-16, -4], [-8, 2], [-12, 12], [-2, 20], [10, 24]]);
 
-                if (logoSvg) {
-                    logoSvg.y = 2;
-                } else {
-                    logoFallback = this.add.graphics();
-                    logoFallback.fillStyle(0x1a1a1a, 1);
-                    logoFallback.fillCircle(0, -5, 3.3);
-                    logoFallback.slice(0, 2, 9, Phaser.Math.DegToRad(28), Phaser.Math.DegToRad(92), false);
-                    logoFallback.fillPath();
-                    logoFallback.slice(-6, 7, 8, Phaser.Math.DegToRad(240), Phaser.Math.DegToRad(304), false);
-                    logoFallback.fillPath();
-                    logoFallback.slice(6, 7, 8, Phaser.Math.DegToRad(236), Phaser.Math.DegToRad(300), false);
-                    logoFallback.fillPath();
-                    logoFallback.y = 2;
-                    container._nuclearLogoFallback = logoFallback;
-                }
+                logoSvg.y = 2;
 
                 container.add([
                     shell,
                     band,
                     logoGlow,
                     logoPlate,
-                    ...(logoSvg ? [logoSvg] : (logoFallback ? [logoFallback] : [])),
+                    logoSvg,
                     ...rivets,
                     shine,
                     crackGlowA,

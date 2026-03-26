@@ -692,8 +692,8 @@ window.EggGameModules.logic = {
         let minSkip = 1;
         let maxSkip = 3;
         if (def.type === "mul" && def.value === 2) {
-            minSkip = 0;
-            maxSkip = 0;
+            minSkip = 1;
+            maxSkip = 2;
         } else if (def.type === "half") {
             maxSkip = 2;
         } else if (def.type === "crush") {
@@ -712,11 +712,11 @@ window.EggGameModules.logic = {
                 minSkip = 7;
                 maxSkip = 11;
             } else if (def.value === 10) {
-                minSkip = 1;
-                maxSkip = 2;
-            } else if (def.value === 5) {
                 minSkip = 2;
-                maxSkip = 4;
+                maxSkip = 3;
+            } else if (def.value === 5) {
+                minSkip = 3;
+                maxSkip = 5;
             } else {
                 minSkip = def.fastGold ? 4 : 5;
                 maxSkip = def.fastGold ? 8 : 10;
