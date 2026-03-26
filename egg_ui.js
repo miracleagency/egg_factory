@@ -14,33 +14,33 @@ window.EggGameModules.ui = {
         const panel = this.add.container(0, 0);
         const shadow = this.add.ellipse(0, 18, width * 0.92, 32, 0x000000, 0.24);
         const outer = this.add.rectangle(0, 0, width, height, 0x37404b, 0.98).setStrokeStyle(4, 0xc6d0da, 0.9);
-        const inner = this.add.rectangle(0, -6, width - 18, height - 28, 0x242b33, 0.98).setStrokeStyle(2, 0x566170, 0.75);
-        const topCap = this.add.rectangle(0, -height * 0.33, width - 34, 18, 0x515b67, 0.96).setStrokeStyle(2, 0xd7e0e8, 0.65);
-        const topGloss = this.add.rectangle(-width * 0.16, -height * 0.365, width * 0.28, 6, 0xf6fbff, 0.22);
-        const bottomRail = this.add.rectangle(0, height * 0.34, width - 12, 22, 0x1a1f24, 1).setStrokeStyle(2, 0x6b747d, 0.58);
-        const stripeCount = 7;
-        const stripeWidth = (width - 32) / stripeCount;
+        const inner = this.add.rectangle(0, -10, width - 18, height - 46, 0x242b33, 0.98).setStrokeStyle(2, 0x566170, 0.55);
+        const topCap = this.add.rectangle(0, -height * 0.34, width - 30, 14, 0x515b67, 0.92).setStrokeStyle(2, 0xd7e0e8, 0.5);
+        const topGloss = this.add.rectangle(-width * 0.2, -height * 0.365, width * 0.22, 4, 0xf6fbff, 0.18);
+        const bottomRail = this.add.rectangle(0, height * 0.33, width - 12, 24, 0x171b20, 1).setStrokeStyle(2, 0x646d76, 0.48);
+        const stripeCount = 8;
+        const stripeWidth = (width - 22) / stripeCount;
         const stripes = Array.from({ length: stripeCount }, (_, index) =>
             this.add.rectangle(
                 -((stripeCount - 1) * stripeWidth) * 0.5 + index * stripeWidth,
                 height * 0.34,
-                stripeWidth - 4,
+                stripeWidth,
                 14,
                 index % 2 === 0 ? 0xf0c744 : 0x161a1f,
                 1
-            ).setAngle(-18)
+            )
         );
         const sidePlates = [
-            this.add.rectangle(-width * 0.37, -8, 16, height - 58, 0x4b5561, 0.7).setStrokeStyle(1.5, 0x778291, 0.55),
-            this.add.rectangle(width * 0.37, -8, 16, height - 58, 0x4b5561, 0.7).setStrokeStyle(1.5, 0x778291, 0.55)
+            this.add.rectangle(-width * 0.39, -10, 12, height - 66, 0x4b5561, 0.55).setStrokeStyle(1.2, 0x778291, 0.38),
+            this.add.rectangle(width * 0.39, -10, 12, height - 66, 0x4b5561, 0.55).setStrokeStyle(1.2, 0x778291, 0.38)
         ];
         const rivets = [
             this.add.circle(-width * 0.41, -height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
             this.add.circle(width * 0.41, -height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
             this.add.circle(-width * 0.41, height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
             this.add.circle(width * 0.41, height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
-            this.add.circle(-width * 0.2, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c),
-            this.add.circle(width * 0.2, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c)
+            this.add.circle(-width * 0.24, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c),
+            this.add.circle(width * 0.24, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c)
         ];
         panel.add([shadow, outer, inner, topCap, topGloss, ...sidePlates, bottomRail, ...stripes, ...rivets]);
         return panel;
@@ -66,7 +66,7 @@ window.EggGameModules.ui = {
             fontSize: "72px",
             color: "#f8fbff",
             fontStyle: "bold"
-        }).setOrigin(0.5).setStroke("#171c21", 8);
+        }).setOrigin(0.5).setStroke("#171c21", 6);
         this.eggsHud = this.add.container(0, 0);
         this.eggsHud.add([this.eggsPanel, this.eggsLeftLabel, this.eggsLeftText]);
 
@@ -83,7 +83,7 @@ window.EggGameModules.ui = {
             color: "#f8fbff",
             fontStyle: "bold",
             stroke: "#171c21",
-            strokeThickness: 8
+            strokeThickness: 6
         }).setOrigin(0.5);
         this.winHud = this.add.container(0, 0);
         this.winHud.add([this.winPanel, this.winLabel, this.winAmountText]);
@@ -715,50 +715,38 @@ window.EggGameModules.ui = {
         const btn = this.add.container(0, 0);
         const width = options.width || 320;
         if (options.variant === "industrial") {
-            const shadow = this.add.ellipse(0, 54, Math.max(220, width - 36), 32, 0x000000, 0.28);
-            const socket = this.add.rectangle(0, 24, width - 8, 104, options.socketColor || 0x242a31, 1).setStrokeStyle(4, 0x6d7782, 0.76);
-            const face = this.add.container(0, -8);
-            const body = this.add.rectangle(0, 0, width, 88, options.bodyColor || 0x68727c, 1).setStrokeStyle(4, options.strokeColor || 0xd6e0ea, 0.92);
-            const inner = this.add.rectangle(0, -2, width - 18, 68, 0x313941, 0.92).setStrokeStyle(2, 0x828d99, 0.55);
-            const topPlate = this.add.rectangle(0, -26, width - 56, 14, 0x848e99, 0.92).setStrokeStyle(1.5, 0xe5edf5, 0.45);
-            const gloss = this.add.rectangle(-width * 0.18, -30, width * 0.24, 5, 0xffffff, 0.22);
-            const hazardRail = this.add.rectangle(0, 28, width - 18, 16, 0x181c21, 1).setStrokeStyle(1.5, 0x67717b, 0.5);
-            const stripeCount = Math.max(7, Math.floor(width / 36));
-            const stripeWidth = (width - 30) / stripeCount;
-            const stripes = Array.from({ length: stripeCount }, (_, index) =>
-                this.add.rectangle(
-                    -((stripeCount - 1) * stripeWidth) * 0.5 + index * stripeWidth,
-                    28,
-                    stripeWidth - 4,
-                    10,
-                    index % 2 === 0 ? 0xf0c744 : 0x111418,
-                    1
-                ).setAngle(-20)
-            );
-            const rivets = [
-                this.add.circle(-width * 0.42, -26, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
-                this.add.circle(width * 0.42, -26, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
-                this.add.circle(-width * 0.42, 0, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
-                this.add.circle(width * 0.42, 0, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
-                this.add.circle(-width * 0.42, 24, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
-                this.add.circle(width * 0.42, 24, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d)
+            const shadow = this.add.ellipse(0, 48, Math.max(220, width - 70), 26, 0x000000, 0.24);
+            const slot = this.add.rectangle(0, 10, width - 16, 64, options.socketColor || 0x242a31, 1).setStrokeStyle(4, 0x6d7782, 0.82);
+            const slotInner = this.add.rectangle(0, 10, width - 40, 34, 0x11161b, 1).setStrokeStyle(2, 0x48515b, 0.55);
+            const face = this.add.container(0, -6);
+            const body = this.add.roundRectangle
+                ? this.add.roundRectangle(0, 0, width - 42, 70, 22, 0xc93f3f, 1).setStrokeStyle(4, 0xffd9d9, 0.88)
+                : this.add.rectangle(0, 0, width - 42, 70, 0xc93f3f, 1).setStrokeStyle(4, 0xffd9d9, 0.88);
+            const inner = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -4, width - 58, 44, 16, 0xe05959, 0.96).setStrokeStyle(2, 0xffefef, 0.34)
+                : this.add.rectangle(0, -4, width - 58, 44, 0xe05959, 0.96).setStrokeStyle(2, 0xffefef, 0.34);
+            const gloss = this.add.ellipse(-width * 0.16, -16, width * 0.24, 14, 0xffffff, 0.16);
+            const sideBolts = [
+                this.add.circle(-(width * 0.5) + 26, 0, 5, 0xe8eff6, 1).setStrokeStyle(1.5, 0x6a737d),
+                this.add.circle((width * 0.5) - 26, 0, 5, 0xe8eff6, 1).setStrokeStyle(1.5, 0x6a737d)
             ];
-            const txt = this.add.text(0, -2, label, {
+            const txt = this.add.text(0, -1, label, {
                 fontFamily: "Arial",
                 fontSize: `${options.fontSize || 38}px`,
                 color: "#f5f8fb",
                 fontStyle: "bold",
-                stroke: options.textStroke || "#1a1f24",
+                stroke: "#8e1e1e",
                 strokeThickness: 5
             }).setOrigin(0.5);
 
-            face.add([body, inner, topPlate, gloss, hazardRail, ...stripes, ...rivets, txt]);
-            btn.add([shadow, socket, face]);
+            face.add([body, inner, gloss, ...sideBolts, txt]);
+            btn.add([shadow, slot, slotInner, face]);
 
             const setPressed = pressed => {
-                face.y = pressed ? 6 : -8;
-                shadow.alpha = pressed ? 0.12 : 0.28;
-                body.setFillStyle(pressed ? this.mixColor(options.bodyColor || 0x68727c, 0xffffff, 15) : (options.bodyColor || 0x68727c), 1);
+                face.y = pressed ? 4 : -6;
+                shadow.alpha = pressed ? 0.12 : 0.24;
+                body.setFillStyle(pressed ? 0xb53535 : 0xc93f3f, 1);
+                inner.setFillStyle(pressed ? 0xcd4949 : 0xe05959, 0.96);
             };
 
             body.setInteractive({ useHandCursor: true })
