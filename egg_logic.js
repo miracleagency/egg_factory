@@ -777,17 +777,17 @@ window.EggGameModules.logic = {
             maxSkip = 1;
         } else if (def.rarity === "gold") {
             if (def.value === 50) {
-                minSkip = 9;
-                maxSkip = 14;
+                minSkip = 18;
+                maxSkip = 28;
             } else if (def.value === 10) {
-                minSkip = 3;
-                maxSkip = 5;
-            } else if (def.value === 5) {
                 minSkip = 4;
-                maxSkip = 7;
+                maxSkip = 6;
+            } else if (def.value === 5) {
+                minSkip = 5;
+                maxSkip = 8;
             } else {
-                minSkip = def.fastGold ? 5 : 6;
-                maxSkip = def.fastGold ? 10 : 12;
+                minSkip = def.fastGold ? 6 : 7;
+                maxSkip = def.fastGold ? 11 : 13;
             }
         }
 
