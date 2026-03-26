@@ -10,6 +10,42 @@ window.EggGameModules.ui = {
         ).color;
     },
 
+    createIndustrialHudPanel(width = 250, height = 186) {
+        const panel = this.add.container(0, 0);
+        const shadow = this.add.ellipse(0, 18, width * 0.92, 32, 0x000000, 0.24);
+        const outer = this.add.rectangle(0, 0, width, height, 0x37404b, 0.98).setStrokeStyle(4, 0xc6d0da, 0.9);
+        const inner = this.add.rectangle(0, -6, width - 18, height - 28, 0x242b33, 0.98).setStrokeStyle(2, 0x566170, 0.75);
+        const topCap = this.add.rectangle(0, -height * 0.33, width - 34, 18, 0x515b67, 0.96).setStrokeStyle(2, 0xd7e0e8, 0.65);
+        const topGloss = this.add.rectangle(-width * 0.16, -height * 0.365, width * 0.28, 6, 0xf6fbff, 0.22);
+        const bottomRail = this.add.rectangle(0, height * 0.34, width - 12, 22, 0x1a1f24, 1).setStrokeStyle(2, 0x6b747d, 0.58);
+        const stripeCount = 7;
+        const stripeWidth = (width - 32) / stripeCount;
+        const stripes = Array.from({ length: stripeCount }, (_, index) =>
+            this.add.rectangle(
+                -((stripeCount - 1) * stripeWidth) * 0.5 + index * stripeWidth,
+                height * 0.34,
+                stripeWidth - 4,
+                14,
+                index % 2 === 0 ? 0xf0c744 : 0x161a1f,
+                1
+            ).setAngle(-18)
+        );
+        const sidePlates = [
+            this.add.rectangle(-width * 0.37, -8, 16, height - 58, 0x4b5561, 0.7).setStrokeStyle(1.5, 0x778291, 0.55),
+            this.add.rectangle(width * 0.37, -8, 16, height - 58, 0x4b5561, 0.7).setStrokeStyle(1.5, 0x778291, 0.55)
+        ];
+        const rivets = [
+            this.add.circle(-width * 0.41, -height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
+            this.add.circle(width * 0.41, -height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
+            this.add.circle(-width * 0.41, height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
+            this.add.circle(width * 0.41, height * 0.36, 4, 0xe6edf4, 1).setStrokeStyle(1.5, 0x67717c),
+            this.add.circle(-width * 0.2, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c),
+            this.add.circle(width * 0.2, -height * 0.36, 3, 0xd9e3eb, 1).setStrokeStyle(1.2, 0x67717c)
+        ];
+        panel.add([shadow, outer, inner, topCap, topGloss, ...sidePlates, bottomRail, ...stripes, ...rivets]);
+        return panel;
+    },
+
     createBottomUI() {
         this.bottomUI = this.add.container(0, 0).setDepth(7000);
         this.uiLayer.add(this.bottomUI);
@@ -18,38 +54,36 @@ window.EggGameModules.ui = {
         this.uiLayer.add(this.midHud);
         this.roundHudLeft = this.add.container(0, 0);
         this.roundHudRight = this.add.container(0, 0);
-        this.eggsPanel = this.add.rectangle(0, 0, 250, 186, 0x16243f, 0.98)
-            .setStrokeStyle(4, 0x35517d);
+        this.eggsPanel = this.createIndustrialHudPanel(250, 186);
         this.eggsLeftLabel = this.add.text(0, -42, "EGGS LEFT:", {
             fontFamily: "Arial",
             fontSize: "28px",
-            color: "#9cb6d8",
+            color: "#c8d2db",
             fontStyle: "bold"
         }).setOrigin(0.5);
         this.eggsLeftText = this.add.text(0, 24, "20", {
             fontFamily: "Arial",
             fontSize: "72px",
-            color: "#ffffff",
+            color: "#f8fbff",
             fontStyle: "bold"
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setStroke("#171c21", 8);
         this.eggsHud = this.add.container(0, 0);
         this.eggsHud.add([this.eggsPanel, this.eggsLeftLabel, this.eggsLeftText]);
 
-        this.winPanel = this.add.rectangle(0, 0, 250, 186, 0x16243f, 0.98)
-            .setStrokeStyle(4, 0x35517d);
+        this.winPanel = this.createIndustrialHudPanel(250, 186);
         this.winLabel = this.add.text(0, -42, "WIN:", {
             fontFamily: "Arial",
             fontSize: "28px",
-            color: "#9cb6d8",
+            color: "#c8d2db",
             fontStyle: "bold"
         }).setOrigin(0.5);
         this.winAmountText = this.add.text(0, 24, "0$", {
             fontFamily: "Arial",
             fontSize: "72px",
-            color: "#ffffff",
+            color: "#f8fbff",
             fontStyle: "bold",
-            stroke: "#101010",
-            strokeThickness: 6
+            stroke: "#171c21",
+            strokeThickness: 8
         }).setOrigin(0.5);
         this.winHud = this.add.container(0, 0);
         this.winHud.add([this.winPanel, this.winLabel, this.winAmountText]);
@@ -89,13 +123,14 @@ window.EggGameModules.ui = {
         }).setOrigin(0.5);
         this.infoBtn.add([infoEgg, infoBadge, infoTxt]);
         this.pauseBtn = this.createPopupActionButton("PAUSE", () => this.toggleManualPause(), {
-            bodyColor: 0x9159ff,
-            socketColor: 0x4f2b88,
-            strokeColor: 0xe0d1ff,
-            textStroke: "#23153d",
+            bodyColor: 0x6a737d,
+            socketColor: 0x242a31,
+            strokeColor: 0xd6e0ea,
+            textStroke: "#1a1f24",
             width: 310,
             fontSize: 36,
-            pulse: false
+            pulse: false,
+            variant: "industrial"
         });
 
         infoEgg.setInteractive({ useHandCursor: true })
@@ -679,6 +714,65 @@ window.EggGameModules.ui = {
     createPopupActionButton(label, onClick, options = {}) {
         const btn = this.add.container(0, 0);
         const width = options.width || 320;
+        if (options.variant === "industrial") {
+            const shadow = this.add.ellipse(0, 54, Math.max(220, width - 36), 32, 0x000000, 0.28);
+            const socket = this.add.rectangle(0, 24, width - 8, 104, options.socketColor || 0x242a31, 1).setStrokeStyle(4, 0x6d7782, 0.76);
+            const face = this.add.container(0, -8);
+            const body = this.add.rectangle(0, 0, width, 88, options.bodyColor || 0x68727c, 1).setStrokeStyle(4, options.strokeColor || 0xd6e0ea, 0.92);
+            const inner = this.add.rectangle(0, -2, width - 18, 68, 0x313941, 0.92).setStrokeStyle(2, 0x828d99, 0.55);
+            const topPlate = this.add.rectangle(0, -26, width - 56, 14, 0x848e99, 0.92).setStrokeStyle(1.5, 0xe5edf5, 0.45);
+            const gloss = this.add.rectangle(-width * 0.18, -30, width * 0.24, 5, 0xffffff, 0.22);
+            const hazardRail = this.add.rectangle(0, 28, width - 18, 16, 0x181c21, 1).setStrokeStyle(1.5, 0x67717b, 0.5);
+            const stripeCount = Math.max(7, Math.floor(width / 36));
+            const stripeWidth = (width - 30) / stripeCount;
+            const stripes = Array.from({ length: stripeCount }, (_, index) =>
+                this.add.rectangle(
+                    -((stripeCount - 1) * stripeWidth) * 0.5 + index * stripeWidth,
+                    28,
+                    stripeWidth - 4,
+                    10,
+                    index % 2 === 0 ? 0xf0c744 : 0x111418,
+                    1
+                ).setAngle(-20)
+            );
+            const rivets = [
+                this.add.circle(-width * 0.42, -26, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
+                this.add.circle(width * 0.42, -26, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
+                this.add.circle(-width * 0.42, 0, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
+                this.add.circle(width * 0.42, 0, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
+                this.add.circle(-width * 0.42, 24, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d),
+                this.add.circle(width * 0.42, 24, 4, 0xe8eff6, 1).setStrokeStyle(1.4, 0x6a737d)
+            ];
+            const txt = this.add.text(0, -2, label, {
+                fontFamily: "Arial",
+                fontSize: `${options.fontSize || 38}px`,
+                color: "#f5f8fb",
+                fontStyle: "bold",
+                stroke: options.textStroke || "#1a1f24",
+                strokeThickness: 5
+            }).setOrigin(0.5);
+
+            face.add([body, inner, topPlate, gloss, hazardRail, ...stripes, ...rivets, txt]);
+            btn.add([shadow, socket, face]);
+
+            const setPressed = pressed => {
+                face.y = pressed ? 6 : -8;
+                shadow.alpha = pressed ? 0.12 : 0.28;
+                body.setFillStyle(pressed ? this.mixColor(options.bodyColor || 0x68727c, 0xffffff, 15) : (options.bodyColor || 0x68727c), 1);
+            };
+
+            body.setInteractive({ useHandCursor: true })
+                .on("pointerdown", () => setPressed(true))
+                .on("pointerup", () => {
+                    setPressed(false);
+                    onClick();
+                })
+                .on("pointerout", () => setPressed(false));
+
+            btn._label = txt;
+            return btn;
+        }
+
         const shadow = this.add.ellipse(0, 48, Math.max(220, width - 40), 30, 0x09111f, 0.28);
         const socket = this.add.rectangle(0, 20, width - 4, 100, options.socketColor || 0x1f662f, 0.98).setStrokeStyle(4, options.strokeColor || 0x9ff0ae);
         const face = this.add.container(0, -8);

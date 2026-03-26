@@ -2037,15 +2037,22 @@ window.EggGameModules.logic = {
         const armoredBase = this.getEggTypeByKey("armored");
         const goldBase = this.getEggTypeByKey("gold");
         const activeItems = this.getMysteryEligibleItems();
+        const activeEggBoxes = this.getActiveEggBoxes();
         const dangerMachines = this.getMysteryEligibleMachines();
 
         if (rewardIndex === 0 && armoredBase) {
-            const steps = activeItems
+            const itemSteps = activeItems
                 .slice()
                 .sort((a, b) => a.y - b.y)
                 .map(item => () => {
                     this.animateMysteryTransformItem(item, egg => {
-                        if (egg.nuclearEgg) return { ...egg };
+                        if (egg.nuclearEgg) {
+                            return {
+                                ...egg,
+                                nuclearHits: Math.max(0, (egg.nuclearHits || 0) - 1),
+                                nuclearMaxHits: egg.nuclearMaxHits || 2
+                            };
+                        }
                         if (egg.megaArmored) return { ...egg };
                         if (egg.armored) {
                             return {
@@ -2064,12 +2071,22 @@ window.EggGameModules.logic = {
                     item.permanentTextColor = "#d8e3ef";
                     this.updatePillowValueText(item);
                 });
+            const eggBoxSteps = activeEggBoxes
+                .slice()
+                .sort((a, b) => a.y - b.y)
+                .map(item => () => {
+                    item.boxDamage = Math.max(0, (item.boxDamage || 0) - 1);
+                    this.setEggBoxDamageVisual(item, item.boxDamage);
+                    this.flashValueText(item, "#d8e3ef");
+                    this.pulseItem(item);
+                });
+            const steps = [...itemSteps, ...eggBoxSteps];
 
             this.runMysterySequence({
                 title: "IRON SHELL",
                 textColor: "#eef6ff",
                 accent: 0xbecddd,
-                focusItems: activeItems,
+                focusItems: [...activeItems, ...activeEggBoxes],
                 steps,
                 startDelay: 950,
                 stepDelay: 180,
