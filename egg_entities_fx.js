@@ -13,7 +13,7 @@ window.EggGameModules.entitiesFx = {
     createSvgMachineIcon(key, tint, size) {
         if (!this.textures || !this.textures.exists || !this.textures.exists(key)) return null;
         const icon = this.add.image(0, 0, key);
-        icon.setTint(tint);
+        if (typeof tint === "number") icon.setTint(tint);
         icon.setDisplaySize(size, size);
         return icon;
     },
@@ -283,20 +283,73 @@ window.EggGameModules.entitiesFx = {
         }
         if (faceParts.length > 0) parts.splice(parts.length - 3, 0, ...faceParts);
         const destroyedFx = this.add.container(0, 0).setVisible(false);
-        const wreckGlow = this.add.ellipse(0, 4, 116, 70, 0xff6f3d, 0.12);
-        const wreckBody = this.add.rectangle(0, 2, 126, 72, 0x241b18, 0.94).setStrokeStyle(4, 0x6b3b2d, 0.9);
-        const wreckScarA = this.add.rectangle(-12, 0, 92, 8, 0x0d0909, 0.9).setAngle(-18);
-        const wreckScarB = this.add.rectangle(20, 8, 82, 7, 0x120d0c, 0.86).setAngle(24);
-        const emberCore = this.add.ellipse(-8, 4, 52, 30, 0xff7d36, 0.22);
-        const emberHot = this.add.ellipse(-4, 4, 28, 14, 0xffd26c, 0.24);
-        const smokeA = this.add.circle(18, -18, 14, 0x26262b, 0.42);
-        const smokeB = this.add.circle(2, -28, 11, 0x34343b, 0.34);
-        const smokeC = this.add.circle(30, -34, 8, 0x1c1c22, 0.28);
-        const wreckPlateL = this.add.rectangle(-34, 18, 24, 10, 0x494449, 0.86).setAngle(-18);
-        const wreckPlateR = this.add.rectangle(36, 16, 28, 10, 0x494449, 0.84).setAngle(18);
-        const flameA = this.add.star(-18, -4, 5, 4, 10, 0x7cff65, 0.9);
-        const flameB = this.add.star(8, -2, 5, 3.4, 8.2, 0xff8b4e, 0.92);
-        destroyedFx.add([wreckGlow, wreckBody, wreckScarA, wreckScarB, emberCore, emberHot, smokeA, smokeB, smokeC, wreckPlateL, wreckPlateR, flameA, flameB]);
+        const wreckGlow = this.add.ellipse(0, 8, 122, 74, 0xff6f3d, 0.10);
+        const wreckBody = this.add.rectangle(0, 2, 126, 72, 0x261d19, 0.96).setStrokeStyle(4, 0x6f4737, 0.88);
+        const wreckPanel = this.add.rectangle(-2, 0, 96, 48, 0x312722, 0.92).setStrokeStyle(2, 0x59463c, 0.74);
+        const wreckPlateL = this.add.rectangle(-40, 18, 26, 12, 0x4c4646, 0.88).setAngle(-22).setStrokeStyle(1.6, 0x746868, 0.6);
+        const wreckPlateR = this.add.rectangle(38, 14, 30, 12, 0x4a4343, 0.86).setAngle(18).setStrokeStyle(1.6, 0x746868, 0.56);
+        const gearHub = this.add.circle(-16, 2, 11, 0x1d2025, 0.96).setStrokeStyle(2, 0x707884, 0.8);
+        const gearTeeth = [-90, -45, 0, 45, 90, 135, 180, 225].map(angle => {
+            const rad = Phaser.Math.DegToRad(angle);
+            return this.add.rectangle(-16 + Math.cos(rad) * 13, 2 + Math.sin(rad) * 13, 4, 8, 0x6b737d, 0.9).setAngle(angle);
+        });
+        const pistonA = this.add.rectangle(18, -2, 32, 9, 0x525963, 0.9).setAngle(-18).setStrokeStyle(1.4, 0x8c96a3, 0.6);
+        const pistonB = this.add.rectangle(24, 14, 24, 8, 0x4b525c, 0.88).setAngle(26).setStrokeStyle(1.4, 0x8c96a3, 0.54);
+        const crackMain = this.add.graphics();
+        crackMain.lineStyle(3, 0x120f0f, 0.98);
+        crackMain.beginPath();
+        crackMain.moveTo(-28, -22);
+        crackMain.lineTo(-10, -8);
+        crackMain.lineTo(-18, 8);
+        crackMain.lineTo(0, 22);
+        crackMain.moveTo(0, -20);
+        crackMain.lineTo(10, -4);
+        crackMain.lineTo(2, 10);
+        crackMain.lineTo(16, 24);
+        crackMain.strokePath();
+        const crackGlow = this.add.graphics();
+        crackGlow.lineStyle(2, 0xff8d4a, 0.42);
+        crackGlow.beginPath();
+        crackGlow.moveTo(-28, -22);
+        crackGlow.lineTo(-10, -8);
+        crackGlow.lineTo(-18, 8);
+        crackGlow.lineTo(0, 22);
+        crackGlow.moveTo(0, -20);
+        crackGlow.lineTo(10, -4);
+        crackGlow.lineTo(2, 10);
+        crackGlow.lineTo(16, 24);
+        crackGlow.strokePath();
+        const emberCore = this.add.ellipse(-2, 10, 44, 22, 0xff6e39, 0.26);
+        const emberHot = this.add.ellipse(2, 10, 22, 10, 0xffcf68, 0.32);
+        const flameA = this.add.ellipse(-22, -2, 16, 28, 0xff7d36, 0.94).setAngle(-10).setStrokeStyle(1.5, 0xffefb3, 0.7);
+        const flameB = this.add.ellipse(10, -4, 14, 26, 0xff9a40, 0.9).setAngle(12).setStrokeStyle(1.5, 0xffefb3, 0.64);
+        const flameCoreA = this.add.ellipse(-22, 0, 7, 15, 0xfff1ae, 0.8).setAngle(-10);
+        const flameCoreB = this.add.ellipse(10, -2, 6, 13, 0xffefad, 0.76).setAngle(12);
+        const smokeA = this.add.circle(22, -18, 14, 0x2b2b30, 0.40);
+        const smokeB = this.add.circle(4, -30, 11, 0x38383d, 0.32);
+        const smokeC = this.add.circle(30, -36, 8, 0x202026, 0.26);
+        destroyedFx.add([
+            wreckGlow,
+            wreckBody,
+            wreckPanel,
+            wreckPlateL,
+            wreckPlateR,
+            gearHub,
+            ...gearTeeth,
+            pistonA,
+            pistonB,
+            crackGlow,
+            crackMain,
+            emberCore,
+            emberHot,
+            flameA,
+            flameB,
+            flameCoreA,
+            flameCoreB,
+            smokeA,
+            smokeB,
+            smokeC
+        ]);
         container.add(parts);
         container.add(destroyedFx);
         container.setScale(1.12);
@@ -645,7 +698,7 @@ window.EggGameModules.entitiesFx = {
                 band.setFillStyle(0x232f37, 0.98).setStrokeStyle(2, 0xdce3ea, 0.95);
                 const logoPlate = this.add.circle(0, 2, 13, 0xf3cd2e, 1).setStrokeStyle(2, 0x1e1f20, 0.96);
                 const logoGlow = this.add.circle(0, 2, 20, 0x86ff5b, 0.14);
-                const logoSvg = this.createSvgMachineIcon("egg_icon_nuclear_svg", 0x1a1a1a, 24);
+                const logoSvg = this.createSvgMachineIcon("egg_icon_nuclear_svg", null, 24);
                 let logoFallback = null;
                 const crackGlowA = this.add.graphics();
                 const crackGlowB = this.add.graphics();
@@ -964,7 +1017,7 @@ window.EggGameModules.entitiesFx = {
         if (eggContainer._nuclearSparkAnchor) {
             eggContainer._nuclearSparkAnchor.removeAll(true);
             if (safeHits >= 3) {
-                const sparkOffsets = [[-16, -4], [10, -10], [14, 12], [-8, 18]];
+                const sparkOffsets = [[-28, -12], [26, -16], [30, 12], [-24, 22], [0, -30]];
                 sparkOffsets.forEach(([x, y]) => {
                     const spark = this.add.star(x, y, 4, 1.8, 5.8, 0x8dff6a, 0.94);
                     eggContainer._nuclearSparkAnchor.add(spark);
