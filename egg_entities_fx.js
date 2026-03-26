@@ -1480,18 +1480,68 @@ window.EggGameModules.entitiesFx = {
         }
     },
 
-    getValueTierTextColor(value) {
-        const amount = Math.max(0, value || 0);
-        if (amount <= 20) return "#ffffff";
-        if (amount <= 50) return "#c58cff";
-        if (amount <= 100) return "#f1cb4a";
+    getStakeCountForItemValue(item, value) {
+        const baseStake = Math.max(0.0001, item && item.spentCost ? item.spentCost : 1);
+        return Math.max(0, (value || 0) / baseStake);
+    },
+
+    getValueTierTextColor(item, value) {
+        const stakes = this.getStakeCountForItemValue(item, value);
+        if (stakes < 50) return "#ffffff";
+        if (stakes < 100) return "#f1cb4a";
+        if (stakes < 500) return "#c58cff";
         return "#7cecff";
+    },
+
+    syncHighValueTextFx(item, stakes, pausedText = false) {
+        if (!item || !item.container) return;
+        const holderKey = pausedText ? "_pauseValueTierFx" : "_valueTierFx";
+        const textObj = pausedText ? item.pauseValueText : item.valueText;
+        const existing = item[holderKey];
+
+        if (stakes < 500 || !textObj || !textObj.scene || textObj.destroyed) {
+            if (existing && existing.container) {
+                this.destroyDisplayObjectSafe(existing.container);
+            }
+            item[holderKey] = null;
+            return;
+        }
+
+        if (existing && existing.container && existing.container.scene) return;
+
+        const fxWrap = this.add.container(0, 34);
+        const glow = this.add.ellipse(0, 0, 150, 48, 0x87e7ff, 0.10);
+        const sparkA = this.add.star(-74, -8, 4, 2.2, 6.6, 0xcff8ff, 0.96);
+        const sparkB = this.add.star(76, 6, 4, 2.1, 6.2, 0x8de1ff, 0.94);
+        const sparkC = this.add.star(-24, 18, 4, 1.8, 5.4, 0xe9ffff, 0.88);
+        const sparkD = this.add.star(26, -18, 4, 1.8, 5.4, 0x9be8ff, 0.9);
+        fxWrap.add([glow, sparkA, sparkB, sparkC, sparkD]);
+        item.container.add(fxWrap);
+        if (typeof item.container.sendToBack === "function") item.container.sendToBack(fxWrap);
+
+        [glow, sparkA, sparkB, sparkC, sparkD].forEach((node, index) => {
+            this.tweens.add({
+                targets: node,
+                alpha: node === glow ? 0.22 : 0.12,
+                scaleX: node === glow ? 1.1 : 2.4,
+                scaleY: node === glow ? 1.08 : 2.4,
+                angle: index === 0 ? 0 : Phaser.Math.Between(-24, 24),
+                duration: 240 + index * 40,
+                yoyo: true,
+                repeat: -1,
+                ease: "Sine.InOut",
+                delay: index * 60
+            });
+        });
+
+        item[holderKey] = { container: fxWrap };
     },
 
     updatePillowValueText(item, color = "#ffffff") {
         if (!item || !item.container || item.destroyed || item.finished) return;
         const displayValue = item.eggMultSum > 0 ? item.currentValue : item.spentCost;
-        const tierColor = this.getValueTierTextColor(displayValue);
+        const tierColor = this.getValueTierTextColor(item, displayValue);
+        const stakeCount = this.getStakeCountForItemValue(item, displayValue);
         if (this.gameplayPaused) {
             item._queuedValueTextColor = tierColor || color || "#ffffff";
             this.pendingValueTextRefresh = this.pendingValueTextRefresh || new Set();
@@ -1501,6 +1551,7 @@ window.EggGameModules.entitiesFx = {
                 this.applySafeValueTextColor(tempText, item._queuedValueTextColor, false);
                 tempText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
             }
+            this.syncHighValueTextFx(item, stakeCount, true);
             if (item.valueText && item.valueText.scene && !item.valueText.destroyed) {
                 item.valueText.setAlpha(0);
             }
@@ -1512,6 +1563,7 @@ window.EggGameModules.entitiesFx = {
         }
         if (item.eggMultSum <= 0) {
             if (item.valueText) item.valueText.setAlpha(0);
+            this.syncHighValueTextFx(item, 0, false);
             return;
         }
         const textObj = this.rebuildPillowValueText(item, this.formatMoneyValue(displayValue));
@@ -1519,12 +1571,13 @@ window.EggGameModules.entitiesFx = {
         this.applySafeValueTextColor(textObj, item._queuedValueTextColor || tierColor || color || "#ffffff", false);
         item._queuedValueTextColor = null;
         textObj.setAlpha(item.eggMultSum > 0 ? 1 : 0);
+        this.syncHighValueTextFx(item, stakeCount, false);
     },
 
     flashValueText(item, flashColor) {
         if (!item || !item.valueText || item.eggMultSum <= 0) return;
         if (this.gameplayPaused) return;
-        const baseColor = this.getValueTierTextColor(item.currentValue || item.spentCost || 0);
+        const baseColor = this.getValueTierTextColor(item, item.currentValue || item.spentCost || 0);
         const preferTint = false;
         this.tweens.killTweensOf(item.valueText);
         item.valueText.setAlpha(1);

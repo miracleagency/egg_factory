@@ -1386,12 +1386,23 @@ window.EggGameModules.logic = {
         if (def.rarity === "gold") item.permanentTextColor = "#f1cb4a";
     },
 
+    shouldRunMultiplierFocus(def, item) {
+        if (!def || !item || item.destroyed || item.finished || item.eggsBox) return false;
+        if (def.type !== "mul" || (def.value || 1) <= 1) return false;
+        const baseStake = Math.max(0.0001, item.spentCost || this.bet || 1);
+        const nextValue = (item.currentValue || 0) * (def.value || 1);
+        return (nextValue / baseStake) > 20;
+    },
+
     runGoldMachineLaserFocus(def, item, shotConfig) {
         if (!def || !item || item.destroyed || item.finished || this.gameplayPaused) return false;
         const prevMachineDepth = def.container.depth || 0;
         const prevItemDepth = item.container.depth || 0;
         const startValue = item.currentValue || 0;
         const nextValue = startValue * (def.value || 1);
+        const accent = def.rarity === "gold" ? 0xf0cb4e : 0x87e7ff;
+        const textColor = def.rarity === "gold" ? "#fff2a3" : "#dff7ff";
+        const badgeText = def.rarity === "gold" ? `GOLD LASER x${def.value}` : `MULTIPLIER x${def.value}`;
 
         this.beginGameplayPause([def.container, item.container]);
         const lifted = this.liftContainersToPopupLayer([def.container, item.container]);
@@ -1403,8 +1414,8 @@ window.EggGameModules.logic = {
             pauseText.setAlpha(item.eggMultSum > 0 ? 1 : 0);
             pauseText.setScale(1, 1);
         }
-        const machineGlow = this.add.ellipse(def.container.x, def.container.y + 8, 230, 150, 0xffd45c, 0.20).setDepth(9204);
-        const itemGlow = this.add.ellipse(item.container.x, item.container.y - 6, 210, 134, 0xffef9f, 0.22).setDepth(9204);
+        const machineGlow = this.add.ellipse(def.container.x, def.container.y + 8, 230, 150, accent, 0.20).setDepth(9204);
+        const itemGlow = this.add.ellipse(item.container.x, item.container.y - 6, 210, 134, accent, 0.22).setDepth(9204);
         this.popupLayer.add([machineGlow, itemGlow]);
         this.tweens.add({
             targets: [machineGlow, itemGlow],
@@ -1417,7 +1428,7 @@ window.EggGameModules.logic = {
             repeat: -1
         });
 
-        const badge = this.spawnMysteryBonusText(`GOLD LASER x${def.value}`, "#fff2a3", 0xf0cb4e);
+        const badge = this.spawnMysteryBonusText(badgeText, textColor, accent);
         this.time.delayedCall(950, () => {
             if (item.destroyed || item.finished) {
                 def.container.setDepth(prevMachineDepth);
@@ -1444,12 +1455,12 @@ window.EggGameModules.logic = {
                         },
                         onUpdate: () => {
                             pauseText.setText(this.formatMoneyValue(counter.value));
-                            this.applySafeValueTextColor(pauseText, "#fff2a3", false);
+                            this.applySafeValueTextColor(pauseText, textColor, false);
                         },
                         onComplete: () => {
                             this.time.delayedCall(950, () => {
                                 this.updatePillowValueText(item);
-                                this.flashValueText(item, "#fff2a3");
+                                this.flashValueText(item, textColor);
                                 this.pulseItem(item);
                                 item.focusApplied = false;
                                 if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
@@ -1464,7 +1475,7 @@ window.EggGameModules.logic = {
                 } else {
                     this.time.delayedCall(950, () => {
                         this.updatePillowValueText(item);
-                        this.flashValueText(item, "#fff2a3");
+                        this.flashValueText(item, textColor);
                         this.pulseItem(item);
                         item.focusApplied = false;
                         if (def.container && def.container.scene) def.container.setDepth(prevMachineDepth);
@@ -2054,11 +2065,11 @@ window.EggGameModules.logic = {
         const item = items.find(entry => entry.slotIndexLine === centerIndex)
             || items.find(entry => Math.abs(entry.x - endX) <= line.slotWidth * 0.28);
 
-        if (def && def.rarity === "gold" && def.type === "mul" && item && !item.eggsBox && !item.focusApplied && !this.gameplayPaused) {
+        if (def && def.type === "mul" && item && !item.eggsBox && !item.focusApplied && !this.gameplayPaused && this.shouldRunMultiplierFocus(def, item)) {
             this.enqueueBonusPause({
                 priority: stage,
                 readyClock: impactClock,
-                isValid: () => !!item && !item.destroyed && !item.finished && !item.eggsBox && item.eggMultSum > 0,
+                isValid: () => !!item && !item.destroyed && !item.finished && !item.eggsBox && item.eggMultSum > 0 && this.shouldRunMultiplierFocus(def, item),
                 execute: () => {
                     item.focusApplied = true;
                     this.runGoldMachineLaserFocus(def, item, {
