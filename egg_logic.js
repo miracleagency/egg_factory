@@ -844,7 +844,7 @@ window.EggGameModules.logic = {
             def.cycleText.setVisible(false);
             return;
         }
-        const cycleMs = Math.max(100, def.fireIntervalMs || 3000);
+        const cycleMs = Math.max(100, def.fireIntervalMs || 5000);
         if (!def.nextRocketAt || def.nextRocketAt <= gameplayNow) {
             def.cycleText.setText("0.0s");
             def.cycleText.setVisible(true);
@@ -862,7 +862,7 @@ window.EggGameModules.logic = {
 
         const startX = def.container.x;
         const startY = def.container.y + 62;
-        const flightDuration = Phaser.Math.Between(540, 760);
+        const flightDuration = Phaser.Math.Between(760, 980);
         const targetY = target.eggsBox ? (target.container.y - 6) : (target.container.y - 8);
         const rocket = this.add.container(startX, startY).setDepth(5005);
         const smoke = this.add.ellipse(0, 18, 24, 36, 0xdbe3ec, 0.18);
@@ -870,7 +870,7 @@ window.EggGameModules.logic = {
         const exhaustCore = this.add.ellipse(0, 18, 7, 12, 0xffefbe, 0.76);
         const body = this.add.rectangle(0, 0, 14, 40, 0xdce3ec, 1).setStrokeStyle(2, 0x697180, 0.74);
         const stripe = this.add.rectangle(0, 3, 4, 28, 0xda4f39, 0.96);
-        const nose = this.add.triangle(0, -24, 0, -12, -10, 4, 10, 4, 0xff6f48, 1).setStrokeStyle(1.2, 0xffdeb6, 0.74);
+        const nose = this.add.triangle(0, -25, -10, 4, 10, 4, 0, -12, 0xff6f48, 1).setStrokeStyle(1.2, 0xffdeb6, 0.74);
         const finL = this.add.triangle(-10, 10, -6, 0, 0, -10, 6, 0, 0x7f8998, 0.94);
         const finR = this.add.triangle(10, 10, -6, 0, 0, -10, 6, 0, 0x7f8998, 0.94);
         rocket.add([smoke, exhaust, exhaustCore, body, stripe, nose, finL, finR]);
@@ -899,10 +899,21 @@ window.EggGameModules.logic = {
                 const liveTargetX = target && target.container ? target.container.x : startX;
                 const liveTargetY = target && target.container ? (target.eggsBox ? (target.container.y - 6) : (target.container.y - 8)) : targetY;
                 const t = state.t;
-                const curveX = startX + (liveTargetX - startX) * t + Math.sin(t * Math.PI) * 22;
-                const curveY = startY + (liveTargetY - startY) * t - Math.sin(t * Math.PI) * 34;
+                const baseX = Phaser.Math.Linear(startX, liveTargetX, t);
+                const baseY = Phaser.Math.Linear(startY, liveTargetY, t);
+                const loopWave = Math.sin(t * Math.PI * 4.0);
+                const rollWave = Math.sin(t * Math.PI * 2.0 + Math.PI * 0.5);
+                const curveX = baseX + loopWave * 34 + rollWave * 12;
+                const curveY = baseY - Math.sin(t * Math.PI) * 54 + Math.cos(t * Math.PI * 4.0) * 16;
                 rocket.setPosition(curveX, curveY);
-                rocket.angle = Phaser.Math.RadToDeg(Math.atan2(liveTargetY - rocket.y, liveTargetX - rocket.x)) + 90;
+                const aheadT = Math.min(1, t + 0.02);
+                const aheadBaseX = Phaser.Math.Linear(startX, liveTargetX, aheadT);
+                const aheadBaseY = Phaser.Math.Linear(startY, liveTargetY, aheadT);
+                const aheadLoopWave = Math.sin(aheadT * Math.PI * 4.0);
+                const aheadRollWave = Math.sin(aheadT * Math.PI * 2.0 + Math.PI * 0.5);
+                const aheadX = aheadBaseX + aheadLoopWave * 34 + aheadRollWave * 12;
+                const aheadY = aheadBaseY - Math.sin(aheadT * Math.PI) * 54 + Math.cos(aheadT * Math.PI * 4.0) * 16;
+                rocket.angle = Phaser.Math.RadToDeg(Math.atan2(aheadY - rocket.y, aheadX - rocket.x)) + 90;
                 if (Math.random() < 0.72) this.spawnMachineTrailFx({ type: "rocket" }, rocket.x, rocket.y);
             },
             onComplete: () => {
@@ -2025,10 +2036,10 @@ window.EggGameModules.logic = {
         if (def.type === "rocket") {
             this.updateRocketMachineCycleText(def);
             if (def.brokenUntil && gameplayNow < def.brokenUntil) return;
-            if (!def.nextRocketAt) def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 3000);
+            if (!def.nextRocketAt) def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 5000);
             if (gameplayNow + 0.0001 < def.nextRocketAt) return;
             const fired = this.fireRocketMachine(def, stage);
-            def.nextRocketAt = gameplayNow + (fired ? (def.fireIntervalMs || 3000) : 500);
+            def.nextRocketAt = gameplayNow + (fired ? (def.fireIntervalMs || 5000) : 500);
             this.updateRocketMachineCycleText(def);
             return;
         }
@@ -2349,6 +2360,33 @@ window.EggGameModules.logic = {
             }
 
             if (mysteryEggs.length > 0) {
+                const burstX = item.container.x;
+                const burstY = item.container.y - 8;
+                this.spawnImpactFx(burstX, burstY, 0xc98cff);
+                this.spawnBombExplosionFx(burstX, burstY);
+                this.spawnRadialSparkBurst(burstX, burstY, {
+                    count: 22,
+                    color: 0xfff0a8,
+                    colorAlt: 0xc98cff,
+                    minSpeed: 44,
+                    maxSpeed: 148,
+                    depth: 5104
+                });
+                const mysteryRing = this.add.ellipse(burstX, burstY, 56, 28, 0xd98fff, 0.34).setDepth(5102);
+                const mysteryCore = this.add.circle(burstX, burstY, 13, 0xfff6c4, 0.82).setDepth(5103);
+                this.fxLayer.add([mysteryRing, mysteryCore]);
+                this.tweens.add({
+                    targets: [mysteryRing, mysteryCore],
+                    scaleX: 2.4,
+                    scaleY: 2.0,
+                    alpha: 0,
+                    duration: 240,
+                    ease: "Cubic.Out",
+                    onComplete: () => {
+                        mysteryRing.destroy();
+                        mysteryCore.destroy();
+                    }
+                });
                 this.triggerMysteryCrushBonus(item);
                 item.destroyed = true;
                 item.armored = false;

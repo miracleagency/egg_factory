@@ -1,3 +1,3 @@
 window.EggGameVersion = {
-    version: "2026-03-26-rocket-machine-v130"
+    version: "2026-03-26-rocket-mystery-burst-v133"
 };

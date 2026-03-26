@@ -88,10 +88,10 @@ window.EggGameModules.entitiesFx = {
             color: "#ffe9a3",
             fontStyle: "bold"
         }).setOrigin(0.5).setVisible(false);
-        const cycleText = this.add.text(0, 23, "", {
+        const cycleText = this.add.text(0, def.type === "rocket" ? -2 : 23, "", {
             fontFamily: "Arial",
-            fontSize: "16px",
-            color: "#dce6f1",
+            fontSize: def.type === "rocket" ? "18px" : "16px",
+            color: def.type === "rocket" ? "#fff1c6" : "#dce6f1",
             fontStyle: "bold"
         }).setOrigin(0.5).setVisible(false);
         const hammer = this.add.container(0, -42).setVisible(false);
@@ -178,19 +178,14 @@ window.EggGameModules.entitiesFx = {
             const siloR = this.add.rectangle(36, 4, 18, 46, 0x444f61, 0.96).setStrokeStyle(2, 0x9ba8b8, 0.62);
             const rocketLBody = this.add.rectangle(-36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
             const rocketRBody = this.add.rectangle(36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
-            const rocketLTip = this.add.triangle(-36, -16, 0, -9, -6, 3, 6, 3, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
-            const rocketRTip = this.add.triangle(36, -16, 0, -9, -6, 3, 6, 3, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketLTip = this.add.triangle(-36, -17, -6, 4, 6, 4, 0, -9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketRTip = this.add.triangle(36, -17, -6, 4, 6, 4, 0, -9, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
             const rocketLFinA = this.add.triangle(-40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
             const rocketLFinB = this.add.triangle(-32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
             const rocketRFinA = this.add.triangle(32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
             const rocketRFinB = this.add.triangle(40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
             const iconDisk = this.add.circle(0, -2, 22, 0x11171f, 1).setStrokeStyle(3, 0xffbb60, 0.82);
             const iconGlow = this.add.ellipse(0, -2, 50, 34, 0xffa84a, 0.14);
-            const iconBody = this.add.rectangle(0, 2, 10, 26, 0xdfe6ef, 1).setStrokeStyle(1.5, 0x6f7986, 0.76);
-            const iconTip = this.add.triangle(0, -13, 0, -10, -8, 4, 8, 4, 0xff6743, 1).setStrokeStyle(1.1, 0xffe0b3, 0.78);
-            const iconFinL = this.add.triangle(-7, 8, -5, 0, 0, -8, 5, 0, 0x8c98a9, 0.96);
-            const iconFinR = this.add.triangle(7, 8, -5, 0, 0, -8, 5, 0, 0x8c98a9, 0.96);
-            const iconFlame = this.add.ellipse(0, 16, 8, 12, 0xffd27a, 0.88);
             faceParts.push(
                 glow,
                 hull,
@@ -205,12 +200,7 @@ window.EggGameModules.entitiesFx = {
                 rocketRFinA,
                 rocketRFinB,
                 iconGlow,
-                iconDisk,
-                iconBody,
-                iconTip,
-                iconFinL,
-                iconFinR,
-                iconFlame
+                iconDisk
             );
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
@@ -2161,7 +2151,7 @@ window.EggGameModules.entitiesFx = {
             const exhaustCore = this.add.ellipse(0, 16, 7, 11, 0xfff0bd, 0.78);
             const body = this.add.rectangle(0, 0, 14, 40, 0xd7dee8, 1).setStrokeStyle(2, 0x6b7483, 0.72);
             const stripe = this.add.rectangle(0, 3, 4, 28, 0xd84e38, 0.96);
-            const nose = this.add.triangle(0, -24, 0, -12, -10, 4, 10, 4, 0xff6a46, 1).setStrokeStyle(1.4, 0xffdfb2, 0.76);
+            const nose = this.add.triangle(0, -25, -10, 4, 10, 4, 0, -12, 0xff6a46, 1).setStrokeStyle(1.4, 0xffdfb2, 0.76);
             const finL = this.add.triangle(-10, 10, -6, 0, 0, -10, 6, 0, 0x7b8697, 0.94);
             const finR = this.add.triangle(10, 10, -6, 0, 0, -10, 6, 0, 0x7b8697, 0.94);
             const cap = this.add.circle(0, -7, 5, 0xb7c4d4, 0.84);
