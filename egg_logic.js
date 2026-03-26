@@ -308,13 +308,16 @@ window.EggGameModules.logic = {
         this.line1EntryCheckCount = (this.line1EntryCheckCount || 0) + 1;
 
         const forcedAt = (this.eggBoxForcedEntryChecks || [])[spawnedCount] || 999;
-        if (this.line1EntryCheckCount >= forcedAt) return "box";
+        if (this.line1EntryCheckCount >= forcedAt) return Math.random() < 0.16 ? "gold_box" : "box";
 
         if (this.line1EntryCheckCount < 5) return "pillow";
 
         const chanceByIndex = [0.035, 0.018, 0.008];
         const roll = Math.random();
-        return roll < (chanceByIndex[spawnedCount] || 0.01) ? "box" : "pillow";
+        if (roll < (chanceByIndex[spawnedCount] || 0.01)) {
+            return Math.random() < 0.14 ? "gold_box" : "box";
+        }
+        return "pillow";
     },
 
     handleAutoDrop() {
@@ -322,8 +325,9 @@ window.EggGameModules.logic = {
         const slotIndex = this.getLine1EntrySlotIndex();
         if (slotIndex === this.autoDropCheckSlot) return;
         if (this.autoDropCheckSlot == null) {
-            if (this.getLine1SlotEntryType(slotIndex) === "box") {
-                this.spawnLine1EggBox(slotIndex);
+            const entryType = this.getLine1SlotEntryType(slotIndex);
+            if (entryType === "box" || entryType === "gold_box") {
+                this.spawnLine1EggBox(slotIndex, entryType === "gold_box");
             } else if (this.shouldSpawnEggAtEntrySlot(slotIndex)) {
                 this.spawnEggAtEntrySlot(slotIndex);
             }
@@ -333,8 +337,9 @@ window.EggGameModules.logic = {
 
         const step = slotIndex < this.autoDropCheckSlot ? -1 : 1;
         for (let currentSlot = this.autoDropCheckSlot + step; step < 0 ? currentSlot >= slotIndex : currentSlot <= slotIndex; currentSlot += step) {
-            if (!this.roundPopupShown && this.getLine1SlotEntryType(currentSlot) === "box") {
-                this.spawnLine1EggBox(currentSlot);
+            const entryType = !this.roundPopupShown ? this.getLine1SlotEntryType(currentSlot) : "pillow";
+            if (entryType === "box" || entryType === "gold_box") {
+                this.spawnLine1EggBox(currentSlot, entryType === "gold_box");
                 continue;
             }
             if (!this.roundPopupShown && this.shouldSpawnEggAtEntrySlot(currentSlot)) {
@@ -388,9 +393,9 @@ window.EggGameModules.logic = {
         return true;
     },
 
-    spawnLine1EggBox(slotIndex) {
+    spawnLine1EggBox(slotIndex, goldBox = false) {
         if (this.line1Pillows.has(slotIndex)) return false;
-        const box = this.createTravelEggBox();
+        const box = this.createTravelEggBox({ goldBox });
         box.slotIndex = slotIndex;
         box.stage = 1;
         this.line1Pillows.set(slotIndex, box);
@@ -526,8 +531,9 @@ window.EggGameModules.logic = {
         const entrySlot = this.getLine1EntrySlotIndex();
         for (const slot of [entrySlot + 1, entrySlot + 2]) {
             if (this.line1Pillows.has(slot)) continue;
-            if (this.getLine1SlotEntryType(slot) === "box") {
-                this.spawnLine1EggBox(slot);
+            const entryType = this.getLine1SlotEntryType(slot);
+            if (entryType === "box" || entryType === "gold_box") {
+                this.spawnLine1EggBox(slot, entryType === "gold_box");
             } else if (this.shouldSpawnEggAtEntrySlot(slot)) {
                 this.spawnEggAtEntrySlot(slot);
             }
@@ -879,6 +885,7 @@ window.EggGameModules.logic = {
         }
 
         this.setItemEggs(item, nextEggs);
+        if (item.wet) this.ensureWetFx(item);
         this.updatePillowValueText(item);
         this.spawnNuclearHitFx(item.container.x, item.container.y - 8, nextHits);
         this.flashValueText(item, nextHits >= 2 ? "#8cff72" : "#eef7ff");
@@ -913,6 +920,8 @@ window.EggGameModules.logic = {
             : { ...egg });
 
         this.setItemEggs(item, nextEggs);
+        item.wet = false;
+        this.clearWetFx(item);
         this.updatePillowValueText(item);
         this.spawnNuclearHitFx(item.container.x, item.container.y - 8, 1);
         this.flashValueText(item, "#b8fff0");
@@ -969,7 +978,7 @@ window.EggGameModules.logic = {
             const rocket = this.add.container(startX, startY).setDepth(9228);
             const flame = this.add.ellipse(-16, 0, 20, 10, 0xffa84f, 0.92);
             const body = this.add.rectangle(0, 0, 30, 12, 0x7a838d, 1).setStrokeStyle(2, 0xf4f7fb, 0.95);
-            const nose = this.add.triangle(18, 0, -2, -8, -2, 8, 10, 0, 0xd94b3d, 1).setStrokeStyle(1.4, 0xffd0c0, 0.86);
+            const nose = this.add.triangle(19, 0, 0, -8, 0, 8, 11, 0, 0xd94b3d, 1).setStrokeStyle(1.4, 0xffd0c0, 0.86);
             const finTop = this.add.triangle(-6, -6, -8, 0, 4, 0, -4, -10, 0x525962, 1);
             const finBot = this.add.triangle(-6, 6, -8, 0, 4, 0, -4, 10, 0x525962, 1);
             const stripe = this.add.rectangle(2, 0, 8, 12, 0xefe44d, 0.95);
@@ -1033,7 +1042,7 @@ window.EggGameModules.logic = {
             const rocket = this.add.container(startX, startY).setDepth(9228);
             const flame = this.add.ellipse(-16, 0, 20, 10, 0x8cff72, 0.92);
             const body = this.add.rectangle(0, 0, 30, 12, 0x7a838d, 1).setStrokeStyle(2, 0xf4f7fb, 0.95);
-            const nose = this.add.triangle(18, 0, -2, -8, -2, 8, 10, 0, 0x73ff66, 1).setStrokeStyle(1.4, 0xe1ffd7, 0.86);
+            const nose = this.add.triangle(19, 0, 0, -8, 0, 8, 11, 0, 0x73ff66, 1).setStrokeStyle(1.4, 0xe1ffd7, 0.86);
             const finTop = this.add.triangle(-6, -6, -8, 0, 4, 0, -4, -10, 0x525962, 1);
             const finBot = this.add.triangle(-6, 6, -8, 0, 4, 0, -4, 10, 0x525962, 1);
             const stripe = this.add.rectangle(2, 0, 8, 12, 0xefe44d, 0.95);
@@ -1080,14 +1089,12 @@ window.EggGameModules.logic = {
 
     applyNuclearRocketToEggBox(item) {
         if (!item || item.destroyed || item.finished || !item.eggsBox) return;
-        item.boxDamage = (item.boxDamage || 0) + 1;
+        item.boxDamage = 3;
         this.setEggBoxDamageVisual(item, item.boxDamage);
         this.spawnNuclearHitFx(item.container.x, item.container.y - 8, Math.min(3, item.boxDamage));
         this.spawnCrushFx(item.container.x, item.container.y - 4);
         this.pulseItem(item);
-        if (item.boxDamage >= 3) {
-            item.pendingEggBoxBonusAfterNuclear = true;
-        }
+        item.pendingEggBoxBonusAfterNuclear = true;
     },
 
     runNuclearEggDetonation(item, sourceType = "impact") {
@@ -1596,7 +1603,10 @@ window.EggGameModules.logic = {
         if (!item || item.finished || item.boxBonusRunning) return;
         const bonusCount = Phaser.Math.Between(3, 5);
         const eggs = [];
-        for (let i = 0; i < bonusCount; i++) eggs.push(this.getRoundSetupHiddenEggType({ allowExtraNuclear: true, extraNuclearChance: 0.14 }));
+        for (let i = 0; i < bonusCount; i++) {
+            if (item.goldEggBox) eggs.push(this.getGoldEggBoxRewardEgg());
+            else eggs.push(this.getRoundSetupHiddenEggType({ allowExtraNuclear: true, extraNuclearChance: 0.14 }));
+        }
         item.boxBonusRunning = true;
         item.destroyed = true;
 
@@ -1763,6 +1773,17 @@ window.EggGameModules.logic = {
             this.setItemEggs(item, nextEggs);
             this.pulseItem(item);
         }
+    },
+
+    getGoldEggBoxRewardEgg() {
+        const pool = ["nuclear", "mystery", "gold", "diamond"]
+            .map(key => this.getEggTypeByKey(key))
+            .filter(Boolean);
+        const picked = Phaser.Utils.Array.GetRandom(pool);
+        if (!picked) return this.getRoundSetupHiddenEggType({ allowExtraNuclear: true, extraNuclearChance: 0.14 });
+        return picked.key === "nuclear"
+            ? this.createNuclearEggData(picked)
+            : this.cloneEggTypeData(picked);
     },
 
     triggerMysteryCrushBonus(triggerItem) {
@@ -2166,12 +2187,13 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "shield") {
-            if (this.repairNuclearEggs(item)) {
-                this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
-                return;
-            }
-            if (this.damageNuclearEggs(item, "shield")) {
-                this.spawnCrushFx(item.container.x, item.container.y - 4);
+            const hasNuclearEgg = (item.eggs || []).some(egg => egg && egg.nuclearEgg);
+            if (hasNuclearEgg) {
+                if (this.repairNuclearEggs(item)) {
+                    this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
+                } else {
+                    this.pulseItem(item);
+                }
                 return;
             }
             this.applyShieldToItem(item);

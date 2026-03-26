@@ -473,33 +473,42 @@ window.EggGameModules.entitiesFx = {
         };
     },
 
-    createTravelEggBox() {
+    createTravelEggBox(options = {}) {
+        const goldBox = !!options.goldBox;
         const container = this.add.container(0, 0);
         const shadow = this.add.ellipse(0, 34, 170, 32, 0x000000, 0.32);
         const rearShadow = this.add.ellipse(0, 14, 140, 20, 0x000000, 0.12);
-        const backPlate = this.add.roundRectangle ? this.add.roundRectangle(0, -10, 124, 100, 18, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc) : this.add.rectangle(0, -10, 124, 100, 0x44515d, 1).setStrokeStyle(4, 0xc8d2dc);
-        const body = this.add.roundRectangle ? this.add.roundRectangle(0, 0, 140, 110, 20, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef) : this.add.rectangle(0, 0, 140, 110, 0x5b6875, 1).setStrokeStyle(5, 0xe1e7ef);
-        const topLid = this.add.roundRectangle ? this.add.roundRectangle(0, -34, 124, 26, 10, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff) : this.add.rectangle(0, -34, 124, 26, 0x93a0ae, 1).setStrokeStyle(3, 0xf6fbff);
-        const midBand = this.add.rectangle(0, -4, 126, 14, 0x394552, 1).setStrokeStyle(2, 0x7f8d9b, 0.8);
-        const hatch = this.add.roundRectangle ? this.add.roundRectangle(0, -18, 62, 16, 8, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55) : this.add.rectangle(0, -18, 62, 16, 0x232b34, 1).setStrokeStyle(2, 0xb5c4d1, 0.55);
-        const labelPlate = this.add.rectangle(0, 30, 92, 34, 0x2e3946, 0.92).setStrokeStyle(2, 0xb5c3d3, 0.75);
+        const backPlate = this.add.roundRectangle ? this.add.roundRectangle(0, -10, 124, 100, 18, goldBox ? 0x8d6420 : 0x44515d, 1).setStrokeStyle(4, goldBox ? 0xffec9d : 0xc8d2dc) : this.add.rectangle(0, -10, 124, 100, goldBox ? 0x8d6420 : 0x44515d, 1).setStrokeStyle(4, goldBox ? 0xffec9d : 0xc8d2dc);
+        const body = this.add.roundRectangle ? this.add.roundRectangle(0, 0, 140, 110, 20, goldBox ? 0xc08c28 : 0x5b6875, 1).setStrokeStyle(5, goldBox ? 0xfff2b3 : 0xe1e7ef) : this.add.rectangle(0, 0, 140, 110, goldBox ? 0xc08c28 : 0x5b6875, 1).setStrokeStyle(5, goldBox ? 0xfff2b3 : 0xe1e7ef);
+        const topLid = this.add.roundRectangle ? this.add.roundRectangle(0, -34, 124, 26, 10, goldBox ? 0xf0c660 : 0x93a0ae, 1).setStrokeStyle(3, goldBox ? 0xfffbdb : 0xf6fbff) : this.add.rectangle(0, -34, 124, 26, goldBox ? 0xf0c660 : 0x93a0ae, 1).setStrokeStyle(3, goldBox ? 0xfffbdb : 0xf6fbff);
+        const midBand = this.add.rectangle(0, -4, 126, 14, goldBox ? 0x6f4f18 : 0x394552, 1).setStrokeStyle(2, goldBox ? 0xf2cf73 : 0x7f8d9b, 0.8);
+        const hatch = this.add.roundRectangle ? this.add.roundRectangle(0, -18, 62, 16, 8, goldBox ? 0x584218 : 0x232b34, 1).setStrokeStyle(2, goldBox ? 0xffe08e : 0xb5c4d1, 0.55) : this.add.rectangle(0, -18, 62, 16, goldBox ? 0x584218 : 0x232b34, 1).setStrokeStyle(2, goldBox ? 0xffe08e : 0xb5c4d1, 0.55);
+        const labelPlate = this.add.rectangle(0, 30, 92, 34, goldBox ? 0x7b5312 : 0x2e3946, 0.92).setStrokeStyle(2, goldBox ? 0xffe08e : 0xb5c3d3, 0.75);
         const labelA = this.add.text(0, 14, "EGGS", {
             fontFamily: "Arial",
             fontSize: "24px",
-            color: "#eef4ff",
+            color: goldBox ? "#fff3b5" : "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
         const labelB = this.add.text(0, 40, "BOX", {
             fontFamily: "Arial",
             fontSize: "22px",
-            color: "#eef4ff",
+            color: goldBox ? "#fff3b5" : "#eef4ff",
             fontStyle: "bold"
         }).setOrigin(0.5);
+        const goldHalo = goldBox ? this.add.ellipse(0, 0, 170, 120, 0xffd75f, 0.18) : null;
+        const goldBadge = goldBox ? this.add.text(0, -48, "GOLD", {
+            fontFamily: "Arial",
+            fontSize: "20px",
+            color: "#5a3000",
+            fontStyle: "bold",
+            backgroundColor: "#ffe28d"
+        }).setOrigin(0.5).setPadding(8, 4, 8, 4) : null;
         const rivets = [
             [-50, -38], [50, -38], [-60, -8], [60, -8],
             [-60, 28], [60, 28], [-34, 46], [34, 46]
         ].map(([x, y]) => {
-            const rivet = this.add.circle(x, y, 4.5, 0xe4ebf5, 1).setStrokeStyle(2, 0x667280);
+            const rivet = this.add.circle(x, y, 4.5, goldBox ? 0xfff4c6 : 0xe4ebf5, 1).setStrokeStyle(2, goldBox ? 0x8a6516 : 0x667280);
             const shine = this.add.circle(x - 1.2, y - 1.2, 1.4, 0xffffff, 0.55);
             return [rivet, shine];
         }).flat();
@@ -536,6 +545,7 @@ window.EggGameModules.entitiesFx = {
         container.add([
             shadow,
             rearShadow,
+            ...(goldHalo ? [goldHalo] : []),
             backPlate,
             body,
             topLid,
@@ -544,6 +554,7 @@ window.EggGameModules.entitiesFx = {
             labelPlate,
             labelA,
             labelB,
+            ...(goldBadge ? [goldBadge] : []),
             ...rivets,
             crackA,
             crackB,
@@ -566,6 +577,7 @@ window.EggGameModules.entitiesFx = {
             settled: true,
             permanentTextColor: null,
             eggsBox: true,
+            goldEggBox: goldBox,
             boxDamage: 0
         };
     },
