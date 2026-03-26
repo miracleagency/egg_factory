@@ -95,6 +95,31 @@ window.EggGameModules.logic = {
         };
     },
 
+    createNuclearEggData(sourceEgg = null) {
+        const shell = sourceEgg && sourceEgg.key === "nuclear"
+            ? sourceEgg
+            : this.getEggTypeByKey("nuclear");
+        return {
+            ...(shell ? this.cloneEggTypeData(shell) : {}),
+            key: "nuclear",
+            label: shell && shell.label ? shell.label : "Nuclear",
+            color: shell && shell.color ? shell.color : 0xa0aab5,
+            stroke: shell && shell.stroke ? shell.stroke : 0xf3f7fb,
+            mult: shell && typeof shell.mult === "number" ? shell.mult : 1,
+            chance: shell && typeof shell.chance === "number" ? shell.chance : 0.06,
+            armored: true,
+            nuclearEgg: true,
+            nuclearHits: sourceEgg && typeof sourceEgg.nuclearHits === "number" ? sourceEgg.nuclearHits : 0,
+            nuclearMaxHits: sourceEgg && typeof sourceEgg.nuclearMaxHits === "number" ? sourceEgg.nuclearMaxHits : 3,
+            armorDamage: 0,
+            bomb: false,
+            bombLit: false,
+            goldFx: false,
+            diamondFx: false,
+            mysteryFx: false
+        };
+    },
+
     getWeightedEggType(excludeKeys = []) {
         const exclude = new Set(excludeKeys);
         const pool = (this.eggTypes || []).filter(egg => egg && !exclude.has(egg.key));
@@ -107,12 +132,21 @@ window.EggGameModules.logic = {
         return this.cloneEggTypeData(pool[0] || this.eggTypes[0]);
     },
 
-    getRoundSetupHiddenEggType() {
-        const pool = (this.eggTypes || []).filter(Boolean).map(egg => {
+    getRoundSetupHiddenEggType(options = {}) {
+        const allowExtraNuclear = !!options.allowExtraNuclear;
+        const extraNuclearChance = typeof options.extraNuclearChance === "number" ? options.extraNuclearChance : 0.12;
+        const primaryAvailable = !(this.roundHasNuclearEgg || false);
+        const extraAvailable = allowExtraNuclear && !(this.roundExtraNuclearEggGranted || false) && Math.random() < extraNuclearChance;
+        const allowNuclear = primaryAvailable || extraAvailable;
+        const pool = (this.eggTypes || []).filter(egg => {
+            if (!egg) return false;
+            if (egg.key !== "nuclear") return true;
+            return allowNuclear;
+        }).map(egg => {
             let weight = egg.chance || 0;
             if (egg.key === "white") weight *= 0.42;
             else if (egg.key === "armored" || egg.key === "bomb") weight *= 1.02;
-            else if (egg.key === "gold" || egg.key === "mystery") weight *= 1.34;
+            else if (egg.key === "gold" || egg.key === "mystery" || egg.key === "nuclear") weight *= 1.34;
             else if (egg.key === "diamond") weight *= 1.18;
             return { egg, weight };
         });
@@ -121,9 +155,22 @@ window.EggGameModules.logic = {
         let roll = Math.random() * Math.max(total, 0.0001);
         for (const entry of pool) {
             roll -= entry.weight;
-            if (roll <= 0) return this.cloneEggTypeData(entry.egg);
+            if (roll <= 0) {
+                if (entry.egg && entry.egg.key === "nuclear") {
+                    if (primaryAvailable) this.roundHasNuclearEgg = true;
+                    else this.roundExtraNuclearEggGranted = true;
+                    return this.createNuclearEggData(entry.egg);
+                }
+                return this.cloneEggTypeData(entry.egg);
+            }
         }
-        return this.cloneEggTypeData((pool[0] || {}).egg || this.eggTypes[0]);
+        const fallback = (pool[0] || {}).egg || this.eggTypes[0];
+        if (fallback && fallback.key === "nuclear") {
+            if (primaryAvailable) this.roundHasNuclearEgg = true;
+            else this.roundExtraNuclearEggGranted = true;
+            return this.createNuclearEggData(fallback);
+        }
+        return this.cloneEggTypeData(fallback);
     },
 
     buildRoundEggPool() {
@@ -136,6 +183,8 @@ window.EggGameModules.logic = {
         for (let i = 0; i < 3; i++) pool.push(this.cloneEggTypeData(armored));
         for (let i = 0; i < 2; i++) pool.push(this.cloneEggTypeData(bomb));
 
+        this.roundHasNuclearEgg = false;
+        this.roundExtraNuclearEggGranted = false;
         const hidden = [];
         for (let i = 0; i < 10; i++) {
             hidden.push(this.getRoundSetupHiddenEggType());
@@ -144,6 +193,7 @@ window.EggGameModules.logic = {
         this.roundEggPreview = [...pool, ...hidden];
         this.roundEggPool = this.roundEggPreview.map(egg => this.cloneEggTypeData(egg));
         this.roundEggHiddenStartIndex = 10;
+        this.roundHasNuclearEgg = hidden.some(egg => egg && egg.key === "nuclear");
         this.spawnedEggBoxCount = 0;
         this.line1EntryCheckCount = 0;
         this.line1EggGapRemaining = 0;
@@ -178,6 +228,8 @@ window.EggGameModules.logic = {
             const [egg] = this.roundEggPool.splice(index, 1);
             return egg && egg.key === "armored"
                 ? this.createArmoredEggData()
+                : egg && egg.key === "nuclear"
+                    ? this.createNuclearEggData(egg)
                 : this.cloneEggTypeData(egg);
         }
         const r = Math.random();
@@ -187,6 +239,8 @@ window.EggGameModules.logic = {
             if (r <= sum) {
                 return egg && egg.key === "armored"
                     ? this.createArmoredEggData()
+                    : egg && egg.key === "nuclear"
+                        ? this.createNuclearEggData(egg)
                     : this.cloneEggTypeData(egg);
             }
         }
@@ -714,7 +768,12 @@ window.EggGameModules.logic = {
 
     getMysteryEligibleMachines() {
         return [...this.line1Machines, ...this.line2Machines, ...this.line3Machines]
-            .filter(def => def && def.container && (def.type === "fire" || def.type === "crush"));
+            .filter(def => def && def.container && !def.permaDestroyed && (def.type === "fire" || def.type === "crush"));
+    },
+
+    getNuclearEligibleMachines() {
+        return [...this.line1Machines, ...this.line2Machines, ...this.line3Machines]
+            .filter(def => def && def.container && !def.permaDestroyed && (def.type === "fire" || def.type === "crush"));
     },
 
     getPlayableTweens() {
@@ -757,6 +816,212 @@ window.EggGameModules.logic = {
         if (obj.destroy && obj.scene) {
             obj.destroy();
         }
+    },
+
+    damageNuclearEggs(item, sourceType = "impact") {
+        if (!item || item.destroyed || item.finished || !Array.isArray(item.eggs) || item.eggs.length === 0) return false;
+        const nuclearEggs = item.eggs.filter(egg => egg && egg.nuclearEgg);
+        if (nuclearEggs.length === 0) return false;
+
+        const nextHits = Math.max(...nuclearEggs.map(egg => egg.nuclearHits || 0)) + 1;
+        const maxHits = Math.max(...nuclearEggs.map(egg => egg.nuclearMaxHits || 3));
+        if (nextHits > maxHits) {
+            this.runNuclearEggDetonation(item, sourceType);
+            return true;
+        }
+
+        const nextEggs = item.eggs.map(egg => egg && egg.nuclearEgg
+            ? {
+                ...egg,
+                nuclearHits: nextHits,
+                nuclearMaxHits: maxHits,
+                armorDamage: 0
+            }
+            : { ...egg });
+
+        this.setItemEggs(item, nextEggs);
+        this.spawnNuclearHitFx(item.container.x, item.container.y - 8, nextHits);
+        this.flashValueText(item, nextHits >= 2 ? "#8cff72" : "#eef7ff");
+        this.pulseItem(item);
+        if (nextHits >= 3) {
+            this.cameras.main.shake(160, 0.0032);
+            this.tweens.add({
+                targets: item.container,
+                x: item.container.x + 8,
+                duration: 48,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: 5
+            });
+        }
+        return true;
+    },
+
+    pickNuclearRocketCount(targetCount) {
+        if (targetCount <= 0) return 0;
+        const roll = Math.random();
+        const desired = roll < 0.76 ? 1 : (roll < 0.94 ? 2 : 3);
+        return Math.min(targetCount, desired);
+    },
+
+    destroyMachineForever(def) {
+        if (!def || def.permaDestroyed) return;
+        def.brokenUntil = 0;
+        def.brokenStartedAt = 0;
+        def.brokenDurationMs = 0;
+        def.brokenDisplaySeconds = 0;
+        def.nextShot = 0;
+        def.nextImpact = 0;
+        if (def.hammerTween) {
+            this.tweens.killTweensOf(def.hammer);
+            def.hammerTween = null;
+        }
+        if (def.hammer) {
+            def.hammer.setVisible(false);
+            def.hammer.y = -42;
+            def.hammer.angle = 0;
+        }
+        this.spawnBombExplosionFx(def.container.x, def.container.y - 8);
+        this.spawnNuclearHitFx(def.container.x, def.container.y - 6, 3);
+        this.setMachinePermanentDestroyedVisual(def, true);
+        this.tweens.add({
+            targets: def.container,
+            scaleX: def.container.scaleX * 1.08,
+            scaleY: def.container.scaleY * 1.12,
+            duration: 180,
+            yoyo: true
+        });
+    },
+
+    launchNuclearRocket(startX, startY, def, delay, onComplete) {
+        if (!def || !def.container || def.permaDestroyed) {
+            if (typeof onComplete === "function") onComplete();
+            return;
+        }
+        this.time.delayedCall(delay, () => {
+            if (!def.container || !def.container.scene || def.permaDestroyed) {
+                if (typeof onComplete === "function") onComplete();
+                return;
+            }
+            const rocket = this.add.container(startX, startY).setDepth(9228);
+            const flame = this.add.ellipse(-16, 0, 20, 10, 0xffa84f, 0.92);
+            const body = this.add.rectangle(0, 0, 30, 12, 0x7a838d, 1).setStrokeStyle(2, 0xf4f7fb, 0.95);
+            const nose = this.add.triangle(18, 0, -2, -8, -2, 8, 10, 0, 0xd94b3d, 1).setStrokeStyle(1.4, 0xffd0c0, 0.86);
+            const finTop = this.add.triangle(-6, -6, -8, 0, 4, 0, -4, -10, 0x525962, 1);
+            const finBot = this.add.triangle(-6, 6, -8, 0, 4, 0, -4, 10, 0x525962, 1);
+            const stripe = this.add.rectangle(2, 0, 8, 12, 0xefe44d, 0.95);
+            rocket.add([flame, body, nose, finTop, finBot, stripe]);
+            this.popupLayer.add(rocket);
+
+            const targetX = def.container.x;
+            const targetY = def.container.y - 8;
+            const dx = targetX - startX;
+            const dy = targetY - startY;
+            const midX = startX + dx * Phaser.Math.FloatBetween(0.38, 0.62);
+            const loopX = midX + Phaser.Math.Between(-120, 120);
+            const curve = new Phaser.Curves.Spline([
+                new Phaser.Math.Vector2(startX, startY),
+                new Phaser.Math.Vector2(startX + Phaser.Math.Between(-80, 80), startY - Phaser.Math.Between(80, 140)),
+                new Phaser.Math.Vector2(midX - Phaser.Math.Between(90, 130), startY - Phaser.Math.Between(180, 260)),
+                new Phaser.Math.Vector2(loopX, startY - Phaser.Math.Between(40, 120)),
+                new Phaser.Math.Vector2(midX + Phaser.Math.Between(90, 130), startY - Phaser.Math.Between(210, 280)),
+                new Phaser.Math.Vector2(targetX + Phaser.Math.Between(-40, 40), targetY - Phaser.Math.Between(110, 180)),
+                new Phaser.Math.Vector2(targetX, targetY)
+            ]);
+            const tracker = { t: 0 };
+            let smokeTick = 0;
+            this.tweens.add({
+                targets: tracker,
+                t: 1,
+                duration: 980 + Phaser.Math.Between(0, 240),
+                ease: "Sine.InOut",
+                onUpdate: () => {
+                    const p = curve.getPoint(tracker.t);
+                    const ahead = curve.getPoint(Math.min(1, tracker.t + 0.015));
+                    rocket.setPosition(p.x, p.y);
+                    rocket.angle = Phaser.Math.RadToDeg(Phaser.Math.Angle.Between(p.x, p.y, ahead.x, ahead.y));
+                    flame.scaleX = 0.9 + Math.random() * 0.5;
+                    flame.scaleY = 0.8 + Math.random() * 0.4;
+                    smokeTick += 1;
+                    if (smokeTick % 2 === 0) {
+                        this.spawnRocketTrailSmoke(p.x - Math.cos(Phaser.Math.DegToRad(rocket.angle)) * 10, p.y - Math.sin(Phaser.Math.DegToRad(rocket.angle)) * 10);
+                    }
+                },
+                onComplete: () => {
+                    rocket.destroy();
+                    this.destroyMachineForever(def);
+                    this.cameras.main.shake(220, 0.0044);
+                    if (typeof onComplete === "function") onComplete();
+                }
+            });
+        });
+    },
+
+    runNuclearEggDetonation(item, sourceType = "impact") {
+        if (!item || item.destroyed || item.finished || item.nuclearBonusRunning) return false;
+        item.nuclearBonusRunning = true;
+        item.destroyed = true;
+        item.armored = false;
+        this.clearWetFx(item);
+        if (!item.settled) {
+            this.addLose(item.spentCost || 0);
+            item.settled = true;
+        }
+
+        const targets = Phaser.Utils.Array.Shuffle(this.getNuclearEligibleMachines().slice());
+        const rocketCount = this.pickNuclearRocketCount(targets.length);
+        const selectedTargets = targets.slice(0, rocketCount);
+        const itemPrevDepth = item.container.depth || 0;
+        this.beginGameplayPause([item.container]);
+        const lifted = this.liftContainersToPopupLayer([item.container]);
+        item.container.setDepth(9205);
+        this.spawnMysteryBonusText("NUCLEAR MELTDOWN", "#ebffb6", 0x75ff60);
+
+        this.time.delayedCall(620, () => {
+            this.spawnNuclearHitFx(item.container.x, item.container.y - 10, 3);
+            this.tweens.add({
+                targets: item.container,
+                x: item.container.x + 12,
+                duration: 58,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: 7
+            });
+        });
+
+        this.time.delayedCall(1220, () => {
+            const originX = item.container.x;
+            const originY = item.container.y - 10;
+            this.spawnNuclearExplosionFx(originX, originY);
+            this.cameras.main.shake(760, 0.008);
+            item.container.destroy();
+            item.finished = true;
+
+            if (selectedTargets.length === 0) {
+                this.time.delayedCall(820, () => {
+                    item.nuclearBonusRunning = false;
+                    this.restoreLiftedContainers(lifted);
+                    this.endGameplayPause();
+                });
+                return;
+            }
+
+            let completed = 0;
+            selectedTargets.forEach((def, index) => {
+                this.launchNuclearRocket(originX, originY - 12, def, 180 + index * 220, () => {
+                    completed += 1;
+                    if (completed >= selectedTargets.length) {
+                        this.time.delayedCall(620, () => {
+                            item.nuclearBonusRunning = false;
+                            if (item.container && item.container.scene) item.container.setDepth(itemPrevDepth);
+                            this.restoreLiftedContainers(lifted);
+                            this.endGameplayPause();
+                        });
+                    }
+                });
+            });
+        });
+        return true;
     },
 
     stopDisplayObjectTweens(obj) {
@@ -1203,7 +1468,7 @@ window.EggGameModules.logic = {
         if (!item || item.finished || item.boxBonusRunning) return;
         const bonusCount = Phaser.Math.Between(3, 5);
         const eggs = [];
-        for (let i = 0; i < bonusCount; i++) eggs.push(this.getRoundSetupHiddenEggType());
+        for (let i = 0; i < bonusCount; i++) eggs.push(this.getRoundSetupHiddenEggType({ allowExtraNuclear: true, extraNuclearChance: 0.14 }));
         item.boxBonusRunning = true;
         item.destroyed = true;
 
@@ -1320,6 +1585,7 @@ window.EggGameModules.logic = {
         item.wet = false;
         this.clearWetFx(item);
         const nextEggs = item.eggs.map(egg => {
+            if (egg.nuclearEgg) return { ...egg };
             if (egg.megaArmored) return { ...egg };
             if (egg.armored) return this.createMegaArmoredEggData(egg.innerEgg ? this.cloneEggTypeData(egg.innerEgg) : egg);
             return this.createArmoredEggData(egg);
@@ -1357,6 +1623,7 @@ window.EggGameModules.logic = {
             visual.container.y = -26;
             visual.container._eggTypeData = eggData;
             if (eggData.bomb) this.setBombVisualState(visual.container, eggData.bombLit !== false);
+            if (eggData.nuclearEgg) this.setNuclearEggVisualState(visual.container, eggData.nuclearHits || 0);
             item.container.add(visual.container);
         });
     },
@@ -1383,6 +1650,7 @@ window.EggGameModules.logic = {
                 .sort((a, b) => a.y - b.y)
                 .map(item => () => {
                     this.animateMysteryTransformItem(item, egg => {
+                        if (egg.nuclearEgg) return { ...egg };
                         if (egg.megaArmored) return { ...egg };
                         if (egg.armored) {
                             return {
@@ -1479,6 +1747,7 @@ window.EggGameModules.logic = {
     },
 
     maybeFireMachine(def, line, stage) {
+        if (def.permaDestroyed) return;
         if (def.brokenUntil && this.time.now < def.brokenUntil) return;
 
         const schedule = (fromClock, first) => {
@@ -1793,6 +2062,11 @@ window.EggGameModules.logic = {
                 return;
             }
 
+            if (this.damageNuclearEggs(item, "fire")) {
+                this.spawnMachineImpactFx({ type: "fire" }, item.container.x, item.container.y - 6);
+                return;
+            }
+
             if (litBombEggs.length > 0) {
                 this.breakMachine(def);
                 item.destroyed = true;
@@ -1864,6 +2138,11 @@ window.EggGameModules.logic = {
             const maxArmorDamage = armoredEggs.length > 0
                 ? Math.max(...armoredEggs.map(egg => egg.armorDamage || 0))
                 : 0;
+
+            if (this.damageNuclearEggs(item, "crush")) {
+                this.spawnCrushFx(item.container.x, item.container.y - 4);
+                return;
+            }
 
             if (mysteryEggs.length > 0) {
                 if (litBombEggs.length > 0) {
@@ -1955,6 +2234,7 @@ window.EggGameModules.logic = {
 
     breakMachine(def, repairDurationMs = 10000) {
         if (!def) return;
+        if (def.permaDestroyed) return;
         const baseDurationMs = Math.min(10000, Math.max(0, repairDurationMs || 10000));
         const turbo = Math.max(0.01, this.getTurboMultiplier ? this.getTurboMultiplier() : 1);
         const slowestTurbo = Math.min(...(this.turboValues || [1]));
@@ -1987,6 +2267,10 @@ window.EggGameModules.logic = {
 
     updateBrokenMachines(machineDefs) {
         for (const def of machineDefs) {
+            if (def.permaDestroyed) {
+                def.brokenUntil = 0;
+                continue;
+            }
             if (!def.brokenUntil) continue;
             const msLeft = def.brokenUntil - this.time.now;
             if (msLeft <= 0) {

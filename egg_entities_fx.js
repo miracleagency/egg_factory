@@ -282,7 +282,23 @@ window.EggGameModules.entitiesFx = {
             );
         }
         if (faceParts.length > 0) parts.splice(parts.length - 3, 0, ...faceParts);
+        const destroyedFx = this.add.container(0, 0).setVisible(false);
+        const wreckGlow = this.add.ellipse(0, 4, 116, 70, 0xff6f3d, 0.12);
+        const wreckBody = this.add.rectangle(0, 2, 126, 72, 0x241b18, 0.94).setStrokeStyle(4, 0x6b3b2d, 0.9);
+        const wreckScarA = this.add.rectangle(-12, 0, 92, 8, 0x0d0909, 0.9).setAngle(-18);
+        const wreckScarB = this.add.rectangle(20, 8, 82, 7, 0x120d0c, 0.86).setAngle(24);
+        const emberCore = this.add.ellipse(-8, 4, 52, 30, 0xff7d36, 0.22);
+        const emberHot = this.add.ellipse(-4, 4, 28, 14, 0xffd26c, 0.24);
+        const smokeA = this.add.circle(18, -18, 14, 0x26262b, 0.42);
+        const smokeB = this.add.circle(2, -28, 11, 0x34343b, 0.34);
+        const smokeC = this.add.circle(30, -34, 8, 0x1c1c22, 0.28);
+        const wreckPlateL = this.add.rectangle(-34, 18, 24, 10, 0x494449, 0.86).setAngle(-18);
+        const wreckPlateR = this.add.rectangle(36, 16, 28, 10, 0x494449, 0.84).setAngle(18);
+        const flameA = this.add.star(-18, -4, 5, 4, 10, 0x7cff65, 0.9);
+        const flameB = this.add.star(8, -2, 5, 3.4, 8.2, 0xff8b4e, 0.92);
+        destroyedFx.add([wreckGlow, wreckBody, wreckScarA, wreckScarB, emberCore, emberHot, smokeA, smokeB, smokeC, wreckPlateL, wreckPlateR, flameA, flameB]);
         container.add(parts);
+        container.add(destroyedFx);
         container.setScale(1.12);
         this.machineLayer.add(container);
 
@@ -298,6 +314,7 @@ window.EggGameModules.entitiesFx = {
         def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.04, 0.12) : Phaser.Math.FloatBetween(0.16, 0.30);
         def.showBaseLabel = !(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.rarity === "gold");
         label.setVisible(def.showBaseLabel);
+        def.destroyedFx = destroyedFx;
 
         return def;
     },
@@ -448,6 +465,7 @@ window.EggGameModules.entitiesFx = {
 
     getEggFocusAccent(egg) {
         if (!egg) return 0xffffff;
+        if (egg.nuclearEgg) return 0x82ff72;
         if (egg.diamondFx) return 0x84e9ff;
         if (egg.goldFx) return 0xffde6d;
         if (egg.mysteryFx) return 0xc98cff;
@@ -581,7 +599,8 @@ window.EggGameModules.entitiesFx = {
         }
 
         if (eggType.armored) {
-            const mega = !!eggType.megaArmored;
+            const nuclear = !!eggType.nuclearEgg;
+            const mega = !!eggType.megaArmored || nuclear;
             const shell = this.add.ellipse(0, 0, mega ? 42 : 34, mega ? 58 : 46, mega ? 0x5c6470 : 0x8d969f, 1).setStrokeStyle(3, mega ? 0xf7fbff : 0xdfe6ef);
             const band = this.add.rectangle(0, 0, mega ? 32 : 26, mega ? 42 : 34, mega ? 0x323b46 : 0x69727d, 0.95).setStrokeStyle(2, 0xc8d0db);
             const rivetPoints = mega
@@ -621,7 +640,78 @@ window.EggGameModules.entitiesFx = {
             const armorDamage = eggType.armorDamage || 0;
             crackA.setVisible(armorDamage >= 1);
             crackB.setVisible(armorDamage >= (mega ? 999 : 2));
-            container.add([shell, band, ...(mega ? [reactorGlow, reactorOuter, reactorCore] : []), ...rivets, shine, crackA, crackB]);
+            if (nuclear) {
+                shell.setFillStyle(0x616973, 1).setStrokeStyle(3, 0xf6fbff, 1);
+                band.setFillStyle(0x232f37, 0.98).setStrokeStyle(2, 0xdce3ea, 0.95);
+                const logoPlate = this.add.circle(0, 2, 13, 0xf3cd2e, 1).setStrokeStyle(2, 0x1e1f20, 0.96);
+                const logoGlow = this.add.circle(0, 2, 20, 0x86ff5b, 0.14);
+                const logoSvg = this.createSvgMachineIcon("egg_icon_nuclear_svg", 0x1a1a1a, 24);
+                let logoFallback = null;
+                const crackGlowA = this.add.graphics();
+                const crackGlowB = this.add.graphics();
+                const crackGlowC = this.add.graphics();
+                const coreGlow = this.add.ellipse(0, 4, 36, 48, 0x6bff62, 0.12).setVisible(false);
+                const pulseGlow = this.add.ellipse(0, 2, 54, 70, 0x65ff6f, 0.09).setVisible(false);
+                const sparkAnchor = this.add.container(0, 0);
+
+                const drawGlowCrack = (graphic, color, points) => {
+                    graphic.clear();
+                    graphic.lineStyle(4, color, 0.32);
+                    graphic.beginPath();
+                    graphic.moveTo(points[0][0], points[0][1]);
+                    for (let i = 1; i < points.length; i++) graphic.lineTo(points[i][0], points[i][1]);
+                    graphic.strokePath();
+                    graphic.lineStyle(2.2, 0xd9ff8c, 0.88);
+                    graphic.beginPath();
+                    graphic.moveTo(points[0][0], points[0][1]);
+                    for (let i = 1; i < points.length; i++) graphic.lineTo(points[i][0], points[i][1]);
+                    graphic.strokePath();
+                };
+
+                drawGlowCrack(crackGlowA, 0x4cff67, [[-6, -14], [-1, -6], [-8, 2], [-3, 12], [3, 18]]);
+                drawGlowCrack(crackGlowB, 0x4cff67, [[10, -16], [5, -8], [11, 2], [4, 12], [-2, 18]]);
+                drawGlowCrack(crackGlowC, 0x7dff72, [[-16, -4], [-8, 2], [-12, 12], [-2, 20], [10, 24]]);
+
+                if (logoSvg) {
+                    logoSvg.y = 2;
+                } else {
+                    logoFallback = this.add.graphics();
+                    logoFallback.fillStyle(0x1a1a1a, 1);
+                    logoFallback.fillCircle(0, -5, 3.3);
+                    logoFallback.slice(0, 2, 9, Phaser.Math.DegToRad(28), Phaser.Math.DegToRad(92), false);
+                    logoFallback.fillPath();
+                    logoFallback.slice(-6, 7, 8, Phaser.Math.DegToRad(240), Phaser.Math.DegToRad(304), false);
+                    logoFallback.fillPath();
+                    logoFallback.slice(6, 7, 8, Phaser.Math.DegToRad(236), Phaser.Math.DegToRad(300), false);
+                    logoFallback.fillPath();
+                    logoFallback.y = 2;
+                    container._nuclearLogoFallback = logoFallback;
+                }
+
+                container.add([
+                    shell,
+                    band,
+                    logoGlow,
+                    logoPlate,
+                    ...(logoSvg ? [logoSvg] : (logoFallback ? [logoFallback] : [])),
+                    ...rivets,
+                    shine,
+                    crackGlowA,
+                    crackGlowB,
+                    crackGlowC,
+                    coreGlow,
+                    pulseGlow,
+                    sparkAnchor
+                ]);
+                container._nuclearCracks = [crackGlowA, crackGlowB, crackGlowC];
+                container._nuclearCoreGlow = coreGlow;
+                container._nuclearPulseGlow = pulseGlow;
+                container._nuclearSparkAnchor = sparkAnchor;
+                container._nuclearLogoGlow = logoGlow;
+                this.setNuclearEggVisualState(container, eggType.nuclearHits || 0, disableAmbientFx);
+            } else {
+                container.add([shell, band, ...(mega ? [reactorGlow, reactorOuter, reactorCore] : []), ...rivets, shine, crackA, crackB]);
+            }
             container._armorCrackA = crackA;
             container._armorCrackB = crackB;
             container.setScale(eggScale);
@@ -856,12 +946,76 @@ window.EggGameModules.entitiesFx = {
         }
     },
 
+    setNuclearEggVisualState(eggContainer, hits, disableAmbientFx = false) {
+        if (!eggContainer || !Array.isArray(eggContainer._nuclearCracks)) return;
+        const safeHits = Math.max(0, hits || 0);
+        eggContainer._nuclearCracks.forEach((crack, index) => crack.setVisible(index < safeHits));
+        if (eggContainer._nuclearCoreGlow) {
+            eggContainer._nuclearCoreGlow.setVisible(safeHits >= 2);
+            eggContainer._nuclearCoreGlow.setAlpha(safeHits >= 2 ? 0.26 : 0.12);
+        }
+        if (eggContainer._nuclearPulseGlow) {
+            eggContainer._nuclearPulseGlow.setVisible(safeHits >= 2);
+            eggContainer._nuclearPulseGlow.setAlpha(safeHits >= 2 ? 0.18 : 0.08);
+        }
+        if (eggContainer._nuclearLogoGlow) {
+            eggContainer._nuclearLogoGlow.setAlpha(safeHits >= 1 ? 0.22 : 0.14);
+        }
+        if (eggContainer._nuclearSparkAnchor) {
+            eggContainer._nuclearSparkAnchor.removeAll(true);
+            if (safeHits >= 3) {
+                const sparkOffsets = [[-16, -4], [10, -10], [14, 12], [-8, 18]];
+                sparkOffsets.forEach(([x, y]) => {
+                    const spark = this.add.star(x, y, 4, 1.8, 5.8, 0x8dff6a, 0.94);
+                    eggContainer._nuclearSparkAnchor.add(spark);
+                    if (!disableAmbientFx) {
+                        this.tweens.add({
+                            targets: spark,
+                            alpha: 0.1,
+                            scaleX: 2.3,
+                            scaleY: 2.3,
+                            angle: Phaser.Math.Between(-30, 30),
+                            duration: 120 + Phaser.Math.Between(0, 120),
+                            repeat: -1,
+                            yoyo: true,
+                            delay: Phaser.Math.Between(0, 140)
+                        });
+                    }
+                });
+            }
+        }
+        if (!disableAmbientFx && safeHits >= 2 && eggContainer.scene) {
+            this.tweens.add({
+                targets: [eggContainer._nuclearCoreGlow, eggContainer._nuclearPulseGlow].filter(Boolean),
+                alpha: safeHits >= 3 ? 0.32 : 0.2,
+                scaleX: safeHits >= 3 ? 1.2 : 1.12,
+                scaleY: safeHits >= 3 ? 1.16 : 1.1,
+                duration: safeHits >= 3 ? 220 : 320,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        }
+    },
+
     setMachineBrokenVisual(def, broken, secondsLeft = 0) {
         if (!def || !def.labelText || !def.timerText || !def.hammer) return;
+        if (def.permaDestroyed) {
+            def.labelText.setVisible(false);
+            if (Array.isArray(def.faceParts)) {
+                def.faceParts.forEach(part => part && part.setVisible && part.setVisible(false));
+            }
+            if (def.destroyedFx) def.destroyedFx.setVisible(true);
+            def.timerText.setVisible(false);
+            def.hammer.setVisible(false);
+            def.container.setAlpha(0.94);
+            return;
+        }
         def.labelText.setVisible(!broken && !!def.showBaseLabel);
         if (Array.isArray(def.faceParts)) {
             def.faceParts.forEach(part => part && part.setVisible && part.setVisible(!broken));
         }
+        if (def.destroyedFx) def.destroyedFx.setVisible(false);
         def.timerText.setVisible(broken);
         def.timerText.setText(broken ? `${secondsLeft.toFixed(1)}s` : "");
         def.hammer.setVisible(broken);
@@ -998,6 +1152,102 @@ window.EggGameModules.entitiesFx = {
             duration: 140,
             onComplete: () => flash.destroy()
         });
+    },
+
+    spawnNuclearHitFx(x, y, level = 1) {
+        const palette = [0x6dff62, 0xb7ff7e, 0xf4df55];
+        const flash = this.add.circle(x, y, 18 + level * 4, palette[Math.min(2, level - 1)] || 0x6dff62, 0.34).setDepth(5132);
+        const halo = this.add.ellipse(x, y, 64 + level * 16, 46 + level * 12, 0x6dff62, 0.12).setDepth(5131);
+        this.fxLayer.add([halo, flash]);
+        this.tweens.add({
+            targets: halo,
+            scaleX: 1.55,
+            scaleY: 1.42,
+            alpha: 0,
+            duration: 260,
+            onComplete: () => halo.destroy()
+        });
+        this.tweens.add({
+            targets: flash,
+            scaleX: 2.8,
+            scaleY: 2.8,
+            alpha: 0,
+            duration: 220,
+            onComplete: () => flash.destroy()
+        });
+        this.spawnRadialSparkBurst(x, y, {
+            count: 5 + level * 2,
+            color: 0x73ff66,
+            colorAlt: 0xf2de55,
+            minSpeed: 18,
+            maxSpeed: 48 + level * 10,
+            depth: 5133
+        });
+    },
+
+    spawnNuclearExplosionFx(x, y) {
+        const blinding = this.add.circle(x, y, 40, 0xfef4c5, 0.72).setDepth(9235);
+        const plasma = this.add.circle(x, y, 36, 0x7eff57, 0.42).setDepth(9236);
+        const blast = this.add.ellipse(x, y, 120, 82, 0xffd05e, 0.28).setDepth(9234);
+        const fallout = this.add.ellipse(x, y, 180, 128, 0x76ff66, 0.12).setDepth(9233);
+        this.popupLayer.add([fallout, blast, blinding, plasma]);
+        [fallout, blast, blinding, plasma].forEach(node => {
+            this.tweens.add({
+                targets: node,
+                scaleX: node === fallout ? 2.2 : 1.9,
+                scaleY: node === fallout ? 2 : 1.8,
+                alpha: 0,
+                duration: node === fallout ? 620 : 420,
+                ease: "Cubic.Out",
+                onComplete: () => node.destroy()
+            });
+        });
+        for (let i = 0; i < 34; i++) {
+            const ember = this.add.circle(x, y, Phaser.Math.Between(4, 10), i % 3 === 0 ? 0xffd86b : 0x7aff6c, 0.95).setDepth(9237);
+            this.popupLayer.add(ember);
+            this.tweens.add({
+                targets: ember,
+                x: x + Phaser.Math.Between(-180, 180),
+                y: y + Phaser.Math.Between(-140, 140),
+                alpha: 0,
+                scaleX: 0.3,
+                scaleY: 0.3,
+                duration: 420 + Phaser.Math.Between(0, 240),
+                onComplete: () => ember.destroy()
+            });
+        }
+    },
+
+    spawnRocketTrailSmoke(x, y, depth = 9226) {
+        const puff = this.add.circle(x, y, Phaser.Math.Between(5, 10), 0xd5d8dd, 0.34).setDepth(depth);
+        this.popupLayer.add(puff);
+        this.tweens.add({
+            targets: puff,
+            y: y - Phaser.Math.Between(10, 24),
+            scaleX: Phaser.Math.FloatBetween(1.6, 2.4),
+            scaleY: Phaser.Math.FloatBetween(1.6, 2.4),
+            alpha: 0,
+            duration: 320 + Phaser.Math.Between(0, 180),
+            onComplete: () => puff.destroy()
+        });
+    },
+
+    setMachinePermanentDestroyedVisual(def, destroyed) {
+        if (!def || !def.container) return;
+        def.permaDestroyed = !!destroyed;
+        this.setMachineBrokenVisual(def, false, 0);
+        if (!def.destroyedFx) return;
+        if (destroyed) {
+            def.destroyedFx.setVisible(true);
+            const smoky = def.destroyedFx.list.filter(Boolean);
+            this.tweens.add({
+                targets: smoky,
+                alpha: 0.86,
+                duration: 240,
+                yoyo: true,
+                repeat: -1
+            });
+        }
     },
 
     spawnMysteryBonusText(text, color = "#fff1b0", accent = 0xffd46b) {

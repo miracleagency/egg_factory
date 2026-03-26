@@ -1268,7 +1268,7 @@ window.EggGameModules.ui = {
         this.infoOverlay.on("pointerdown", () => this.toggleEggInfo(false));
 
         this.infoRows = [];
-        const infoOrder = ["white", "armored", "bomb", "mystery", "gold", "diamond"];
+        const infoOrder = ["white", "armored", "nuclear", "bomb", "mystery", "gold", "diamond"];
         const orderedEggs = infoOrder
             .map(key => (this.eggTypes || []).find(egg => egg && egg.key === key))
             .filter(Boolean);
