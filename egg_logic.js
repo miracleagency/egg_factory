@@ -844,6 +844,11 @@ window.EggGameModules.logic = {
             def.cycleText.setVisible(false);
             return;
         }
+        if (!def.rocketCycleStarted) {
+            def.cycleText.setText("5.0s");
+            def.cycleText.setVisible(true);
+            return;
+        }
         const cycleMs = Math.max(100, def.fireIntervalMs || 5000);
         if (!def.nextRocketAt || def.nextRocketAt <= gameplayNow) {
             def.cycleText.setText("0.0s");
@@ -853,6 +858,36 @@ window.EggGameModules.logic = {
         const secondsLeft = Math.max(0, (def.nextRocketAt - gameplayNow) / 1000);
         def.cycleText.setText(`${secondsLeft.toFixed(1)}s`);
         def.cycleText.setVisible(true);
+    },
+
+    spawnRocketEggBurst(x, y, options = {}) {
+        const mainColor = options.mainColor || 0xffb46a;
+        const altColor = options.altColor || 0xff6a45;
+        const sparkCount = options.count || 18;
+        this.spawnImpactFx(x, y, mainColor);
+        this.spawnRadialSparkBurst(x, y, {
+            count: sparkCount,
+            color: mainColor,
+            colorAlt: altColor,
+            minSpeed: options.minSpeed || 40,
+            maxSpeed: options.maxSpeed || 140,
+            depth: options.depth || 5104
+        });
+        const flash = this.add.circle(x, y, options.flashRadius || 16, mainColor, 0.30).setDepth(5102);
+        const ring = this.add.ellipse(x, y, options.ringWidth || 60, options.ringHeight || 28, altColor, 0.24).setDepth(5103);
+        this.fxLayer.add([flash, ring]);
+        this.tweens.add({
+            targets: [flash, ring],
+            scaleX: options.scaleX || 2.1,
+            scaleY: options.scaleY || 1.7,
+            alpha: 0,
+            duration: options.duration || 220,
+            ease: "Cubic.Out",
+            onComplete: () => {
+                flash.destroy();
+                ring.destroy();
+            }
+        });
     },
 
     fireRocketMachine(def, stage) {
@@ -2036,6 +2071,17 @@ window.EggGameModules.logic = {
         if (def.type === "rocket") {
             this.updateRocketMachineCycleText(def);
             if (def.brokenUntil && gameplayNow < def.brokenUntil) return;
+            const hasAnyEggOnField = this.getAllActiveItems().length > 0;
+            if (!def.rocketCycleStarted) {
+                if (!hasAnyEggOnField) {
+                    this.updateRocketMachineCycleText(def);
+                    return;
+                }
+                def.rocketCycleStarted = true;
+                def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 5000);
+                this.updateRocketMachineCycleText(def);
+                return;
+            }
             if (!def.nextRocketAt) def.nextRocketAt = gameplayNow + (def.fireIntervalMs || 5000);
             if (gameplayNow + 0.0001 < def.nextRocketAt) return;
             const fired = this.fireRocketMachine(def, stage);
@@ -2355,6 +2401,12 @@ window.EggGameModules.logic = {
                 : 0;
 
             if (this.damageNuclearEggs(item, "rocket", { removeVulnerableCompanions: true })) {
+                this.spawnRocketEggBurst(item.container.x, item.container.y - 8, {
+                    mainColor: 0xdfff9f,
+                    altColor: 0x62ff58,
+                    count: 20,
+                    maxSpeed: 132
+                });
                 this.pulseItem(item);
                 return;
             }
@@ -2362,30 +2414,18 @@ window.EggGameModules.logic = {
             if (mysteryEggs.length > 0) {
                 const burstX = item.container.x;
                 const burstY = item.container.y - 8;
-                this.spawnImpactFx(burstX, burstY, 0xc98cff);
                 this.spawnBombExplosionFx(burstX, burstY);
-                this.spawnRadialSparkBurst(burstX, burstY, {
+                this.spawnRocketEggBurst(burstX, burstY, {
+                    mainColor: 0xfff0a8,
+                    altColor: 0xc98cff,
                     count: 22,
-                    color: 0xfff0a8,
-                    colorAlt: 0xc98cff,
-                    minSpeed: 44,
                     maxSpeed: 148,
-                    depth: 5104
-                });
-                const mysteryRing = this.add.ellipse(burstX, burstY, 56, 28, 0xd98fff, 0.34).setDepth(5102);
-                const mysteryCore = this.add.circle(burstX, burstY, 13, 0xfff6c4, 0.82).setDepth(5103);
-                this.fxLayer.add([mysteryRing, mysteryCore]);
-                this.tweens.add({
-                    targets: [mysteryRing, mysteryCore],
+                    flashRadius: 18,
+                    ringWidth: 66,
+                    ringHeight: 32,
                     scaleX: 2.4,
                     scaleY: 2.0,
-                    alpha: 0,
-                    duration: 240,
-                    ease: "Cubic.Out",
-                    onComplete: () => {
-                        mysteryRing.destroy();
-                        mysteryCore.destroy();
-                    }
+                    duration: 240
                 });
                 this.triggerMysteryCrushBonus(item);
                 item.destroyed = true;
@@ -2412,6 +2452,13 @@ window.EggGameModules.logic = {
                     this.addLose(item.spentCost || 0);
                     item.settled = true;
                 }
+                this.spawnRocketEggBurst(item.container.x, item.container.y - 8, {
+                    mainColor: 0xffdf8c,
+                    altColor: 0xff6c43,
+                    count: 24,
+                    maxSpeed: 156,
+                    flashRadius: 20
+                });
                 this.spawnBombExplosionFx(item.container.x, item.container.y - 8);
                 this.tweens.add({
                     targets: item.container,
@@ -2426,6 +2473,15 @@ window.EggGameModules.logic = {
 
             if (armoredEggs.length > 0 && vulnerableEggs.length === 0 && maxArmorDamage < 1) {
                 if (damageArmoredEggs(false, { preserveWet: true })) {
+                    this.spawnRocketEggBurst(item.container.x, item.container.y - 8, {
+                        mainColor: 0xe3edf8,
+                        altColor: 0xffbf75,
+                        count: 14,
+                        maxSpeed: 108,
+                        flashRadius: 14,
+                        ringWidth: 52,
+                        ringHeight: 24
+                    });
                     this.pulseItem(item);
                     return;
                 }
@@ -2433,6 +2489,15 @@ window.EggGameModules.logic = {
 
             if (armoredEggs.length > 0 && vulnerableEggs.length > 0 && maxArmorDamage < 1) {
                 if (damageArmoredEggs(true, { preserveWet: true })) {
+                    this.spawnRocketEggBurst(item.container.x, item.container.y - 8, {
+                        mainColor: 0xe3edf8,
+                        altColor: 0xffbf75,
+                        count: 14,
+                        maxSpeed: 108,
+                        flashRadius: 14,
+                        ringWidth: 52,
+                        ringHeight: 24
+                    });
                     this.pulseItem(item);
                     return;
                 }
@@ -2444,6 +2509,13 @@ window.EggGameModules.logic = {
                 this.addLose(item.spentCost || 0);
                 item.settled = true;
             }
+            this.spawnRocketEggBurst(item.container.x, item.container.y - 8, {
+                mainColor: 0xffd692,
+                altColor: 0xff7c47,
+                count: 18,
+                maxSpeed: 136,
+                flashRadius: 16
+            });
             if ((item.eggs || []).length > 0) {
                 this.spawnEggSplatFx(item.container.x, item.container.y - 4, item.container.y + 6);
             }
@@ -2720,7 +2792,9 @@ window.EggGameModules.logic = {
                 def.hammer.y = -42;
                 this.setMachineBrokenVisual(def, false, 0);
                 if (def.type === "rocket") {
-                    def.nextRocketAt = gameplayNow;
+                    const hasAnyEggOnField = this.getAllActiveItems().length > 0;
+                    def.rocketCycleStarted = hasAnyEggOnField;
+                    def.nextRocketAt = hasAnyEggOnField ? gameplayNow : 0;
                     this.updateRocketMachineCycleText(def);
                 }
                 continue;
