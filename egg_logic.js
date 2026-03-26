@@ -198,6 +198,8 @@ window.EggGameModules.logic = {
         this.roundInitialNuclearCount = hidden.filter(egg => egg && egg.key === "nuclear").length;
         this.roundInitialNuclearPending = this.roundHasNuclearEgg;
         this.roundForcedNuclearRevealAt = this.roundHasNuclearEgg ? Phaser.Math.Between(0, 4) : -1;
+        this.roundQueuedNuclearRevealCount = 0;
+        this.roundQueuedNuclearRevealUntil = -1;
         this.spawnedEggBoxCount = 0;
         this.line1EntryCheckCount = 0;
         this.line1EggGapRemaining = 0;
@@ -228,6 +230,7 @@ window.EggGameModules.logic = {
 
     chooseEggType() {
         if (Array.isArray(this.roundEggPool) && this.roundEggPool.length > 0) {
+            const currentSpawned = this.eggsSpawnedThisRound || 0;
             if (this.roundInitialNuclearPending && (this.eggsSpawnedThisRound || 0) >= (this.roundForcedNuclearRevealAt || 0) && (this.eggsSpawnedThisRound || 0) < 5) {
                 const forcedIndex = this.roundEggPool.findIndex(egg => egg && egg.key === "nuclear");
                 if (forcedIndex >= 0) {
@@ -236,6 +239,21 @@ window.EggGameModules.logic = {
                     return this.createNuclearEggData(forcedEgg);
                 }
                 this.roundInitialNuclearPending = false;
+            }
+            const queuedCount = this.roundQueuedNuclearRevealCount || 0;
+            const queuedUntil = typeof this.roundQueuedNuclearRevealUntil === "number" ? this.roundQueuedNuclearRevealUntil : -1;
+            if (queuedCount > 0 && currentSpawned <= queuedUntil) {
+                const remainingWindow = Math.max(1, queuedUntil - currentSpawned + 1);
+                const mustRevealQueued = remainingWindow <= queuedCount || Math.random() < (queuedCount / remainingWindow);
+                if (mustRevealQueued) {
+                    const queuedIndex = this.roundEggPool.findIndex(egg => egg && egg.key === "nuclear");
+                    if (queuedIndex >= 0) {
+                        const [queuedEgg] = this.roundEggPool.splice(queuedIndex, 1);
+                        this.roundQueuedNuclearRevealCount = Math.max(0, queuedCount - 1);
+                        return this.createNuclearEggData(queuedEgg);
+                    }
+                    this.roundQueuedNuclearRevealCount = 0;
+                }
             }
             const index = Phaser.Math.Between(0, this.roundEggPool.length - 1);
             const [egg] = this.roundEggPool.splice(index, 1);
@@ -1697,6 +1715,10 @@ window.EggGameModules.logic = {
                                     onComplete: () => {
                                         visual.destroy();
                                         this.roundEggPool.push(this.cloneEggTypeData(eggData));
+                                        if (eggData && eggData.key === "nuclear") {
+                                            this.roundQueuedNuclearRevealCount = (this.roundQueuedNuclearRevealCount || 0) + 1;
+                                            this.roundQueuedNuclearRevealUntil = Math.max(this.roundQueuedNuclearRevealUntil || -1, (this.eggsSpawnedThisRound || 0) + 4);
+                                        }
                                         this.roundEggLimit += 1;
                                         this.remainingEggCount += 1;
                                         this.updatePillowButtonLabels();

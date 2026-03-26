@@ -1622,7 +1622,12 @@ window.EggGameModules.entitiesFx = {
             this.ensureEggBoxWetFx(item);
             return;
         }
-        if (item.wetFx && item.wetFx.length) return;
+        if (item.wetFx && item.wetFx.length) {
+            if (item.container && item.container._wetOverlay && typeof item.container.bringToTop === "function") {
+                item.container.bringToTop(item.container._wetOverlay);
+            }
+            return;
+        }
         item.wetFx = [];
         const wetParent = item.container && item.container._wetOverlay
             ? item.container._wetOverlay
