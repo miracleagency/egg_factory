@@ -55,6 +55,9 @@ window.EggGameModules.entitiesFx = {
         } else if (def.type === "shield") {
             fill = 0x4f5967;
             stroke = 0xf1f6fb;
+        } else if (def.type === "rocket") {
+            fill = 0x586171;
+            stroke = 0xc3d0df;
         } else if (def.type === "fire") {
             fill = 0xd3412c;
             stroke = 0xff9f8f;
@@ -85,12 +88,18 @@ window.EggGameModules.entitiesFx = {
             color: "#ffe9a3",
             fontStyle: "bold"
         }).setOrigin(0.5).setVisible(false);
+        const cycleText = this.add.text(0, 23, "", {
+            fontFamily: "Arial",
+            fontSize: "16px",
+            color: "#dce6f1",
+            fontStyle: "bold"
+        }).setOrigin(0.5).setVisible(false);
         const hammer = this.add.container(0, -42).setVisible(false);
         const hammerHandle = this.add.rectangle(0, -4, 8, 32, 0x8f6748, 1).setStrokeStyle(2, 0xe2c6aa);
         const hammerHead = this.add.rectangle(0, -18, 24, 12, 0xc8d0db, 1).setStrokeStyle(2, 0xffffff);
         hammer.add([hammerHandle, hammerHead]);
 
-        const parts = [body, lip, label, timerText, hammer];
+        const parts = [body, lip, label, cycleText, timerText, hammer];
         const faceParts = [];
         if (def.type === "water") {
             const iconDisk = this.add.circle(0, -2, 32, 0x0a2240, 1).setStrokeStyle(4, 0x6edcff, 0.95);
@@ -160,6 +169,49 @@ window.EggGameModules.entitiesFx = {
                 flameInner.fillPoints(flameInnerPts, true, true);
                 faceParts.push(emberGlow, iconDisk, flameOuter, flameInner);
             }
+        } else if (def.type === "rocket") {
+            const hull = this.add.roundRectangle
+                ? this.add.roundRectangle(0, -2, 98, 54, 14, 0x293240, 0.98).setStrokeStyle(3, 0xd4dfec, 0.78)
+                : this.add.rectangle(0, -2, 98, 54, 0x293240, 0.98).setStrokeStyle(3, 0xd4dfec, 0.78);
+            const glow = this.add.ellipse(0, -2, 92, 48, 0xffc671, 0.12);
+            const siloL = this.add.rectangle(-36, 4, 18, 46, 0x444f61, 0.96).setStrokeStyle(2, 0x9ba8b8, 0.62);
+            const siloR = this.add.rectangle(36, 4, 18, 46, 0x444f61, 0.96).setStrokeStyle(2, 0x9ba8b8, 0.62);
+            const rocketLBody = this.add.rectangle(-36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
+            const rocketRBody = this.add.rectangle(36, 0, 7, 26, 0xd6dde8, 1).setStrokeStyle(1.2, 0x606a79, 0.72);
+            const rocketLTip = this.add.triangle(-36, -16, 0, -9, -6, 3, 6, 3, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketRTip = this.add.triangle(36, -16, 0, -9, -6, 3, 6, 3, 0xff6d4d, 0.98).setStrokeStyle(1, 0xffe2be, 0.72);
+            const rocketLFinA = this.add.triangle(-40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
+            const rocketLFinB = this.add.triangle(-32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
+            const rocketRFinA = this.add.triangle(32, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(-90);
+            const rocketRFinB = this.add.triangle(40, 9, -5, 2, 0, -8, 5, 2, 0x8c98a9, 0.92).setAngle(90);
+            const iconDisk = this.add.circle(0, -2, 22, 0x11171f, 1).setStrokeStyle(3, 0xffbb60, 0.82);
+            const iconGlow = this.add.ellipse(0, -2, 50, 34, 0xffa84a, 0.14);
+            const iconBody = this.add.rectangle(0, 2, 10, 26, 0xdfe6ef, 1).setStrokeStyle(1.5, 0x6f7986, 0.76);
+            const iconTip = this.add.triangle(0, -13, 0, -10, -8, 4, 8, 4, 0xff6743, 1).setStrokeStyle(1.1, 0xffe0b3, 0.78);
+            const iconFinL = this.add.triangle(-7, 8, -5, 0, 0, -8, 5, 0, 0x8c98a9, 0.96);
+            const iconFinR = this.add.triangle(7, 8, -5, 0, 0, -8, 5, 0, 0x8c98a9, 0.96);
+            const iconFlame = this.add.ellipse(0, 16, 8, 12, 0xffd27a, 0.88);
+            faceParts.push(
+                glow,
+                hull,
+                siloL,
+                siloR,
+                rocketLBody,
+                rocketRBody,
+                rocketLTip,
+                rocketRTip,
+                rocketLFinA,
+                rocketLFinB,
+                rocketRFinA,
+                rocketRFinB,
+                iconGlow,
+                iconDisk,
+                iconBody,
+                iconTip,
+                iconFinL,
+                iconFinR,
+                iconFlame
+            );
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle
                 ? this.add.roundRectangle(0, 0, 94, def.value === 50 ? 58 : 52, 12, 0x9f7720, 0.96).setStrokeStyle(3, 0xffef9f, 0.9)
@@ -412,14 +464,16 @@ window.EggGameModules.entitiesFx = {
         def.container = container;
         def.labelText = label;
         def.faceParts = faceParts;
+        def.cycleText = cycleText;
         def.timerText = timerText;
         def.hammer = hammer;
         def.baseLabel = def.label;
         def.nextShot = 0;
+        def.showCycleTimer = def.type === "rocket";
         def.shotDesync = Phaser.Math.FloatBetween(0.04, 0.22);
         def.fireChaosJitter = def.rapid ? Phaser.Math.FloatBetween(0.62, 0.96) : Phaser.Math.FloatBetween(0.8, 1.28);
         def.fireSkipChance = def.rapid ? Phaser.Math.FloatBetween(0.04, 0.12) : Phaser.Math.FloatBetween(0.16, 0.30);
-        def.showBaseLabel = !(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.rarity === "gold");
+        def.showBaseLabel = !(def.type === "water" || def.type === "fire" || def.type === "crush" || def.type === "shield" || def.type === "mul" || def.type === "rocket" || def.rarity === "gold");
         label.setVisible(def.showBaseLabel);
         def.destroyedFx = destroyedFx;
 
@@ -1110,6 +1164,7 @@ window.EggGameModules.entitiesFx = {
                 def.faceParts.forEach(part => part && part.setVisible && part.setVisible(false));
             }
             if (def.destroyedFx) def.destroyedFx.setVisible(true);
+            if (def.cycleText) def.cycleText.setVisible(false);
             def.timerText.setVisible(false);
             def.hammer.setVisible(false);
             def.container.setAlpha(0.94);
@@ -1120,6 +1175,7 @@ window.EggGameModules.entitiesFx = {
             def.faceParts.forEach(part => part && part.setVisible && part.setVisible(!broken));
         }
         if (def.destroyedFx) def.destroyedFx.setVisible(false);
+        if (def.cycleText) def.cycleText.setVisible(!broken && !!def.showCycleTimer);
         def.timerText.setVisible(broken);
         def.timerText.setText(broken ? `${secondsLeft.toFixed(1)}s` : "");
         def.hammer.setVisible(broken);
@@ -1876,6 +1932,31 @@ window.EggGameModules.entitiesFx = {
             return;
         }
 
+        if (def.type === "rocket") {
+            const smoke = this.add.circle(x + Phaser.Math.Between(-6, 6), y + Phaser.Math.Between(-6, 6), Phaser.Math.Between(4, 8), 0xd6dde8, 0.34).setDepth(5001);
+            const ember = this.add.circle(x + Phaser.Math.Between(-4, 4), y + Phaser.Math.Between(-4, 4), Phaser.Math.Between(1, 3), 0xffbf63, 0.84).setDepth(5002);
+            this.fxLayer.add([smoke, ember]);
+            this.tweens.add({
+                targets: smoke,
+                x: smoke.x + Phaser.Math.Between(-16, 16),
+                y: smoke.y + Phaser.Math.Between(8, 20),
+                alpha: 0,
+                scaleX: 1.7,
+                scaleY: 1.7,
+                duration: 170,
+                onComplete: () => smoke.destroy()
+            });
+            this.tweens.add({
+                targets: ember,
+                x: ember.x + Phaser.Math.Between(-10, 10),
+                y: ember.y + Phaser.Math.Between(-8, 10),
+                alpha: 0,
+                duration: 120,
+                onComplete: () => ember.destroy()
+            });
+            return;
+        }
+
         if (def.rarity === "gold") {
             const star = this.add.star(x, y, 4, 1.4, 4.6, 0xfff4bd, 0.88).setDepth(5001);
             this.fxLayer.add(star);
@@ -1965,6 +2046,33 @@ window.EggGameModules.entitiesFx = {
             return;
         }
 
+        if (def && def.type === "rocket") {
+            const flash = this.add.circle(x, y, 20, 0xff9152, 0.42).setDepth(5100);
+            const core = this.add.circle(x, y, 9, 0xfff0ba, 0.84).setDepth(5101);
+            const smoke = this.add.ellipse(x, y, 46, 24, 0xd8e0ea, 0.20).setDepth(5099);
+            this.fxLayer.add([smoke, flash, core]);
+            this.tweens.add({
+                targets: [smoke, flash, core],
+                scaleX: 1.9,
+                scaleY: 1.3,
+                alpha: 0,
+                duration: 200,
+                onComplete: () => {
+                    smoke.destroy();
+                    flash.destroy();
+                    core.destroy();
+                }
+            });
+            this.spawnRadialSparkBurst(x, y, {
+                count: 14,
+                color: 0xffe0a3,
+                colorAlt: 0xff7d45,
+                minSpeed: 38,
+                maxSpeed: 118
+            });
+            return;
+        }
+
         if (def && def.rarity === "gold") {
             const flash = this.add.circle(x, y, 22, 0xffd85b, 0.34).setDepth(5100);
             const star = this.add.star(x, y, 7, 6, 16, 0xfff4bd, 0.74).setDepth(5101);
@@ -2043,6 +2151,29 @@ window.EggGameModules.entitiesFx = {
                 scaleY: 1.16,
                 y: "-=8",
                 duration: 110,
+                ease: "Sine.InOut",
+                yoyo: true,
+                repeat: -1
+            });
+        } else if (def.type === "rocket") {
+            const smoke = this.add.ellipse(0, 16, 22, 34, 0xd9e2eb, 0.18);
+            const exhaust = this.add.ellipse(0, 14, 12, 20, 0xffb45a, 0.84);
+            const exhaustCore = this.add.ellipse(0, 16, 7, 11, 0xfff0bd, 0.78);
+            const body = this.add.rectangle(0, 0, 14, 40, 0xd7dee8, 1).setStrokeStyle(2, 0x6b7483, 0.72);
+            const stripe = this.add.rectangle(0, 3, 4, 28, 0xd84e38, 0.96);
+            const nose = this.add.triangle(0, -24, 0, -12, -10, 4, 10, 4, 0xff6a46, 1).setStrokeStyle(1.4, 0xffdfb2, 0.76);
+            const finL = this.add.triangle(-10, 10, -6, 0, 0, -10, 6, 0, 0x7b8697, 0.94);
+            const finR = this.add.triangle(10, 10, -6, 0, 0, -10, 6, 0, 0x7b8697, 0.94);
+            const cap = this.add.circle(0, -7, 5, 0xb7c4d4, 0.84);
+            projectile.add([smoke, exhaust, exhaustCore, body, stripe, nose, finL, finR, cap]);
+            primary = body;
+            this.tweens.add({
+                targets: [smoke, exhaust, exhaustCore],
+                scaleX: 0.72,
+                scaleY: 1.18,
+                y: "+=6",
+                alpha: 0.58,
+                duration: 90,
                 ease: "Sine.InOut",
                 yoyo: true,
                 repeat: -1
