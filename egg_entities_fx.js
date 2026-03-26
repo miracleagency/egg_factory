@@ -186,11 +186,10 @@ window.EggGameModules.entitiesFx = {
             const rocketRFinB = this.add.triangle(40, -9, -5, -2, 0, 8, 5, -2, 0x8c98a9, 0.92).setAngle(90);
             const iconDisk = this.add.circle(0, -2, 22, 0x11171f, 1).setStrokeStyle(3, 0xffbb60, 0.82);
             const iconGlow = this.add.ellipse(0, -2, 50, 34, 0xffa84a, 0.14);
-            const iconBody = this.add.rectangle(0, -1, 7, 18, 0xdfe6ef, 1).setStrokeStyle(1.1, 0x6f7986, 0.76);
-            const iconTip = this.add.triangle(0, -12, -5, 3, 5, 3, 0, -7, 0xff6743, 1).setStrokeStyle(0.9, 0xffe0b3, 0.78);
-            const iconFinL = this.add.triangle(-5, 5, -3, -1, 0, 5, 3, -1, 0x8c98a9, 0.96);
-            const iconFinR = this.add.triangle(5, 5, -3, -1, 0, 5, 3, -1, 0x8c98a9, 0.96);
-            const iconFlame = this.add.ellipse(0, 9, 5, 7, 0xffd27a, 0.88);
+            const rocketSvgOuter = this.createSvgMachineIcon("egg_icon_rocket_svg", 0xffd24a, 32);
+            const rocketSvgInner = this.createSvgMachineIcon("egg_icon_rocket_svg", 0xff4d39, 24);
+            if (rocketSvgOuter) rocketSvgOuter.y = -2;
+            if (rocketSvgInner) rocketSvgInner.y = -2;
             faceParts.push(
                 glow,
                 hull,
@@ -206,11 +205,8 @@ window.EggGameModules.entitiesFx = {
                 rocketRFinB,
                 iconGlow,
                 iconDisk,
-                iconBody,
-                iconTip,
-                iconFinL,
-                iconFinR,
-                iconFlame
+                ...(rocketSvgOuter ? [rocketSvgOuter] : []),
+                ...(rocketSvgInner ? [rocketSvgInner] : [])
             );
         } else if (def.rarity === "gold") {
             const frame = this.add.roundRectangle

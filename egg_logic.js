@@ -446,7 +446,7 @@ window.EggGameModules.logic = {
         if (!pillow || pillow.eggsBox) return false;
         const visual = options.visual || this.createEggVisual(eggType, false).container;
         const eggData = { ...eggType };
-        if (eggData.bomb) eggData.bombLit = item.wet ? false : (options.bombLit ?? false);
+        if (eggData.bomb) eggData.bombLit = pillow.wet ? false : (options.bombLit ?? false);
         if (eggData.armored) eggData.armorDamage = eggData.armorDamage || 0;
         pillow.eggs.push(eggData);
         pillow.eggMultSum += eggData.mult;
@@ -467,7 +467,7 @@ window.EggGameModules.logic = {
         visual.y = -26;
         visual._eggTypeData = eggData;
         if (eggData.bomb) this.setBombVisualState(visual, eggData.bombLit !== false);
-        if (item.wet) this.enforceWetBombState(pillow);
+        if (pillow.wet) this.enforceWetBombState(pillow);
         this.updatePillowValueText(pillow);
         return true;
     },
