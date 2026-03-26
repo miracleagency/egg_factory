@@ -964,7 +964,8 @@ window.EggGameModules.logic = {
         this.activeRocketProjectiles.push({
             kind: "machine_rocket",
             container: rocket,
-            flame,
+            flame: exhaust,
+            flameCore: exhaustCore,
             target,
             def,
             startX,
@@ -1011,6 +1012,10 @@ window.EggGameModules.logic = {
             if (rocket.flame) {
                 rocket.flame.scaleX = 0.9 + Math.random() * 0.35;
                 rocket.flame.scaleY = 0.8 + Math.random() * 0.3;
+            }
+            if (rocket.flameCore) {
+                rocket.flameCore.scaleX = 0.88 + Math.random() * 0.18;
+                rocket.flameCore.scaleY = 0.82 + Math.random() * 0.14;
             }
             rocket.smokeTick = (rocket.smokeTick || 0) + 1;
             if (!this.gameplayPaused && rocket.smokeTick % 2 === 0) {
