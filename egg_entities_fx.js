@@ -18,7 +18,7 @@ window.EggGameModules.entitiesFx = {
         return icon;
     },
 
-    createNuclearSymbolGraphic(size = 24) {
+    createNuclearSymbolGraphic(size = 30) {
         const g = this.add.graphics();
         const scale = size / 24;
         g.fillStyle(0xfcbb29, 1);
@@ -311,6 +311,9 @@ window.EggGameModules.entitiesFx = {
         const wreckPanel = this.add.rectangle(-2, 0, 96, 48, 0x312722, 0.92).setStrokeStyle(2, 0x59463c, 0.74);
         const wreckPlateL = this.add.rectangle(-40, 18, 26, 12, 0x4c4646, 0.88).setAngle(-22).setStrokeStyle(1.6, 0x746868, 0.6);
         const wreckPlateR = this.add.rectangle(38, 14, 30, 12, 0x4a4343, 0.86).setAngle(18).setStrokeStyle(1.6, 0x746868, 0.56);
+        const shardTopL = this.add.triangle(-34, -24, -8, 10, 6, -8, 10, 12, 0x575154, 0.92).setAngle(-24).setStrokeStyle(1.5, 0x7a6d74, 0.58);
+        const shardTopR = this.add.triangle(28, -22, -10, 10, 8, -10, 10, 12, 0x50494d, 0.9).setAngle(18).setStrokeStyle(1.5, 0x786b72, 0.54);
+        const shardBot = this.add.triangle(4, 28, -14, 0, 10, -6, 14, 8, 0x454045, 0.88).setAngle(8).setStrokeStyle(1.3, 0x6f656b, 0.46);
         const gearHub = this.add.circle(-16, 2, 11, 0x1d2025, 0.96).setStrokeStyle(2, 0x707884, 0.8);
         const gearTeeth = [-90, -45, 0, 45, 90, 135, 180, 225].map(angle => {
             const rad = Phaser.Math.DegToRad(angle);
@@ -318,6 +321,8 @@ window.EggGameModules.entitiesFx = {
         });
         const pistonA = this.add.rectangle(18, -2, 32, 9, 0x525963, 0.9).setAngle(-18).setStrokeStyle(1.4, 0x8c96a3, 0.6);
         const pistonB = this.add.rectangle(24, 14, 24, 8, 0x4b525c, 0.88).setAngle(26).setStrokeStyle(1.4, 0x8c96a3, 0.54);
+        const pipeA = this.add.rectangle(-2, -12, 14, 28, 0x434a54, 0.9).setAngle(24).setStrokeStyle(1.4, 0x808b97, 0.48);
+        const pipeB = this.add.rectangle(28, 4, 12, 22, 0x3c444d, 0.88).setAngle(-32).setStrokeStyle(1.3, 0x77828e, 0.44);
         const crackMain = this.add.graphics();
         crackMain.lineStyle(3, 0x120f0f, 0.98);
         crackMain.beginPath();
@@ -329,6 +334,12 @@ window.EggGameModules.entitiesFx = {
         crackMain.lineTo(10, -4);
         crackMain.lineTo(2, 10);
         crackMain.lineTo(16, 24);
+        crackMain.moveTo(-42, -6);
+        crackMain.lineTo(-24, 6);
+        crackMain.lineTo(-30, 20);
+        crackMain.moveTo(26, -12);
+        crackMain.lineTo(38, 2);
+        crackMain.lineTo(28, 18);
         crackMain.strokePath();
         const crackGlow = this.add.graphics();
         crackGlow.lineStyle(2, 0xff8d4a, 0.42);
@@ -341,13 +352,21 @@ window.EggGameModules.entitiesFx = {
         crackGlow.lineTo(10, -4);
         crackGlow.lineTo(2, 10);
         crackGlow.lineTo(16, 24);
+        crackGlow.moveTo(-42, -6);
+        crackGlow.lineTo(-24, 6);
+        crackGlow.lineTo(-30, 20);
+        crackGlow.moveTo(26, -12);
+        crackGlow.lineTo(38, 2);
+        crackGlow.lineTo(28, 18);
         crackGlow.strokePath();
         const emberCore = this.add.ellipse(-2, 10, 44, 22, 0xff6e39, 0.26);
         const emberHot = this.add.ellipse(2, 10, 22, 10, 0xffcf68, 0.32);
-        const flameA = this.add.ellipse(-22, -2, 16, 28, 0xff7d36, 0.94).setAngle(-10).setStrokeStyle(1.5, 0xffefb3, 0.7);
-        const flameB = this.add.ellipse(10, -4, 14, 26, 0xff9a40, 0.9).setAngle(12).setStrokeStyle(1.5, 0xffefb3, 0.64);
-        const flameCoreA = this.add.ellipse(-22, 0, 7, 15, 0xfff1ae, 0.8).setAngle(-10);
-        const flameCoreB = this.add.ellipse(10, -2, 6, 13, 0xffefad, 0.76).setAngle(12);
+        const flameA = this.add.ellipse(-24, -4, 18, 34, 0xff7d36, 0.96).setAngle(-12).setStrokeStyle(1.5, 0xffefb3, 0.7);
+        const flameB = this.add.ellipse(10, -8, 16, 30, 0xff9a40, 0.94).setAngle(12).setStrokeStyle(1.5, 0xffefb3, 0.64);
+        const flameC = this.add.ellipse(30, 2, 12, 24, 0xff6f2d, 0.88).setAngle(18).setStrokeStyle(1.2, 0xffdf9a, 0.56);
+        const flameCoreA = this.add.ellipse(-24, -2, 8, 18, 0xfff1ae, 0.84).setAngle(-10);
+        const flameCoreB = this.add.ellipse(10, -6, 7, 15, 0xffefad, 0.8).setAngle(12);
+        const flameCoreC = this.add.ellipse(30, 4, 5, 11, 0xffe79b, 0.72).setAngle(18);
         const smokeA = this.add.circle(22, -18, 14, 0x2b2b30, 0.40);
         const smokeB = this.add.circle(4, -30, 11, 0x38383d, 0.32);
         const smokeC = this.add.circle(30, -36, 8, 0x202026, 0.26);
@@ -357,22 +376,34 @@ window.EggGameModules.entitiesFx = {
             wreckPanel,
             wreckPlateL,
             wreckPlateR,
+            shardTopL,
+            shardTopR,
+            shardBot,
             gearHub,
             ...gearTeeth,
             pistonA,
             pistonB,
+            pipeA,
+            pipeB,
             crackGlow,
             crackMain,
             emberCore,
             emberHot,
             flameA,
             flameB,
+            flameC,
             flameCoreA,
             flameCoreB,
+            flameCoreC,
             smokeA,
             smokeB,
             smokeC
         ]);
+        destroyedFx._wreckGlow = wreckGlow;
+        destroyedFx._crackGlow = crackGlow;
+        destroyedFx._flames = [flameA, flameB, flameC, flameCoreA, flameCoreB, flameCoreC];
+        destroyedFx._smokes = [smokeA, smokeB, smokeC];
+        destroyedFx._embers = [emberCore, emberHot];
         container.add(parts);
         container.add(destroyedFx);
         container.setScale(1.12);
@@ -719,9 +750,9 @@ window.EggGameModules.entitiesFx = {
             if (nuclear) {
                 shell.setFillStyle(0x616973, 1).setStrokeStyle(3, 0xf6fbff, 1);
                 band.setFillStyle(0x232f37, 0.98).setStrokeStyle(2, 0xdce3ea, 0.95);
-                const logoPlate = this.add.circle(0, 2, 13, 0xf3cd2e, 1).setStrokeStyle(2, 0x1e1f20, 0.96);
-                const logoGlow = this.add.circle(0, 2, 20, 0x86ff5b, 0.14);
-                const logoSvg = this.createNuclearSymbolGraphic(24);
+                const logoPlate = this.add.circle(0, 2, 15, 0xf3cd2e, 1).setStrokeStyle(2, 0x1e1f20, 0.96);
+                const logoGlow = this.add.circle(0, 2, 24, 0x86ff5b, 0.14);
+                const logoSvg = this.createNuclearSymbolGraphic(30);
                 const crackGlowA = this.add.graphics();
                 const crackGlowB = this.add.graphics();
                 const crackGlowC = this.add.graphics();
@@ -1012,19 +1043,19 @@ window.EggGameModules.entitiesFx = {
         const safeHits = Math.max(0, hits || 0);
         eggContainer._nuclearCracks.forEach((crack, index) => crack.setVisible(index < safeHits));
         if (eggContainer._nuclearCoreGlow) {
-            eggContainer._nuclearCoreGlow.setVisible(safeHits >= 2);
-            eggContainer._nuclearCoreGlow.setAlpha(safeHits >= 2 ? 0.26 : 0.12);
+            eggContainer._nuclearCoreGlow.setVisible(safeHits >= 1);
+            eggContainer._nuclearCoreGlow.setAlpha(safeHits >= 2 ? 0.3 : (safeHits >= 1 ? 0.18 : 0.12));
         }
         if (eggContainer._nuclearPulseGlow) {
-            eggContainer._nuclearPulseGlow.setVisible(safeHits >= 2);
-            eggContainer._nuclearPulseGlow.setAlpha(safeHits >= 2 ? 0.18 : 0.08);
+            eggContainer._nuclearPulseGlow.setVisible(safeHits >= 1);
+            eggContainer._nuclearPulseGlow.setAlpha(safeHits >= 2 ? 0.22 : (safeHits >= 1 ? 0.12 : 0.08));
         }
         if (eggContainer._nuclearLogoGlow) {
             eggContainer._nuclearLogoGlow.setAlpha(safeHits >= 1 ? 0.22 : 0.14);
         }
         if (eggContainer._nuclearSparkAnchor) {
             eggContainer._nuclearSparkAnchor.removeAll(true);
-            if (safeHits >= 3) {
+            if (safeHits >= 2) {
                 const sparkOffsets = [[-28, -12], [26, -16], [30, 12], [-24, 22], [0, -30]];
                 sparkOffsets.forEach(([x, y]) => {
                     const spark = this.add.star(x, y, 4, 1.8, 5.8, 0x8dff6a, 0.94);
@@ -1045,13 +1076,13 @@ window.EggGameModules.entitiesFx = {
                 });
             }
         }
-        if (!disableAmbientFx && safeHits >= 2 && eggContainer.scene) {
+        if (!disableAmbientFx && safeHits >= 1 && eggContainer.scene) {
             this.tweens.add({
                 targets: [eggContainer._nuclearCoreGlow, eggContainer._nuclearPulseGlow].filter(Boolean),
-                alpha: safeHits >= 3 ? 0.32 : 0.2,
-                scaleX: safeHits >= 3 ? 1.2 : 1.12,
-                scaleY: safeHits >= 3 ? 1.16 : 1.1,
-                duration: safeHits >= 3 ? 220 : 320,
+                alpha: safeHits >= 2 ? 0.32 : 0.2,
+                scaleX: safeHits >= 2 ? 1.2 : 1.12,
+                scaleY: safeHits >= 2 ? 1.16 : 1.1,
+                duration: safeHits >= 2 ? 220 : 320,
                 ease: "Sine.InOut",
                 yoyo: true,
                 repeat: -1
@@ -1300,14 +1331,80 @@ window.EggGameModules.entitiesFx = {
         if (!def.destroyedFx) return;
         if (destroyed) {
             def.destroyedFx.setVisible(true);
-            const smoky = def.destroyedFx.list.filter(Boolean);
-            this.tweens.add({
-                targets: smoky,
-                alpha: 0.86,
-                duration: 240,
-                yoyo: true,
-                repeat: -1
-            });
+            if (!def.destroyedFx._ambientStarted) {
+                def.destroyedFx._ambientStarted = true;
+                if (Array.isArray(def.destroyedFx._flames)) {
+                    def.destroyedFx._flames.forEach((flame, index) => {
+                        this.tweens.add({
+                            targets: flame,
+                            scaleX: 0.82 + index * 0.04,
+                            scaleY: 1.16 + index * 0.06,
+                            alpha: Math.max(0.3, (flame.alpha || 1) - 0.35),
+                            y: flame.y - 4 - index,
+                            duration: 160 + index * 40,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: "Sine.InOut"
+                        });
+                    });
+                }
+                if (Array.isArray(def.destroyedFx._smokes)) {
+                    def.destroyedFx._smokes.forEach((smoke, index) => {
+                        this.tweens.add({
+                            targets: smoke,
+                            y: smoke.y - 8 - index * 3,
+                            x: smoke.x + (index % 2 === 0 ? 4 : -4),
+                            alpha: Math.max(0.12, (smoke.alpha || 0.3) - 0.18),
+                            scaleX: 1.25 + index * 0.08,
+                            scaleY: 1.32 + index * 0.1,
+                            duration: 620 + index * 120,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: "Sine.InOut"
+                        });
+                    });
+                }
+                if (Array.isArray(def.destroyedFx._embers)) {
+                    this.tweens.add({
+                        targets: def.destroyedFx._embers,
+                        alpha: 0.12,
+                        scaleX: 1.22,
+                        scaleY: 1.18,
+                        duration: 240,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: "Sine.InOut"
+                    });
+                }
+                if (def.destroyedFx._wreckGlow) {
+                    this.tweens.add({
+                        targets: [def.destroyedFx._wreckGlow, def.destroyedFx._crackGlow].filter(Boolean),
+                        alpha: 0.22,
+                        duration: 280,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: "Sine.InOut"
+                    });
+                }
+            }
+            if (!def._destroyedSparkLoop) {
+                const sparkBurst = () => {
+                    if (!def || !def.permaDestroyed || !def.container || !def.container.scene) {
+                        def._destroyedSparkLoop = null;
+                        return;
+                    }
+                    this.spawnRadialSparkBurst(def.container.x + Phaser.Math.Between(-18, 18), def.container.y + Phaser.Math.Between(-10, 8), {
+                        count: Phaser.Math.Between(2, 4),
+                        color: 0xffb04d,
+                        colorAlt: 0xffef9c,
+                        minSpeed: 10,
+                        maxSpeed: 28,
+                        depth: 5202
+                    });
+                    def._destroyedSparkLoop = this.time.delayedCall(240 + Phaser.Math.Between(0, 180), sparkBurst);
+                };
+                def._destroyedSparkLoop = this.time.delayedCall(180, sparkBurst);
+            }
         }
     },
 

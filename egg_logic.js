@@ -110,7 +110,7 @@ window.EggGameModules.logic = {
             armored: true,
             nuclearEgg: true,
             nuclearHits: sourceEgg && typeof sourceEgg.nuclearHits === "number" ? sourceEgg.nuclearHits : 0,
-            nuclearMaxHits: sourceEgg && typeof sourceEgg.nuclearMaxHits === "number" ? sourceEgg.nuclearMaxHits : 3,
+            nuclearMaxHits: sourceEgg && typeof sourceEgg.nuclearMaxHits === "number" ? sourceEgg.nuclearMaxHits : 2,
             armorDamage: 0,
             bomb: false,
             bombLit: false,
@@ -818,19 +818,24 @@ window.EggGameModules.logic = {
         }
     },
 
-    damageNuclearEggs(item, sourceType = "impact") {
+    damageNuclearEggs(item, sourceType = "impact", options = {}) {
         if (!item || item.destroyed || item.finished || !Array.isArray(item.eggs) || item.eggs.length === 0) return false;
-        const nuclearEggs = item.eggs.filter(egg => egg && egg.nuclearEgg);
+        const removeVulnerableCompanions = !!options.removeVulnerableCompanions;
+        const sourceEggs = item.eggs.map(egg => ({ ...egg }));
+        const workingEggs = removeVulnerableCompanions
+            ? sourceEggs.filter(egg => egg && (egg.nuclearEgg || egg.armored))
+            : sourceEggs;
+        const nuclearEggs = workingEggs.filter(egg => egg && egg.nuclearEgg);
         if (nuclearEggs.length === 0) return false;
 
         const nextHits = Math.max(...nuclearEggs.map(egg => egg.nuclearHits || 0)) + 1;
-        const maxHits = Math.max(...nuclearEggs.map(egg => egg.nuclearMaxHits || 3));
+        const maxHits = Math.max(...nuclearEggs.map(egg => egg.nuclearMaxHits || 2));
         if (nextHits > maxHits) {
             this.runNuclearEggDetonation(item, sourceType);
             return true;
         }
 
-        const nextEggs = item.eggs.map(egg => egg && egg.nuclearEgg
+        const nextEggs = workingEggs.map(egg => egg && egg.nuclearEgg
             ? {
                 ...egg,
                 nuclearHits: nextHits,
@@ -839,7 +844,16 @@ window.EggGameModules.logic = {
             }
             : { ...egg });
 
+        if (removeVulnerableCompanions && nextEggs.length !== item.eggs.length) {
+            const prevMult = Math.max(0.0001, (item.eggs || []).reduce((sum, egg) => sum + (egg && egg.mult ? egg.mult : 0), 0));
+            const nextMult = Math.max(0, nextEggs.reduce((sum, egg) => sum + (egg && egg.mult ? egg.mult : 0), 0));
+            const ratio = nextMult / prevMult;
+            item.eggMultSum = nextMult;
+            item.currentValue *= ratio;
+        }
+
         this.setItemEggs(item, nextEggs);
+        this.updatePillowValueText(item);
         this.spawnNuclearHitFx(item.container.x, item.container.y - 8, nextHits);
         this.flashValueText(item, nextHits >= 2 ? "#8cff72" : "#eef7ff");
         this.pulseItem(item);
@@ -854,6 +868,29 @@ window.EggGameModules.logic = {
                 repeat: 5
             });
         }
+        return true;
+    },
+
+    repairNuclearEggs(item) {
+        if (!item || item.destroyed || item.finished || !Array.isArray(item.eggs) || item.eggs.length === 0) return false;
+        const nuclearEggs = item.eggs.filter(egg => egg && egg.nuclearEgg);
+        if (nuclearEggs.length === 0) return false;
+        const currentHits = Math.max(...nuclearEggs.map(egg => egg.nuclearHits || 0));
+        if (currentHits <= 0) return false;
+
+        const nextEggs = item.eggs.map(egg => egg && egg.nuclearEgg
+            ? {
+                ...egg,
+                nuclearHits: Math.max(0, (egg.nuclearHits || 0) - 1),
+                nuclearMaxHits: egg.nuclearMaxHits || 2
+            }
+            : { ...egg });
+
+        this.setItemEggs(item, nextEggs);
+        this.updatePillowValueText(item);
+        this.spawnNuclearHitFx(item.container.x, item.container.y - 8, 1);
+        this.flashValueText(item, "#b8fff0");
+        this.pulseItem(item);
         return true;
     },
 
@@ -1124,7 +1161,6 @@ window.EggGameModules.logic = {
         const brokenSnapshot = this.gameplayPauseBrokenSnapshot instanceof Map ? this.gameplayPauseBrokenSnapshot : new Map();
         for (const [def, snap] of brokenSnapshot.entries()) {
             if (!def || !def.brokenUntil || this.time.now >= def.brokenUntil) continue;
-            if ((def.brokenStartedAt || 0) >= pauseStart - 0.5) continue;
             const remainingMs = Math.max(0, snap && typeof snap.remainingMs === "number" ? snap.remainingMs : 0);
             const durationMs = Math.max(1, snap && typeof snap.durationMs === "number" ? snap.durationMs : (def.brokenDurationMs || 10000));
             def.brokenUntil = this.time.now + remainingMs;
@@ -2038,6 +2074,14 @@ window.EggGameModules.logic = {
         }
 
         if (def.type === "shield") {
+            if (this.repairNuclearEggs(item)) {
+                this.spawnMachineImpactFx({ type: "water" }, item.container.x, item.container.y - 4);
+                return;
+            }
+            if (this.damageNuclearEggs(item, "shield")) {
+                this.spawnCrushFx(item.container.x, item.container.y - 4);
+                return;
+            }
             this.applyShieldToItem(item);
             return;
         }
@@ -2139,7 +2183,7 @@ window.EggGameModules.logic = {
                 ? Math.max(...armoredEggs.map(egg => egg.armorDamage || 0))
                 : 0;
 
-            if (this.damageNuclearEggs(item, "crush")) {
+            if (this.damageNuclearEggs(item, "crush", { removeVulnerableCompanions: true })) {
                 this.spawnCrushFx(item.container.x, item.container.y - 4);
                 return;
             }
